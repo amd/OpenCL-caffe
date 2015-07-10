@@ -1,6 +1,7 @@
 #ifndef CAFFE_COMMON_HPP_
 #define CAFFE_COMMON_HPP_
 
+#include <CL/cl_ext.h>
 #include <boost/shared_ptr.hpp>
 #include <gflags/gflags.h>
 #include <glog/logging.h>
@@ -15,7 +16,10 @@
 #include <string>
 #include <utility>  // pair
 #include <vector>
+#include <clBLAS.h>
+#include <CL/cl.h>
 
+#include "caffe/device.hpp"
 #include "caffe/util/device_alternate.hpp"
 
 // gflags 2.1 issue: namespace google was changed to gflags without warning.
@@ -65,6 +69,25 @@ private:\
 // is executed we will see a fatal log.
 #define NOT_IMPLEMENTED LOG(FATAL) << "Not Implemented Yet"
 
+// OpenCL: various checks for different function calls.
+#define OCL_CHECK(condition) \
+  do { \
+    cl_int error = condition; \
+    CHECK_EQ(error, CL_SUCCESS) << " " << error; \
+    if(CL_SUCCESS != error){ \
+       LOG(INFO) << "failed";\
+    } \
+  } while (0)
+
+#define CLBLAS_CHECK(flag) \
+  do { \
+     cl_int error = flag; \
+     CHECK_EQ(error, clblasSuccess) << " " << error; \
+     if (error != clblasSuccess){ \
+         LOG(INFO) << "clBlas Function Failed! Error Code:" << error; \
+     } \
+ } while(0)
+
 // See PR #1236
 namespace cv { class Mat; }
 
@@ -104,7 +127,7 @@ class Caffe {
     }
     return *singleton_;
   }
-  enum Brew { CPU, GPU };
+  enum Brew { CPU, GPU, APU };
 
   // This random number generator facade hides boost and CUDA rng
   // implementation from one another (for cross-platform compatibility).

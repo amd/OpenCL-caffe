@@ -85,7 +85,8 @@ void* Caffe::RNG::generator() {
 #else  // Normal GPU + CPU Caffe.
 
 Caffe::Caffe()
-    : cublas_handle_(NULL), curand_generator_(NULL), random_generator_(),
+{
+/*    : cublas_handle_(NULL), curand_generator_(NULL), random_generator_(),
     mode_(Caffe::CPU) {
   // Try to create a cublas handler, and report an error if failed (but we will
   // keep the program running as one might just want to run CPU code).
@@ -99,18 +100,20 @@ Caffe::Caffe()
       != CURAND_STATUS_SUCCESS) {
     LOG(ERROR) << "Cannot create Curand generator. Curand won't be available.";
   }
+*/
 }
 
 Caffe::~Caffe() {
-  if (cublas_handle_) CUBLAS_CHECK(cublasDestroy(cublas_handle_));
+ /* if (cublas_handle_) CUBLAS_CHECK(cublasDestroy(cublas_handle_));
   if (curand_generator_) {
     CURAND_CHECK(curandDestroyGenerator(curand_generator_));
   }
+*/
 }
 
 void Caffe::set_random_seed(const unsigned int seed) {
   // Curand seed
-  static bool g_curand_availability_logged = false;
+ /* static bool g_curand_availability_logged = false;
   if (Get().curand_generator_) {
     CURAND_CHECK(curandSetPseudoRandomGeneratorSeed(curand_generator(),
         seed));
@@ -124,10 +127,11 @@ void Caffe::set_random_seed(const unsigned int seed) {
   }
   // RNG seed
   Get().random_generator_.reset(new RNG(seed));
+*/
 }
 
 void Caffe::SetDevice(const int device_id) {
-  int current_device;
+ /* int current_device;
   CUDA_CHECK(cudaGetDevice(&current_device));
   if (current_device == device_id) {
     return;
@@ -144,10 +148,11 @@ void Caffe::SetDevice(const int device_id) {
       CURAND_RNG_PSEUDO_DEFAULT));
   CURAND_CHECK(curandSetPseudoRandomGeneratorSeed(Get().curand_generator_,
       cluster_seedgen()));
+*/
 }
 
 void Caffe::DeviceQuery() {
-  cudaDeviceProp prop;
+  /*cudaDeviceProp prop;
   int device;
   if (cudaSuccess != cudaGetDevice(&device)) {
     printf("No cuda device present.\n");
@@ -179,6 +184,7 @@ void Caffe::DeviceQuery() {
   LOG(INFO) << "Kernel execution timeout:      "
       << (prop.kernelExecTimeoutEnabled ? "Yes" : "No");
   return;
+*/
 }
 
 
@@ -205,7 +211,7 @@ void* Caffe::RNG::generator() {
 }
 
 const char* cublasGetErrorString(cublasStatus_t error) {
-  switch (error) {
+ /* switch (error) {
   case CUBLAS_STATUS_SUCCESS:
     return "CUBLAS_STATUS_SUCCESS";
   case CUBLAS_STATUS_NOT_INITIALIZED:
@@ -231,11 +237,12 @@ const char* cublasGetErrorString(cublasStatus_t error) {
     return "CUBLAS_STATUS_LICENSE_ERROR";
 #endif
   }
+*/
   return "Unknown cublas status";
 }
 
 const char* curandGetErrorString(curandStatus_t error) {
-  switch (error) {
+  /*switch (error) {
   case CURAND_STATUS_SUCCESS:
     return "CURAND_STATUS_SUCCESS";
   case CURAND_STATUS_VERSION_MISMATCH:
@@ -263,6 +270,7 @@ const char* curandGetErrorString(curandStatus_t error) {
   case CURAND_STATUS_INTERNAL_ERROR:
     return "CURAND_STATUS_INTERNAL_ERROR";
   }
+*/
   return "Unknown curand status";
 }
 
