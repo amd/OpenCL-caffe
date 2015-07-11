@@ -42,7 +42,7 @@ class SyncedMemory {
  public:
   SyncedMemory()
       : cpu_ptr_(NULL), gpu_ptr_(NULL), size_(0), head_(UNINITIALIZED),
-        own_cpu_data_(false), is_data_layer_(false) {
+        own_cpu_data_(false), data_layer_(false) {
         ocl_setup();
         }
   explicit SyncedMemory(size_t size)
