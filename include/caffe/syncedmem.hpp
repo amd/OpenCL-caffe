@@ -42,29 +42,41 @@ class SyncedMemory {
  public:
   SyncedMemory()
       : cpu_ptr_(NULL), gpu_ptr_(NULL), size_(0), head_(UNINITIALIZED),
-        own_cpu_data_(false) {}
+        own_cpu_data_(false), is_data_layer_(false) {
+        ocl_setup();
+        }
   explicit SyncedMemory(size_t size)
       : cpu_ptr_(NULL), gpu_ptr_(NULL), size_(size), head_(UNINITIALIZED),
-        own_cpu_data_(false) {}
+        own_cpu_data_(false), data_layer_(false) {
+        ocl_setup();
+        }
+
   ~SyncedMemory();
   const void* cpu_data();
   void set_cpu_data(void* data);
   const void* gpu_data();
+  //const void* gpu_cache_data();
   void* mutable_cpu_data();
   void* mutable_gpu_data();
   enum SyncedHead { UNINITIALIZED, HEAD_AT_CPU, HEAD_AT_GPU, SYNCED };
   SyncedHead head() { return head_; }
   size_t size() { return size_; }
+  void set_data_layer(){ data_layer_ = true; }
+ private:
+   void ocl_setup();
+ protected:
+   cl_kernel oclmem_kernel;
 
  private:
   void to_cpu();
   void to_gpu();
   void* cpu_ptr_;
   void* gpu_ptr_;
+  void* gpu_cache_ptr_;
   size_t size_;
   SyncedHead head_;
   bool own_cpu_data_;
-
+  bool data_layer_;
   DISABLE_COPY_AND_ASSIGN(SyncedMemory);
 };  // class SyncedMemory
 

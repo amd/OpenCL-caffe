@@ -11,6 +11,8 @@ shared_ptr<Caffe> Caffe::singleton_;
 
 // random seeding
 int64_t cluster_seedgen(void) {
+ //To fix: for now we use fixed seed to get same result each time
+  /*
   int64_t s, seed, pid;
   FILE* f = fopen("/dev/urandom", "rb");
   if (f && fread(&seed, 1, sizeof(seed), f) == sizeof(seed)) {
@@ -27,6 +29,9 @@ int64_t cluster_seedgen(void) {
   s = time(NULL);
   seed = abs(((s * 181) * ((pid - 83) * 359)) % 104729);
   return seed;
+  */
+  LOG(WARNING) << "return fixed seed 37";
+  return 37;
 }
 
 
