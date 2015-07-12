@@ -67,6 +67,17 @@ void HDF5OutputLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
   return;
 }
 
+template <typename Dtype>
+void HDF5OutputLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
+      const vector<Blob<Dtype>*>& top){
+}
+
+template <typename Dtype>
+void HDF5OutputLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
+      const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
+  return;
+}
+
 #ifdef CPU_ONLY
 STUB_GPU(HDF5OutputLayer);
 #endif

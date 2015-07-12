@@ -77,6 +77,18 @@ void LogLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
   caffe_mul(count, top_diff, bottom_diff, bottom_diff);
 }
 
+template <typename Dtype>
+void LogLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
+      const vector<Blob<Dtype>*>& top){
+}
+
+template <typename Dtype>
+void LogLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
+      const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom){
+}
+
+
+
 #ifdef CPU_ONLY
 STUB_GPU(LogLayer);
 #endif

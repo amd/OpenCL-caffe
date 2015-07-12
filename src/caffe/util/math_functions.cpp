@@ -450,7 +450,6 @@ void caffe_rng_bernoulli(const int n, const Dtype p, int* r) {
   for (int i = 0; i < n; ++i) {
     r[i] = variate_generator();
   }
-  //LOG(INFO) << "caffe_rng_bernoulli";
 }
 
 template
@@ -458,6 +457,26 @@ void caffe_rng_bernoulli<double>(const int n, const double p, int* r);
 
 template
 void caffe_rng_bernoulli<float>(const int n, const float p, int* r);
+
+template <typename Dtype>
+void caffe_rng_bernoulli(const int n, const Dtype p, unsigned int* r) {
+  CHECK_GE(n, 0);
+  CHECK(r);
+  CHECK_GE(p, 0);
+  CHECK_LE(p, 1);
+  boost::bernoulli_distribution<Dtype> random_distribution(p);
+  boost::variate_generator<caffe::rng_t*, boost::bernoulli_distribution<Dtype> >
+      variate_generator(caffe_rng(), random_distribution);
+  for (int i = 0; i < n; ++i) {
+    r[i] = static_cast<unsigned int>(variate_generator());
+  }
+}
+
+template
+void caffe_rng_bernoulli<double>(const int n, const double p, unsigned int* r);
+
+template
+void caffe_rng_bernoulli<float>(const int n, const float p, unsigned int* r);
 //
 template <>
 float caffe_cpu_dot<float>(const int n, const float* x, const float* y) {
@@ -522,6 +541,10 @@ void caffe_gpu_asum<float>(const int n, const float* x, float* y) {
 template <>
 void caffe_gpu_asum<double>(const int n, const double* x, double* y) {
 }
+
+DEFINE_AND_INSTANTIATE_GPU_UNARY_FUNC(sign, y[index] = (Dtype(0) < x[index])
+                                      - (x[index] < Dtype(0)));
+DEFINE_AND_INSTANTIATE_GPU_UNARY_FUNC(sgnbit, y[index] = signbit(x[index]));
 
 INSTANTIATE_CAFFE_CPU_UNARY_FUNC(sign);
 INSTANTIATE_CAFFE_CPU_UNARY_FUNC(sgnbit);
@@ -666,4 +689,90 @@ template <>
 void caffe_gpu_rng_gaussian(const int n, const double mu, const double sigma,
                             double* r) {
 }
+
+template <>
+void caffe_log<float>(const int n, const float* a, float* y) {
+  vsLn(n, a, y);
+}
+
+template <>
+void caffe_log<double>(const int n, const double* a, double* y) {
+  vdLn(n, a, y);
+}
+
+template <typename Dtype>
+void caffe_copy(const int N, const Dtype* X, Dtype* Y) {
+  if (X != Y) {
+    if (Caffe::mode() == Caffe::GPU) {
+#ifndef CPU_ONLY
+      // NOLINT_NEXT_LINE(caffe/alt_fn)
+      CUDA_CHECK(cudaMemcpy(Y, X, sizeof(Dtype) * N, cudaMemcpyDefault));
+#else
+      NO_GPU;
+#endif
+    } else {
+      memcpy(Y, X, sizeof(Dtype) * N);  // NOLINT(caffe/alt_fn)
+    }
+  }
+}
+
+template void caffe_copy<int>(const int N, const int* X, int* Y);
+template void caffe_copy<unsigned int>(const int N, const unsigned int* X,
+    unsigned int* Y);
+template void caffe_copy<float>(const int N, const float* X, float* Y);
+template void caffe_copy<double>(const int N, const double* X, double* Y);
+
+template <>
+void caffe_abs<float>(const int n, const float* a, float* y) {
+    vsAbs(n, a, y);
+}
+
+template <>
+void caffe_abs<double>(const int n, const double* a, double* y) {
+    vdAbs(n, a, y);
+}
+
+template <>
+void caffe_gpu_add<float>(const int N, const float* a, const float* b,
+    float* y) {
+  // NOLINT_NEXT_LINE(whitespace/operators)
+ // add_kernel<float><<<CAFFE_GET_BLOCKS(N), CAFFE_CUDA_NUM_THREADS>>>(
+   //   N, a, b, y);
+}
+
+template <>
+void caffe_gpu_add<double>(const int N, const double* a, const double* b,
+    double* y) {
+  // NOLINT_NEXT_LINE(whitespace/operators)
+ // add_kernel<double><<<CAFFE_GET_BLOCKS(N), CAFFE_CUDA_NUM_THREADS>>>(
+   //   N, a, b, y);
+}
+
+template <>
+float caffe_cpu_strided_dot<float>(const int n, const float* x, const int incx,
+    const float* y, const int incy) {
+  return cblas_sdot(n, x, incx, y, incy);
+}
+
+template <>
+double caffe_cpu_strided_dot<double>(const int n, const double* x,
+    const int incx, const double* y, const int incy) {
+  return cblas_ddot(n, x, incx, y, incy);
+}
+
+template <typename Dtype>
+void caffe_set(const int N, const Dtype alpha, Dtype* Y) {
+  if (alpha == 0) {
+    memset(Y, 0, sizeof(Dtype) * N);  // NOLINT(caffe/alt_fn)
+    return;
+  }
+  for (int i = 0; i < N; ++i) {
+    Y[i] = alpha;
+  }
+}
+
+template void caffe_set<int>(const int N, const int alpha, int* Y);
+template void caffe_set<float>(const int N, const float alpha, float* Y);
+template void caffe_set<double>(const int N, const double alpha, double* Y);
+
 }  // namespace caffe

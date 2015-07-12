@@ -163,11 +163,40 @@ ifneq ("$(wildcard $(CUDA_DIR)/lib64)","")
 endif
 CUDA_LIB_DIR += $(CUDA_DIR)/lib
 
+#################################
+# OpenCL include and library 
+#################################
+OCL_INCLUDE_DIR := $(OCL_DIR)/include
+CLBLAS_INCLUDE_DIR := ${CLBLAS_DIR}/include
+
+OCL_LIB_DIR := 
+CLBLAS_LIB_DIR :=
+# add <OCL>/lib/x86_64 only if it exists
+ifneq ("$(wildcard $(OCL_LIB_DIR)/lib/x86_64)","")
+        OCL_LIB_DIR += $(OCL_DIR)/lib/x86_64
+endif
+OCL_LIB_DIR += $(OCL_DIR)/lib/x86
+
+# add <CLBLAS_DIR>/lib/ only if it exists
+ifneq ("$(wildcard $(CLBLAS_DIR)/lib)","")
+        CLBLAS_LIB_DIR += $(CLBLAS_LIB_DIR)/lib
+endif
+
+# add <CLBLAS_DIR>/lib64/ only if it exists
+ifneq ("$(wildcard $(CLBLAS_DIR)/lib64)","")
+        CLBLAS_LIB_DIR += $(CLBLAS_LIB_DIR)/lib64
+endif
+
 INCLUDE_DIRS += $(BUILD_INCLUDE_DIR) ./src ./include
 ifneq ($(CPU_ONLY), 1)
 	INCLUDE_DIRS += $(CUDA_INCLUDE_DIR)
 	LIBRARY_DIRS += $(CUDA_LIB_DIR)
 	LIBRARIES := cudart cublas curand
+        
+        INCLUDE_DIRS += $(OCL_INCLUDE_DIR) + $(CLBLAS_INCLUDE_DIR)
+        LIBRARY_DIRS += $(OCL_LIB_DIR) + $(CLBLAS_LIB_DIR)
+        LIBRARIES += OpenCL clBLAS
+
 endif
 LIBRARIES += glog gflags protobuf leveldb snappy \
 	lmdb boost_system hdf5_hl hdf5 m \
