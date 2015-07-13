@@ -48,7 +48,7 @@ void DataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& bottom,
   top_shape[0] = this->layer_param_.data_param().batch_size();
   this->prefetch_data_.Reshape(top_shape);
   top[0]->ReshapeLike(this->prefetch_data_);
-  prefetch_data_->set_data_layer();
+  this->prefetch_data_.set_data_layer();
 
   LOG(INFO) << "output data size: " << top[0]->num() << ","
       << top[0]->channels() << "," << top[0]->height() << ","
@@ -58,7 +58,7 @@ void DataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& bottom,
     vector<int> label_shape(1, this->layer_param_.data_param().batch_size());
     top[1]->Reshape(label_shape);
     this->prefetch_label_.Reshape(label_shape);
-    prefetch_label_->set_data_layer();
+    this->prefetch_label_.set_data_layer();
   }
 }
 

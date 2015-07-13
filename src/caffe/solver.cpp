@@ -33,6 +33,14 @@ void Solver<Dtype>::Init(const SolverParameter& param) {
             << param.DebugString();
   param_ = param;
   CHECK_GE(param_.average_loss(), 1) << "average_loss should be non-negative.";
+
+//#ifndef CPU_ONLY
+  //AMD device related initialization
+  amdDevice.Init();
+//#else
+//  NO_GPU;
+//#endif
+
   if (param_.random_seed() >= 0) {
     Caffe::set_random_seed(param_.random_seed());
   }
@@ -42,6 +50,7 @@ void Solver<Dtype>::Init(const SolverParameter& param) {
   LOG(INFO) << "Solver scaffolding done.";
   iter_ = 0;
   current_step_ = 0;
+
 }
 
 template <typename Dtype>

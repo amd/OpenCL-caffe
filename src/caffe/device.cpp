@@ -127,7 +127,7 @@ cl_int Device::Init(){
     }
 
     //Read our own kernel file
-    const char *pFileName = "../../src/caffe/OCL_kernel.cl";
+    const char *pFileName = "./src/caffe/OCL_kernel.cl";
     const char *pSource;
     std::string strSource = "";
     ConvertToString(pFileName, strSource);

@@ -3,6 +3,7 @@
 #include "caffe/common.hpp"
 #include "caffe/syncedmem.hpp"
 #include "caffe/util/math_functions.hpp"
+#include "caffe/util/ocl_util.hpp"
 
 #define CL_MEM_USE_PERSISTENT_MEM_AMD (1 << 6)//specific for AMD devices
 
@@ -161,6 +162,8 @@ void* SyncedMemory::mutable_gpu_data() {
 #endif
 }
 
-
+const void *SyncedMemory::gpu_cache_data()
+{
+}
 }  // namespace caffe
 
