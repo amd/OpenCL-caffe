@@ -24,6 +24,7 @@ DataTransformer<Dtype>::DataTransformer(const TransformationParameter& param,
     ReadProtoFromBinaryFileOrDie(mean_file.c_str(), &blob_proto);
     data_mean_.FromProto(blob_proto);
   }
+  printf("before if\n");
   // check if we want to use mean_value
   if (param_.mean_value_size() > 0) {
     CHECK(param_.has_mean_file() == false) <<
@@ -32,6 +33,7 @@ DataTransformer<Dtype>::DataTransformer(const TransformationParameter& param,
       mean_values_.push_back(param_.mean_value(c));
     }
   }
+  printf("reaches here\n");
 }
 
 template<typename Dtype>

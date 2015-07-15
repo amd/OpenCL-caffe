@@ -21,6 +21,7 @@
 
 #include "caffe/device.hpp"
 #include "caffe/util/device_alternate.hpp"
+#include "caffe/util/ocl_wrapper.hpp"
 
 // gflags 2.1 issue: namespace google was changed to gflags without warning.
 // Luckily we will be able to use GFLAGS_GFLAGS_H_ to detect if it is version
@@ -87,6 +88,22 @@ private:\
          LOG(INFO) << "clBlas Function Failed! Error Code:" << error; \
      } \
  } while(0)
+
+//sample #num data from Blob_
+#define CHECK_BLOB_DATA(Blob_, num, marker) \
+do{ \
+  const  Dtype *top_cpu_data = Blob_->cpu_data(); \
+  size_t top_cpu_data_count = Blob_->count(); \
+  size_t sample_interval = top_cpu_data_count/num; \
+  if(sample_interval == 0){ \
+     sample_interval=1; \
+  } \
+  printf("%s: ", marker); \
+  for(int i=0; i<top_cpu_data_count; i+=sample_interval){ \
+      printf("%f  ", top_cpu_data[i]); \
+  } \
+  printf("\n\n"); \
+}while(0)
 
 // See PR #1236
 namespace cv { class Mat; }

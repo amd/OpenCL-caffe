@@ -8,6 +8,63 @@
 
 namespace caffe {
 
+#ifdef use_packing_scheme
+template <typename Dtype> size_t BaseConvolutionLayer<Dtype>::subtop_mem_size = sizeof(Dtype);
+template <typename Dtype> size_t BaseConvolutionLayer<Dtype>::trans_mem_size =  sizeof(Dtype);
+template <typename Dtype> cl_mem BaseConvolutionLayer<Dtype>::subTopMem = clCreateBuffer(amdDevice.Context, CL_MEM_READ_WRITE, BaseConvolutionLayer<Dtype>::subtop_mem_size, NULL, NULL);
+template <typename Dtype> cl_mem BaseConvolutionLayer<Dtype>::transMem = clCreateBuffer(amdDevice.Context, CL_MEM_READ_WRITE, BaseConvolutionLayer<Dtype>::trans_mem_size, NULL, NULL);
+#endif
+
+template <typename Dtype>
+void Alloc_public_tmp_mem(size_t subtop_size, size_t trans_size)
+{
+  if(subtop_size > BaseConvolutionLayer<Dtype>::subtop_mem_size){
+      ConvolutionLayer<Dtype>::subtop_mem_size = subtop_size;
+      clReleaseMemObject(ConvolutionLayer<Dtype>::subTopMem);
+      ConvolutionLayer<Dtype>::subTopMem = clCreateBuffer(amdDevice.Context, CL_MEM_READ_WRITE, BaseConvolutionLayer<Dtype>::subtop_mem_size, NULL, NULL);
+  }
+  if(trans_size > ConvolutionLayer<Dtype>::trans_mem_size){
+      ConvolutionLayer<Dtype>::trans_mem_size =  trans_size;
+      clReleaseMemObject(ConvolutionLayer<Dtype>::transMem);
+      ConvolutionLayer<Dtype>::transMem = clCreateBuffer(amdDevice.Context, CL_MEM_READ_WRITE, BaseConvolutionLayer<Dtype>::trans_mem_size, NULL, NULL);
+  }
+}
+
+template <typename Dtype>
+void BaseConvolutionLayer<Dtype>::ocl_setup() {
+  im2col_kernel = clCreateKernel(amdDevice.Program,"im2colfloat", NULL);
+  col2im_kernel = clCreateKernel(amdDevice.Program,"col2imfloat", NULL);
+  oclmem_kernel = clCreateKernel(amdDevice.Program, "oclmemfloat", NULL);
+  im2col_opt_kernel = clCreateKernel(amdDevice.Program, "im2col_optfloat", NULL);
+  col2im_opt_kernel = clCreateKernel(amdDevice.Program, "col2im_optfloat", NULL);
+  opttrans_kernel = clCreateKernel(amdDevice.Program, "opttransfloat", NULL);
+  ocl_Kernel_im2colfloat = clCreateKernel(amdDevice.Program,"im2colfloat_yuan",NULL);
+  ocl_Kernel_col2imfloat = clCreateKernel(amdDevice.Program,"col2imfloat_yuan",NULL);
+  ocl_Kernel_transpose = clCreateKernel(amdDevice.Program,"transposefloat",NULL);
+  ocl_Kernel_transform = clCreateKernel(amdDevice.Program,"transformfloat",NULL);
+
+#ifdef use_packing_scheme
+  size_t subtop_size = (size_t)((M_ * group_) * N_ * global_packing_N * sizeof(Dtype));
+  size_t trans_size = (size_t)((K_ * group_ )* N_ * global_packing_N * sizeof(Dtype));
+  Alloc_public_tmp_mem<Dtype>(subtop_size, trans_size);
+#endif
+}
+
+
+template <typename Dtype>
+ BaseConvolutionLayer<Dtype>::~BaseConvolutionLayer(){
+  OCL_CHECK( clReleaseKernel(im2col_kernel) );
+  OCL_CHECK( clReleaseKernel(col2im_kernel) );
+  OCL_CHECK( clReleaseKernel(oclmem_kernel) );
+  OCL_CHECK( clReleaseKernel(ocl_Kernel_transpose) );
+  OCL_CHECK( clReleaseKernel(ocl_Kernel_transform) );
+  OCL_CHECK( clReleaseKernel(ocl_Kernel_im2colfloat) );
+  OCL_CHECK( clReleaseKernel(ocl_Kernel_col2imfloat) );
+  OCL_CHECK( clReleaseKernel(im2col_opt_kernel) );
+  OCL_CHECK( clReleaseKernel(col2im_opt_kernel) );
+}
+
+
 template <typename Dtype>
 void BaseConvolutionLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
       const vector<Blob<Dtype>*>& top) {
@@ -68,6 +125,10 @@ void BaseConvolutionLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
     conv_out_channels_ = num_output_;
     conv_in_channels_ = channels_;
   }
+
+  //initializa OpenCL kernels and cl_mem objects
+    ocl_setup();
+
   // Handle the parameters: weights and biases.
   // - blobs_[0] holds the filter weights
   // - blobs_[1] holds the biases (optional)
@@ -234,20 +295,31 @@ void BaseConvolutionLayer<Dtype>::forward_gpu_gemm(const Dtype* input,
     }
     col_buff = col_buffer_.gpu_data();
   }
+  
   for (int g = 0; g < group_; ++g) {
-    caffe_gpu_gemm<Dtype>(CblasNoTrans, CblasNoTrans, conv_out_channels_ /
+    /*caffe_gpu_gemm<Dtype>(CblasNoTrans, CblasNoTrans, conv_out_channels_ /
         group_, conv_out_spatial_dim_, kernel_dim_ / group_,
         (Dtype)1., weights + weight_offset_ * g, col_buff + col_offset_ * g,
         (Dtype)0., output + output_offset_ * g);
-  }
+    */
+    //printf("weights.count() = %d, col_buff.count() = %d, output = %d\n", weights.count(), col_buff.count(), output.count());   
+    caffe_gpu_gemmex<Dtype>(&(amdDevice.CommandQueue), CblasNoTrans, CblasNoTrans,
+          conv_out_channels_/group_, conv_out_spatial_dim_, kernel_dim_ / group_,
+        (Dtype)1., weights, weight_offset_ * g, col_buff, col_offset_ * g,
+        (Dtype)0., output,  top_offset_+output_offset_ * g);
+   }
 }
 
 template <typename Dtype>
 void BaseConvolutionLayer<Dtype>::forward_gpu_bias(Dtype* output,
     const Dtype* bias) {
-  caffe_gpu_gemm<Dtype>(CblasNoTrans, CblasNoTrans, num_output_,
+  /*caffe_gpu_gemm<Dtype>(CblasNoTrans, CblasNoTrans, num_output_,
       height_out_ * width_out_, 1, (Dtype)1., bias, bias_multiplier_.gpu_data(),
-      (Dtype)1., output);
+      (Dtype)1., output);*/
+     caffe_gpu_gemm_ex<Dtype>(CblasNoTrans, CblasNoTrans, num_output_,
+          height_out_*width_out_, 1, (Dtype)1., bias, 0,
+          reinterpret_cast<const Dtype*>(bias_multiplier_.gpu_data()), 0,
+          (Dtype)1., output, top_offset_);
 }
 
 template <typename Dtype>
@@ -258,13 +330,18 @@ void BaseConvolutionLayer<Dtype>::backward_gpu_gemm(const Dtype* output,
     col_buff = input;
   }
   for (int g = 0; g < group_; ++g) {
-    caffe_gpu_gemm<Dtype>(CblasTrans, CblasNoTrans, kernel_dim_ / group_,
+   /* caffe_gpu_gemm<Dtype>(CblasTrans, CblasNoTrans, kernel_dim_ / group_,
         conv_out_spatial_dim_, conv_out_channels_ / group_,
         (Dtype)1., weights + weight_offset_ * g, output + output_offset_ * g,
         (Dtype)0., col_buff + col_offset_ * g);
+  */
+        caffe_gpu_gemmex<Dtype>(&(amdDevice.CommandQueue), CblasTrans, CblasNoTrans, kernel_dim_ / group_, conv_out_spatial_dim_, conv_out_channels_ / group_,
+          (Dtype)1., weights,  weight_offset_ * g,
+          output, top_offset_+output_offset_ * g,
+          (Dtype)0., col_buff, col_offset_ * g);
   }
   if (!is_1x1_) {
-    conv_col2im_gpu(col_buff, input);
+      conv_col2im_gpu(col_buff, input);
   }
 }
 
@@ -277,18 +354,26 @@ void BaseConvolutionLayer<Dtype>::weight_gpu_gemm(const Dtype* input,
     col_buff = col_buffer_.gpu_data();
   }
   for (int g = 0; g < group_; ++g) {
-    caffe_gpu_gemm<Dtype>(CblasNoTrans, CblasTrans, conv_out_channels_ / group_,
+   /* caffe_gpu_gemm<Dtype>(CblasNoTrans, CblasTrans, conv_out_channels_ / group_,
         kernel_dim_ / group_, conv_out_spatial_dim_,
         (Dtype)1., output + output_offset_ * g, col_buff + col_offset_ * g,
-        (Dtype)1., weights + weight_offset_ * g);
-  }
+        (Dtype)1., weights + weight_offset_ * g);*/
+      caffe_gpu_gemmex<Dtype>(&(amdDevice.CommandQueue), CblasNoTrans, CblasTrans, conv_out_channels_ / group_, kernel_dim_ / group_, conv_out_spatial_dim_,
+        (Dtype)1., output, top_offset_,
+        (Dtype*)col_buff, col_offset_ * g, (Dtype)1.,
+        (Dtype*)weights, weight_offset_ * g);
+ }
 }
 
 template <typename Dtype>
 void BaseConvolutionLayer<Dtype>::backward_gpu_bias(Dtype* bias,
     const Dtype* input) {
-  caffe_gpu_gemv<Dtype>(CblasNoTrans, num_output_, height_out_ * width_out_, 1.,
-      input, bias_multiplier_.gpu_data(), 1., bias);
+ /* caffe_gpu_gemv<Dtype>(CblasNoTrans, num_output_, height_out_ * width_out_, 1.,
+      input, bias_multiplier_.gpu_data(), 1., bias);*/
+      caffe_gpu_gemvv<Dtype>(CblasNoTrans, num_output_, height_out_*width_out_,
+          (Dtype)1., input, top_offset_, height_out_*width_out_,
+          reinterpret_cast<const Dtype*>(bias_multiplier_.gpu_data()), (size_t)0, (Dtype)1., 1,
+          bias, (size_t)0, 1);
 }
 
 #endif  // !CPU_ONLY

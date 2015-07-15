@@ -542,9 +542,9 @@ template <>
 void caffe_gpu_asum<double>(const int n, const double* x, double* y) {
 }
 
-DEFINE_AND_INSTANTIATE_GPU_UNARY_FUNC(sign, y[index] = (Dtype(0) < x[index])
-                                      - (x[index] < Dtype(0)));
-DEFINE_AND_INSTANTIATE_GPU_UNARY_FUNC(sgnbit, y[index] = signbit(x[index]));
+//DEFINE_AND_INSTANTIATE_GPU_UNARY_FUNC(sign, y[index] = (Dtype(0) < x[index])
+                                    //  - (x[index] < Dtype(0)));
+//DEFINE_AND_INSTANTIATE_GPU_UNARY_FUNC(sgnbit, y[index] = signbit(x[index]));
 
 INSTANTIATE_CAFFE_CPU_UNARY_FUNC(sign);
 INSTANTIATE_CAFFE_CPU_UNARY_FUNC(sgnbit);
@@ -607,6 +607,18 @@ void caffe_gpu_add_scalar(const int N, const double alpha, double* Y) {
 template <typename Dtype>
 void mul_kernel(const int n, const Dtype* a,
     const Dtype* b, Dtype* y) {
+}
+
+template<>
+void caffe_gpu_sign<float>(const int N, const float *X, float *Y){
+   cl_kernel caffe_gpu_sign_kernel = clCreateKernel(amdDevice.Program,"caffe_gpu_sign", NULL);
+   caffe_gpu_sign(caffe_gpu_sign_kernel, N, X, Y);
+}
+
+template<>
+void caffe_gpu_sign<double>(const int N, const double *X, double *Y){
+   cl_kernel caffe_gpu_sign_kernel = clCreateKernel(amdDevice.Program,"caffe_gpu_sign", NULL);
+   caffe_gpu_sign(caffe_gpu_sign_kernel, N, X, Y);
 }
 
 template <>

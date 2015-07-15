@@ -744,6 +744,17 @@ __kernel void OCL_memset2(__global int* buffer, const int value, const int size)
 }
 
 template <class T>
+__kernel void caffe_gpu_sign(const int N, __global T* X, __global T* Y){
+     int gdx = get_global_id(0);
+     if(gdx < N){
+          Y[gdx] =((0.0<X[gdx])-(X[gdx]<0.0));
+     }
+}
+
+template __attribute__((mangled_name(caffe_gpu_sign_float))) __kernel void caffe_gpu_sign(const int N, __global float* X, __global float* Y);
+template __attribute__((mangled_name(caffe_gpu_sign_double))) __kernel void caffe_gpu_sign(const int N, __global double* X, __global double* Y);
+
+template <class T>
 __kernel void im2col(const int n, __global T* data_im, const int img_offset, const int height, const int width, const int ksize, const int pad, const int stride, const int height_col, const int width_col, __global T* data_col, const int col_offset){
     int index=get_global_id(0);
     data_im = data_im + img_offset;

@@ -47,9 +47,11 @@ void GlobalInit(int* pargc, char*** pargv) {
 #ifdef CPU_ONLY  // CPU-only Caffe.
 
 Caffe::Caffe()
-    : random_generator_(), mode_(Caffe::CPU) { }
+    : random_generator_(), mode_(Caffe::CPU) {
+ }
 
-Caffe::~Caffe() { }
+Caffe::~Caffe() { 
+}
 
 void Caffe::set_random_seed(const unsigned int seed) {
   // RNG seed
@@ -106,6 +108,14 @@ Caffe::Caffe()
     LOG(ERROR) << "Cannot create Curand generator. Curand won't be available.";
   }
 */
+   cl_int err =  clblasSetup();
+   if(err != CL_SUCCESS){
+       LOG(ERROR) << "clBLAS setup failed "<<err;
+   }
+   else
+   {
+      printf("clBLAS setup succeed!\n");
+   }
 }
 
 Caffe::~Caffe() {
@@ -114,6 +124,7 @@ Caffe::~Caffe() {
     CURAND_CHECK(curandDestroyGenerator(curand_generator_));
   }
 */
+   clblasTeardown();
 }
 
 void Caffe::set_random_seed(const unsigned int seed) {
