@@ -216,6 +216,115 @@ void max_pool_fp_gpu(cl_kernel Kernel, const int count, const Dtype* bottom_data
 template  void max_pool_fp_gpu<float>(cl_kernel Kernel, const int count, const float* bottom_data, const int clnum, const int channels_, const int height_, const int width_, const int pooled_height_, const int pooled_width_, const int kernel_size_, const int stride_, float* top_data);
 template  void max_pool_fp_gpu<double>(cl_kernel Kernel, const int count, const double* bottom_data, const int clnum, const int channels_, const int height_, const int width_, const int pooled_height_, const int pooled_width_, const int kernel_size_, const int stride_, double* top_data);
 
+template <typename Dtype>
+void MaxPoolForward(cl_kernel Kernel, const int count, const Dtype* bottom_data, const int clnum, const int channels_, const int height_, const int width_, const int pooled_height_, const int pooled_width_, const int kernel_h_, const int kernel_w_, const int stride_h_, const int stride_w_, const int pad_h_, const int pad_w_, Dtype* top_data, int* mask, Dtype* top_mask){
+    cl_int ret;
+    ret  = clSetKernelArg(Kernel, 0, sizeof(cl_int), (void*)&count);
+    ret |= clSetKernelArg(Kernel, 1, sizeof(cl_mem), (void*)&bottom_data);
+    ret |= clSetKernelArg(Kernel, 2, sizeof(cl_int), (void*)&clnum);
+    ret |= clSetKernelArg(Kernel, 3, sizeof(cl_int), (void*)&channels_);
+    ret |= clSetKernelArg(Kernel, 4, sizeof(cl_int), (void*)&height_);
+    ret |= clSetKernelArg(Kernel, 5, sizeof(cl_int), (void*)&width_);
+    ret |= clSetKernelArg(Kernel, 6, sizeof(cl_int), (void*)&pooled_height_);
+    ret |= clSetKernelArg(Kernel, 7, sizeof(cl_int), (void*)&pooled_width_);
+    ret |= clSetKernelArg(Kernel, 8, sizeof(cl_int), (void*)&kernel_h_);
+    ret |= clSetKernelArg(Kernel, 9, sizeof(cl_int), (void*)&kernel_w_);
+    ret |= clSetKernelArg(Kernel, 10, sizeof(cl_int), (void*)&stride_h_);
+    ret |= clSetKernelArg(Kernel, 11, sizeof(cl_int), (void*)&stride_w_);
+    ret |= clSetKernelArg(Kernel, 12, sizeof(cl_int), (void*)&pad_h_);
+    ret |= clSetKernelArg(Kernel, 13, sizeof(cl_int), (void*)&pad_w_);
+    ret |= clSetKernelArg(Kernel, 14, sizeof(cl_mem), (void*)&top_data);
+    ret |= clSetKernelArg(Kernel, 15, sizeof(cl_mem), (void*)&mask);
+    ret |= clSetKernelArg(Kernel, 16, sizeof(cl_mem), (void*)&top_mask);
+    OCL_CHECK(ret);
+
+    size_t Global_Work_Size[] = {count * 1};
+    size_t Local_Work_Size[] = {256};
+    OCL_CHECK(clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, Global_Work_Size, Local_Work_Size, 0, NULL, NULL));
+}
+
+template void MaxPoolForward<float>(cl_kernel Kernel, const int count, const float* bottom_data, const int clnum, const int channels_, const int height_, const int width_, const int pooled_height_, const int pooled_width_, const int kernel_h_, const int kernel_w_, const int stride_h_, const int stride_w_, const int pad_h_, const int pad_w_, float* top_data, int* mask, float* top_mask);
+template void MaxPoolForward<double>(cl_kernel Kernel, const int count, const double* bottom_data, const int clnum, const int channels_, const int height_, const int width_, const int pooled_height_, const int pooled_width_, const int kernel_h_, const int kernel_w_, const int stride_h_, const int stride_w_, const int pad_h_, const int pad_w_, double* top_data, int* mask, double* top_mask);
+
+template <typename Dtype>
+void StoPoolForwardTrain(cl_kernel Kernel,const int count, const Dtype* bottom_data, const int clnum, const int channels_, const int height_, const int width_, const int pooled_height_, const int pooled_width_,  const int kernel_h_, const int kernel_w_, const int stride_h_, const int stride_w_, Dtype* idx_data, Dtype* top_data){
+    cl_int ret;
+    ret  = clSetKernelArg(Kernel, 0, sizeof(cl_int), (void*)&count);
+    ret |= clSetKernelArg(Kernel, 1, sizeof(cl_mem), (void*)&bottom_data);
+    ret |= clSetKernelArg(Kernel, 2, sizeof(cl_int), (void*)&clnum);
+    ret |= clSetKernelArg(Kernel, 3, sizeof(cl_int), (void*)&channels_);
+    ret |= clSetKernelArg(Kernel, 4, sizeof(cl_int), (void*)&height_);
+    ret |= clSetKernelArg(Kernel, 5, sizeof(cl_int), (void*)&width_);
+    ret |= clSetKernelArg(Kernel, 6, sizeof(cl_int), (void*)&pooled_height_);
+    ret |= clSetKernelArg(Kernel, 7, sizeof(cl_int), (void*)&pooled_width_);
+    ret |= clSetKernelArg(Kernel, 8, sizeof(cl_int), (void*)&kernel_h_);
+    ret |= clSetKernelArg(Kernel, 9, sizeof(cl_int), (void*)&kernel_w_);
+    ret |= clSetKernelArg(Kernel, 10, sizeof(cl_int), (void*)&stride_h_);
+    ret |= clSetKernelArg(Kernel, 11, sizeof(cl_int), (void*)&stride_w_);
+    ret |= clSetKernelArg(Kernel, 12, sizeof(cl_mem), (void*)&idx_data);
+    ret |= clSetKernelArg(Kernel, 13, sizeof(cl_mem), (void*)&top_data);
+    OCL_CHECK(ret);
+
+    size_t Global_Work_Size[] = {count * 1};
+    size_t Local_Work_Size[] = {256};
+    OCL_CHECK(clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, Global_Work_Size, Local_Work_Size, 0, NULL, NULL));
+}
+template void StoPoolForwardTrain<float>(cl_kernel Kernel,const int count, const float* bottom_data, const int clnum, const int channels_, const int height_, const int width_, const int pooled_height_, const int pooled_width_,  const int kernel_h_, const int kernel_w_, const int stride_h_, const int stride_w_, float* idx_data, float* top_data);
+template void StoPoolForwardTrain<double>(cl_kernel Kernel,const int count, const double* bottom_data, const int clnum, const int channels_, const int height_, const int width_, const int pooled_height_, const int pooled_width_,  const int kernel_h_, const int kernel_w_, const int stride_h_, const int stride_w_, double* idx_data, double* top_data);
+
+template <typename Dtype>
+void StoPoolForwardTest(cl_kernel Kernel,const int count, const Dtype* bottom_data, const int clnum, const int channels_, const int height_, const int width_, const int pooled_height_, const int pooled_width_,  const int kernel_h_, const int kernel_w_, const int stride_h_, const int stride_w_, Dtype* top_data){
+    cl_int ret;
+    ret  = clSetKernelArg(Kernel, 0, sizeof(cl_int), (void*)&count);
+    ret |= clSetKernelArg(Kernel, 1, sizeof(cl_mem), (void*)&bottom_data);
+    ret |= clSetKernelArg(Kernel, 2, sizeof(cl_int), (void*)&clnum);
+    ret |= clSetKernelArg(Kernel, 3, sizeof(cl_int), (void*)&channels_);
+    ret |= clSetKernelArg(Kernel, 4, sizeof(cl_int), (void*)&height_);
+    ret |= clSetKernelArg(Kernel, 5, sizeof(cl_int), (void*)&width_);
+    ret |= clSetKernelArg(Kernel, 6, sizeof(cl_int), (void*)&pooled_height_);
+    ret |= clSetKernelArg(Kernel, 7, sizeof(cl_int), (void*)&pooled_width_);
+    ret |= clSetKernelArg(Kernel, 8, sizeof(cl_int), (void*)&kernel_h_);
+    ret |= clSetKernelArg(Kernel, 9, sizeof(cl_int), (void*)&kernel_w_);
+    ret |= clSetKernelArg(Kernel, 10, sizeof(cl_int), (void*)&stride_h_);
+    ret |= clSetKernelArg(Kernel, 11, sizeof(cl_int), (void*)&stride_w_);
+    ret |= clSetKernelArg(Kernel, 12, sizeof(cl_mem), (void*)&top_data);
+    OCL_CHECK(ret);
+
+    size_t Global_Work_Size[] = {count * 1};
+    size_t Local_Work_Size[] = {256};
+    OCL_CHECK(clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, Global_Work_Size, Local_Work_Size, 0, NULL, NULL));
+
+}
+template void StoPoolForwardTest<float>(cl_kernel Kernel,const int count, const float* bottom_data, const int clnum, const int channels_, const int height_, const int width_, const int pooled_height_, const int pooled_width_,  const int kernel_h_, const int kernel_w_, const int stride_h_, const int stride_w_, float* top_data);
+template void StoPoolForwardTest<double>(cl_kernel Kernel,const int count, const double* bottom_data, const int clnum, const int channels_, const int height_, const int width_, const int pooled_height_, const int pooled_width_,  const int kernel_h_, const int kernel_w_, const int stride_h_, const int stride_w_, double* top_data);
+
+template <typename Dtype>
+void AvePoolForward(cl_kernel Kernel,const int count, const Dtype* bottom_data, const int clnum, const int channels_, const int height_, const int width_, const int pooled_height_, const int pooled_width_,  const int kernel_h_, const int kernel_w_, const int stride_h_, const int stride_w_, const int pad_h_, const int pad_w_, Dtype* top_data){
+    cl_int ret;
+    ret  = clSetKernelArg(Kernel, 0, sizeof(cl_int), (void*)&count);
+    ret |= clSetKernelArg(Kernel, 1, sizeof(cl_mem), (void*)&bottom_data);
+    ret |= clSetKernelArg(Kernel, 2, sizeof(cl_int), (void*)&clnum);
+    ret |= clSetKernelArg(Kernel, 3, sizeof(cl_int), (void*)&channels_);
+    ret |= clSetKernelArg(Kernel, 4, sizeof(cl_int), (void*)&height_);
+    ret |= clSetKernelArg(Kernel, 5, sizeof(cl_int), (void*)&width_);
+    ret |= clSetKernelArg(Kernel, 6, sizeof(cl_int), (void*)&pooled_height_);
+    ret |= clSetKernelArg(Kernel, 7, sizeof(cl_int), (void*)&pooled_width_);
+    ret |= clSetKernelArg(Kernel, 8, sizeof(cl_int), (void*)&kernel_h_);
+    ret |= clSetKernelArg(Kernel, 9, sizeof(cl_int), (void*)&kernel_w_);
+    ret |= clSetKernelArg(Kernel, 10, sizeof(cl_int), (void*)&stride_h_);
+    ret |= clSetKernelArg(Kernel, 11, sizeof(cl_int), (void*)&stride_w_);
+    ret |= clSetKernelArg(Kernel, 12, sizeof(cl_int), (void*)&pad_h_);
+    ret |= clSetKernelArg(Kernel, 13, sizeof(cl_int), (void*)&pad_w_);
+    ret |= clSetKernelArg(Kernel, 14, sizeof(cl_mem), (void*)&top_data);
+    OCL_CHECK(ret);
+
+    size_t uiGlobal_Work_Size[] = {count * 1};
+    size_t uiLocal_Work_Size[] = {256};
+    OCL_CHECK(clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, uiGlobal_Work_Size, uiLocal_Work_Size, 0, NULL, NULL));
+}
+template void AvePoolForward<float>(cl_kernel Kernel,const int count, const float* bottom_data, const int clnum, const int channels_, const int height_, const int width_, const int pooled_height_, const int pooled_width_,  const int kernel_h_, const int kernel_w_, const int stride_h_, const int stride_w_, const int pad_h_, const int pad_w_, float* top_data);
+template void AvePoolForward<double>(cl_kernel Kernel,const int count, const double* bottom_data, const int clnum, const int channels_, const int height_, const int width_, const int pooled_height_, const int pooled_width_,  const int kernel_h_, const int kernel_w_, const int stride_h_, const int stride_w_, const int pad_h_, const int pad_w_, double* top_data);
+
 template <typename Dtype> 
 void ave_pool_fp_gpu(cl_kernel Kernel, const int count, const Dtype* bottom_data, const int clnum, const int channels_, const int height_, const int width_, const int pooled_height_, const int pooled_width_, const int kernel_size_, const int stride_, const int pad_, Dtype* top_data){
     cl_int ret;
@@ -266,6 +375,90 @@ void max_pool_bp_gpu(cl_kernel Kernel, const int count, const Dtype* bottom_data
 
 template void max_pool_bp_gpu<float>(cl_kernel Kernel, const int count, const float* bottom_data, const float* top_data, const float* top_diff, const int clnum, const int channels_, const int height_, const int width_, const int pooled_height_, const int pooled_width_, const int kernel_size_, const int stride_, float* bottom_diff);
 template void max_pool_bp_gpu<double>(cl_kernel Kernel, const int count, const double* bottom_data, const double* top_data, const double* top_diff, const int clnum, const int channels_, const int height_, const int width_, const int pooled_height_, const int pooled_width_, const int kernel_size_, const int stride_, double* bottom_diff );
+
+template <typename Dtype>
+void MaxPoolBackward(cl_kernel Kernel, const int nthreads, const Dtype* const top_diff, const int* const mask, const Dtype* const top_mask, const int num, const int channels, const int height, const int width, const int pooled_height, const int pooled_width, const int kernel_h, const int kernel_w, const int stride_h, const int stride_w, const int pad_h, const int pad_w, Dtype* const bottom_diff){
+    cl_int ret;
+    ret  = clSetKernelArg(Kernel, 0, sizeof(cl_int), (void*)&nthreads);
+    ret |= clSetKernelArg(Kernel, 1, sizeof(cl_mem), (void*)&top_diff);
+    ret |= clSetKernelArg(Kernel, 2, sizeof(cl_mem), (void*)&mask);
+    ret |= clSetKernelArg(Kernel, 3, sizeof(cl_mem), (void*)&top_mask);
+    ret |= clSetKernelArg(Kernel, 4, sizeof(cl_int), (void*)&num);
+    ret |= clSetKernelArg(Kernel, 5, sizeof(cl_int), (void*)&channels);
+    ret |= clSetKernelArg(Kernel, 6, sizeof(cl_int), (void*)&height);
+    ret |= clSetKernelArg(Kernel, 7, sizeof(cl_int), (void*)&width);
+    ret |= clSetKernelArg(Kernel, 8, sizeof(cl_int), (void*)&pooled_height);
+    ret |= clSetKernelArg(Kernel, 9, sizeof(cl_int), (void*)&pooled_width);
+    ret |= clSetKernelArg(Kernel,10, sizeof(cl_int), (void*)&kernel_h);
+    ret |= clSetKernelArg(Kernel,11, sizeof(cl_int), (void*)&kernel_w);
+    ret |= clSetKernelArg(Kernel,12, sizeof(cl_int), (void*)&stride_h);
+    ret |= clSetKernelArg(Kernel,13, sizeof(cl_int), (void*)&stride_w);
+    ret |= clSetKernelArg(Kernel,14, sizeof(cl_int), (void*)&pad_h);
+    ret |= clSetKernelArg(Kernel,15, sizeof(cl_int), (void*)&pad_w);
+    ret |= clSetKernelArg(Kernel,16, sizeof(cl_mem), (void*)&bottom_diff);
+    OCL_CHECK(ret);
+
+    size_t uiGlobal_Work_Size[] = {nthreads};
+    size_t uiLocal_Work_Size[] = {256};
+    OCL_CHECK(clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, uiGlobal_Work_Size, uiLocal_Work_Size, 0, NULL, NULL));
+}
+
+template void MaxPoolBackward<float>(cl_kernel kernel, const int nthreads, const float* const top_diff, const int* const mask, const float* const top_mask, const int num, const int channels, const int height, const int width, const int pooled_height, const int pooled_width, const int kernel_h, const int kernel_w, const int stride_h, const int stride_w, const int pad_h, const int pad_w, float* const bottom_diff);
+template void MaxPoolBackward<double>(cl_kernel kernel, const int nthreads, const double* const top_diff, const int* const mask, const double* const top_mask, const int num, const int channels, const int height, const int width, const int pooled_height, const int pooled_width, const int kernel_h, const int kernel_w, const int stride_h, const int stride_w, const int pad_h, const int pad_w, double* const bottom_diff);
+
+template <typename Dtype>
+void AvePoolBackward(cl_kernel Kernel, const int nthreads, const Dtype* const top_diff, const int num, const int channels, const int height, const int width, const int pooled_height, const int pooled_width, const int kernel_h, const int kernel_w, const int stride_h, const int stride_w, const int pad_h, const int pad_w, Dtype* const bottom_diff)
+{
+    cl_int ret;
+    ret  = clSetKernelArg(Kernel, 0, sizeof(cl_int), (void*)&nthreads);
+    ret |= clSetKernelArg(Kernel, 1, sizeof(cl_mem), (void*)&top_diff);
+    ret |= clSetKernelArg(Kernel, 2, sizeof(cl_int), (void*)&num);
+    ret |= clSetKernelArg(Kernel, 3, sizeof(cl_int), (void*)&channels);
+    ret |= clSetKernelArg(Kernel, 4, sizeof(cl_int), (void*)&height);
+    ret |= clSetKernelArg(Kernel, 5, sizeof(cl_int), (void*)&width);
+    ret |= clSetKernelArg(Kernel, 6, sizeof(cl_int), (void*)&pooled_height);
+    ret |= clSetKernelArg(Kernel, 7, sizeof(cl_int), (void*)&pooled_width);
+    ret |= clSetKernelArg(Kernel, 8, sizeof(cl_int), (void*)&kernel_h);
+    ret |= clSetKernelArg(Kernel, 9, sizeof(cl_int), (void*)&kernel_w);
+    ret |= clSetKernelArg(Kernel,10, sizeof(cl_int), (void*)&stride_h);
+    ret |= clSetKernelArg(Kernel,11, sizeof(cl_int), (void*)&stride_w);
+    ret |= clSetKernelArg(Kernel,12, sizeof(cl_int), (void*)&pad_h);
+    ret |= clSetKernelArg(Kernel,13, sizeof(cl_int), (void*)&pad_w);
+    ret |= clSetKernelArg(Kernel,14, sizeof(cl_mem), (void*)&bottom_diff);
+    OCL_CHECK(ret);
+
+    size_t uiGlobal_Work_Size[] = {nthreads};
+    size_t uiLocal_Work_Size[] = {256};
+    OCL_CHECK(clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, uiGlobal_Work_Size, uiLocal_Work_Size, 0, NULL, NULL));
+}
+template void AvePoolBackward<float>(cl_kernel kernel, const int nthreads, const float* const top_diff, const int num, const int channels, const int height, const int width, const int pooled_height, const int pooled_width, const int kernel_h, const int kernel_w, const int stride_h, const int stride_w, const int pad_h, const int pad_w, float* const bottom_diff);
+template void AvePoolBackward<double>(cl_kernel kernel, const int nthreads, const double* const top_diff, const int num, const int channels, const int height, const int width, const int pooled_height, const int pooled_width, const int kernel_h, const int kernel_w, const int stride_h, const int stride_w, const int pad_h, const int pad_w, double* const bottom_diff);
+
+template <typename Dtype>
+void StoPoolBackward(cl_kernel Kernel, const int nthreads, const Dtype* const rand_idx, const Dtype* const top_diff, const int num, const int channels, const int height, const int width, const int pooled_height, const int pooled_width, const int kernel_h, const int kernel_w, const int stride_h, const int stride_w, Dtype* const bottom_diff){
+    cl_int ret;
+    ret  = clSetKernelArg(Kernel, 0, sizeof(cl_int), (void*)&nthreads);
+    ret |= clSetKernelArg(Kernel, 1, sizeof(cl_mem), (void*)&rand_idx);
+    ret |= clSetKernelArg(Kernel, 2, sizeof(cl_mem), (void*)&top_diff);
+    ret |= clSetKernelArg(Kernel, 3, sizeof(cl_int), (void*)&num);
+    ret |= clSetKernelArg(Kernel, 4, sizeof(cl_int), (void*)&channels);
+    ret |= clSetKernelArg(Kernel, 5, sizeof(cl_int), (void*)&height);
+    ret |= clSetKernelArg(Kernel, 6, sizeof(cl_int), (void*)&width);
+    ret |= clSetKernelArg(Kernel, 7, sizeof(cl_int), (void*)&pooled_height);
+    ret |= clSetKernelArg(Kernel, 8, sizeof(cl_int), (void*)&pooled_width);
+    ret |= clSetKernelArg(Kernel, 9, sizeof(cl_int), (void*)&kernel_h);
+    ret |= clSetKernelArg(Kernel,10, sizeof(cl_int), (void*)&kernel_w);
+    ret |= clSetKernelArg(Kernel,11, sizeof(cl_int), (void*)&stride_h);
+    ret |= clSetKernelArg(Kernel,12, sizeof(cl_int), (void*)&stride_w);
+    ret |= clSetKernelArg(Kernel,13, sizeof(cl_mem), (void*)&bottom_diff);
+    OCL_CHECK(ret);
+
+    size_t uiGlobal_Work_Size[] = {nthreads};
+    size_t uiLocal_Work_Size[] = {256};
+    OCL_CHECK(clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, uiGlobal_Work_Size, uiLocal_Work_Size, 0, NULL, NULL));
+}
+template void StoPoolBackward<float>(cl_kernel kernel, const int nthreads, const float* const rand_idx, const float* const top_diff, const int num, const int channels, const int height, const int width, const int pooled_height, const int pooled_width, const int kernel_h, const int kernel_w, const int stride_h, const int stride_w, float* const bottom_diff);
+template void StoPoolBackward<double>(cl_kernel kernel, const int nthreads, const double* const rand_idx, const double* const top_diff, const int num, const int channels, const int height, const int width, const int pooled_height, const int pooled_width, const int kernel_h, const int kernel_w, const int stride_h, const int stride_w, double* const bottom_diff);
 
 template <typename Dtype> 
 void ave_pool_bp_gpu(cl_kernel Kernel, const int count, const Dtype* top_diff, const int clnum, const int channels_, const int height_, const int width_, const int pooled_height_, const int pooled_width_, const int kernel_size_, const int stride_, const int pad_, Dtype* bottom_diff){
