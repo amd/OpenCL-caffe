@@ -520,7 +520,6 @@ void SGDSolver<Dtype>::Normalize(int param_id) {
 #ifndef CPU_ONLY
     caffe_gpu_scal(net_params[param_id]->count(), accum_normalization,
         net_params[param_id]->mutable_gpu_diff());
-    CHECK_BLOB_DATA(net_params[param_id], 10, "NORM");
 #else
     NO_GPU;
 #endif
@@ -540,14 +539,6 @@ void SGDSolver<Dtype>::Regularize(int param_id) {
   string regularization_type = this->param_.regularization_type();
   Dtype local_decay = weight_decay * net_params_weight_decay[param_id];
  
- Dtype *cpu_diff =  net_params[param_id]->mutable_cpu_diff();
-  printf("cpu diff before reg\n");
-  for(int i=0; i<10; i++)
-       printf("%f,",cpu_diff[i]);
-  printf("\n");
-
- 
-
   switch (Caffe::mode()) {
   case Caffe::CPU: {
     if (local_decay) {
@@ -600,18 +591,6 @@ void SGDSolver<Dtype>::Regularize(int param_id) {
   default:
     LOG(FATAL) << "Unknown caffe mode: " << Caffe::mode();
   }
-  CHECK_BLOB_DATA(net_params[param_id], 10, "REGU");
- cpu_diff =  net_params[param_id]->mutable_cpu_diff();
-  printf("cpu diff\n");
-  for(int i=0; i<10; i++)
-       printf("%f,",cpu_diff[i]);
-  printf("\n");
-
- cpu_diff =  temp_[param_id]->mutable_cpu_diff();
-  printf("tmp\n");
-  for(int i=0; i<10; i++)
-       printf("%f,",cpu_diff[i]);
-  printf("\n");
 }
 
 template <typename Dtype>
@@ -639,8 +618,6 @@ void SGDSolver<Dtype>::ComputeUpdateValue(int param_id, Dtype rate) {
     caffe_gpu_copy(net_params[param_id]->count(),
         history_[param_id]->gpu_data(),
         net_params[param_id]->mutable_gpu_diff());
-
-CHECK_BLOB_DATA(net_params[param_id], 10, "COMPUTATE");
 #else
     NO_GPU;
 #endif

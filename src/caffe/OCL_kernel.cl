@@ -747,7 +747,7 @@ template <class T>
 __kernel void caffe_gpu_sign(const int N, __global T* X, __global T* Y){
      int gdx = get_global_id(0);
      if(gdx < N){
-          Y[gdx] =((0.0<X[gdx])-(X[gdx]<0.0));
+          Y[gdx] =((0.0 < X[gdx])-(X[gdx] < 0.0));
      }
 }
 

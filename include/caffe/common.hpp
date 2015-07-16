@@ -105,6 +105,36 @@ do{ \
   printf("\n\n"); \
 }while(0)
 
+#define CHECK_GLOBAL_MEM_DATA(global_mem, count, num, marker)\
+do{ \
+  Dtype *global_mem_cpu = new Dtype[count]; \
+  clEnqueueReadBuffer(amdDevice.CommandQueue, (cl_mem)global_mem, \
+              CL_TRUE, 0, sizeof(Dtype)*count, global_mem_cpu,0, NULL, NULL); \
+  size_t sample_interval = count/num; \
+  if(sample_interval == 0){ \
+     sample_interval=1; \
+  } \
+  printf("%s: ", marker); \
+  for(int i=0; i<count; i+=sample_interval){ \
+      printf("%f  ", global_mem_cpu[i]); \
+  } \
+  printf("\n\n"); \
+  delete []global_mem_cpu; \
+}while(0)
+
+#define CHECK_CPU_MEM_DATA(cpu_mem, count, num, marker)\
+do{ \
+  size_t sample_interval = count/num; \
+  if(sample_interval == 0){ \
+     sample_interval=1; \
+  } \
+  printf("%s: ", marker); \
+  for(int i=0; i<count; i+=sample_interval){ \
+      printf("%f  ", cpu_mem[i]); \
+  } \
+  printf("\n\n"); \
+}while(0)
+
 // See PR #1236
 namespace cv { class Mat; }
 

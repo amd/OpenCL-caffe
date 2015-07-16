@@ -67,8 +67,10 @@ void ConvolutionLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
       }
     }
   }
+  CHECK_CPU_MEM_DATA(weight_diff, this->blobs_[0]->count(), 20, "weight_diff");
+  CHECK_CPU_MEM_DATA(bottom[0]->mutable_cpu_diff(), bottom[0]->count(), 20, "bottom_diff");
+  CHECK_CPU_MEM_DATA(top[0]->cpu_diff(), top[0]->count(), 20, "top_diff");
 
-  CHECK_BLOB_DATA(bottom[0], 20, "bottom[0]");
 }
 
 template <typename Dtype>
@@ -137,7 +139,10 @@ void ConvolutionLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
     }
   }
   
-  CHECK_BLOB_DATA(bottom[0], 20, "bottom[0]");
+  CHECK_GLOBAL_MEM_DATA(weight_diff, this->blobs_[0]->count(), 20, "weight_diff");  
+  CHECK_GLOBAL_MEM_DATA(bottom[0]->mutable_gpu_diff(), bottom[0]->count(), 20, "bottom_diff");
+  CHECK_GLOBAL_MEM_DATA(top[0]->gpu_diff(), top[0]->count(), 20, "top_diff");
+ // CHECK_BLOB_DATA(bottom[0], 20, "bottom[0]");
 }
 
 #ifdef CPU_ONLY

@@ -256,7 +256,7 @@ void LRNLayer<Dtype>::CrossChannelForward_gpu(const vector<Blob<Dtype>*>& bottom
 template <typename Dtype>
 void LRNLayer<Dtype>::CrossChannelBackward_gpu(const vector<Blob<Dtype>*>& top,
       const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom){
-     CrossChannelBackward_gpu(top,  propagate_down, bottom);
+     CrossChannelBackward_cpu(top,  propagate_down, bottom);
 }
 
 template <typename Dtype>
