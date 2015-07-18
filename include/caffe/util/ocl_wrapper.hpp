@@ -96,7 +96,30 @@ void SoftmaxLossBackwardGPU(cl_kernel Kernel, const int nthreads, const Dtype* t
           const Dtype* label, Dtype* bottom_diff, const int num, const int dim,
           const int spatial_dim, const bool has_ignore_label_,
           const int ignore_label_, Dtype* counts);
+}
 
-}  // namespace caffe
+template <typename Dtype>
+void caffe_gpu_add(cl_kernel Kernel, const int n, const Dtype* in1, const Dtype* in2, Dtype* y);
 
+template <typename Dtype>
+void caffe_gpu_add_scalar(cl_kernel Kernel, const int n, const Dtype alpha, Dtype* top_data);
+
+template <typename Dtype>
+void LRNFillScale(cl_kernel LFSkernel, const int nthreads, const Dtype* const in,
+    const int num, const int channels, const int height,
+    const int width, const int size, const Dtype alpha_over_size,
+    const Dtype k, Dtype* const scale);
+
+template <typename Dtype>
+void LRNComputeOutput(cl_kernel LCOkernel, const int nthreads, const Dtype* const in,
+    const Dtype* const scale, const Dtype negative_beta, Dtype* const out);
+
+template <typename Dtype>
+void LRNComputeDiff(cl_kernel LCDkernel, const int nthreads,
+    const Dtype* const bottom_data, const Dtype* const top_data,
+    const Dtype* const scale, const Dtype* const top_diff,
+    const int num, const int channels, const int height,
+    const int width, const int size, const Dtype negative_beta,
+    const Dtype cache_ratio, Dtype* const bottom_diff);
+  // namespace caffe
 #endif  // CAFFE_UTIL_OCL_UTIL_HPP_

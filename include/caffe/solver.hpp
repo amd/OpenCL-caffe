@@ -58,6 +58,10 @@ class Solver {
   int current_step_;
   shared_ptr<Net<Dtype> > net_;
   vector<shared_ptr<Net<Dtype> > > test_nets_;
+ 
+ void ocl_setup();
+ protected:
+ cl_kernel scalar_kernel, div_kernel, powx_kernel;
 
   DISABLE_COPY_AND_ASSIGN(Solver);
 };
@@ -93,6 +97,10 @@ class SGDSolver : public Solver<Dtype> {
   //   of gradients/updates and is not needed in snapshots
   vector<shared_ptr<Blob<Dtype> > > history_, update_, temp_;
 
+ void ocl_setup();
+ protected:
+ cl_kernel scalar_kernel, div_kernel, powx_kernel;
+
   DISABLE_COPY_AND_ASSIGN(SGDSolver);
 };
 
@@ -106,6 +114,10 @@ class NesterovSolver : public SGDSolver<Dtype> {
 
  protected:
   virtual void ComputeUpdateValue(int param_id, Dtype rate);
+
+ void ocl_setup();
+ protected:
+ cl_kernel scalar_kernel, div_kernel, powx_kernel;
 
   DISABLE_COPY_AND_ASSIGN(NesterovSolver);
 };
@@ -125,6 +137,9 @@ class AdaGradSolver : public SGDSolver<Dtype> {
         << "Momentum cannot be used with AdaGrad.";
   }
 
+ void ocl_setup();
+ protected:
+ cl_kernel scalar_kernel, div_kernel, powx_kernel;
   DISABLE_COPY_AND_ASSIGN(AdaGradSolver);
 };
 

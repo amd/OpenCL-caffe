@@ -567,6 +567,7 @@ class SplitLayer : public Layer<Dtype> {
       const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
 
   int count_;
+  cl_kernel gpu_add_kernel;
 };
 
 /**

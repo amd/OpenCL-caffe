@@ -966,7 +966,7 @@ template __attribute__((mangled_name(opttransdouble))) __kernel void opttrans(co
 
 
 template <class T>
-__kernel void MaxPoolForward(const int nthreads, __global T* bottom_data, const int num, const int channels, const int height, const int width, const int pooled_height, const int pooled_width, const int kernel_h, const int kernel_w, const int stride_h, const stride_w, const int pad_h, const int pad_w, __global T* top_data, __global int* mask, __global T* top_mask){
+__kernel void MaxPoolForward(const int nthreads, __global T* bottom_data, const int num, const int channels, const int height, const int width, const int pooled_height, const int pooled_width, const int kernel_h, const int kernel_w, const int stride_h, const int stride_w, const int pad_h, const int pad_w, __global T* top_data, __global int* mask, __global T* top_mask){
      int index = get_global_id(0);
      int tmp = get_global_size(0);
      for(index; index < nthreads; index += tmp){
@@ -978,17 +978,17 @@ __kernel void MaxPoolForward(const int nthreads, __global T* bottom_data, const 
          int wstart = pw * stride_w - pad_w;
          const int hend = min(hstart + kernel_h, height);
          const int wend = min(wstart + kernel_w, width);
- 	 hstart = max(hstart, 0);
-    	 wstart = max(wstart, 0);
-    	T maxval = -FLT_MAX;
-    	int maxidx = -1;
-    	bottom_slice =
+         hstart = max(hstart, 0);
+         wstart = max(wstart, 0);
+        T maxval = -FLT_MAX;
+        int maxidx = -1;
+        bottom_data =
         bottom_data + (n * channels + c) * height * width;
         for (int h = hstart; h < hend; ++h) {
           for (int w = wstart; w < wend; ++w) {
-           if (bottom_slice[h * width + w] > maxval) {
+           if (bottom_data[h * width + w] > maxval) {
              maxidx = h * width + w;
-             maxval = bottom_slice[maxidx];
+             maxval = bottom_data[maxidx];
         }
       }
     }
@@ -999,11 +999,9 @@ __kernel void MaxPoolForward(const int nthreads, __global T* bottom_data, const 
       top_mask[index] = maxidx;
     }
   }
-
 }
 template __attribute__((mangled_name(MaxPoolForwardfloat))) __kernel void MaxPoolForward(const int nthreads, __global float* bottom_data, const int num, const int channels, const int height, const int width, const int pooled_height, const int pooled_width,const int kernel_h, const int kernel_w, const int stride_h, const int stride_w, const int pad_h, const int pad_w, __global float* top_data, __global int* mask, __global float* top_mask);
-template __attribute__((mangled_name(MaxPoolForwarddouble))) __kernel void MaxPoolForward(const int nthreads, __global double* bottom_data, const int num, const int channels, const int height, const int width, const int pooled_height, const int pooled_width, const int stride_h, const int stride_w, const int pad_h, const int pad_w, __global double* top_data, __global int* mask, __global double* top_mask);
-
+template __attribute__((mangled_name(MaxPoolForwarddouble))) __kernel void MaxPoolForward(const int nthreads, __global double* bottom_data, const int num, const int channels, const int height, const int width, const int pooled_height, const int pooled_width, const int kernel_h, const int kernel_w,  const int stride_h, const int stride_w, const int pad_h, const int pad_w, __global double* top_data, __global int* mask, __global double* top_mask);
 
 template <class T>
 __kernel void AvePoolForward(const int nthreads, __global T* bottom_data, const int num, const int channels, const int height, const int width, const int pooled_height, const int pooled_width, const int kernel_h, const int kernel_w, const int stride_h, const int stride_w, const int pad_h, const int pad_w,__global T* top_data){
@@ -1013,32 +1011,31 @@ __kernel void AvePoolForward(const int nthreads, __global T* bottom_data, const 
         int pw = index % pooled_width;
         int ph = (index / pooled_width) % pooled_height;
         int c = (index / pooled_width / pooled_height) % channels;
-        int n = index / pooled_width / pooled_height / channels;
-	    int hstart = ph * stride_h - pad_h;
-	    int wstart = pw * stride_w - pad_w;
-	    int hend = min(hstart + kernel_h, height + pad_h);
-	    int wend = min(wstart + kernel_w, width + pad_w);
-	    const int pool_size = (hend - hstart) * (wend - wstart);
-	    hstart = max(hstart, 0);
-	    wstart = max(wstart, 0);
-	    hend = min(hend, height);
-	    wend = min(wend, width);
-	    T aveval = 0;
-	    bottom_slice =
-		bottom_data + (n * channels + c) * height * width;
-	    for (int h = hstart; h < hend; ++h) {
-	      for (int w = wstart; w < wend; ++w) {
-		aveval += bottom_slice[h * width + w];
-	      }
-	    }
-	    top_data[index] = aveval / pool_size;
-	  }
+        int n = index / pooled_width / pooled_height / channels;            int hstart = ph * stride_h - pad_h;            int wstart = pw * stride_w - pad_w;
+            int hend = min(hstart + kernel_h, height + pad_h);
+            int wend = min(wstart + kernel_w, width + pad_w);
+            const int pool_size = (hend - hstart) * (wend - wstart);
+            hstart = max(hstart, 0);
+            wstart = max(wstart, 0);
+            hend = min(hend, height);
+            wend = min(wend, width);
+            T aveval = 0;
+            bottom_data =
+                bottom_data + (n * channels + c) * height * width;
+            for (int h = hstart; h < hend; ++h) {
+              for (int w = wstart; w < wend; ++w) {
+                aveval += bottom_data[h * width + w];
+              }
+            }
+            top_data[index] = aveval / pool_size;
+          }
+
 }
 template __attribute__((mangled_name(AvePoolForwardfloat))) __kernel void AvePoolForward(const int nthreads, __global float* bottom_data, const int num, const int channels, const int height, const int width, const int pooled_height, const int pooled_width, const int kernel_h, const int kernel_w, const int stride_h, const int stride_w, const int pad_h, const int pad_w,__global float* top_data);
 template __attribute__((mangled_name(AvePoolForwarddouble))) __kernel void AvePoolForward(const int nthreads, __global double* bottom_data, const int num, const int channels, const int height, const int width, const int pooled_height, const int pooled_width, const int kernel_h, const int kernel_w, const int stride_h, const int stride_w, const int pad_h, const int pad_w,__global double* top_data);
 
 template <class T>
-__kernel void void StoPoolForwardTrain(cl_kernel Kernel,const int count, const Dtype* bottom_data, const int clnum, const int channels, const int height, const int width, const int pooled_height, const int pooled_width,  const int kernel_h, const int kernel_w, const int stride_h, const int stride_w, __global T* idx_data, __global T* top_data){
+__kernel void StoPoolForwardTrain(const int nthreads, __global T* bottom_data, const int clnum, const int channels, const int height, const int width, const int pooled_height, const int pooled_width,  const int kernel_h, const int kernel_w, const int stride_h, const int stride_w, __global T* rand_idx, __global T* top_data){
     int index = get_global_id(0);
     int tmp = get_global_size(0);
     for(index; index < nthreads; index+=tmp){
@@ -1051,11 +1048,11 @@ __kernel void void StoPoolForwardTrain(cl_kernel Kernel,const int count, const D
     const int wstart = pw * stride_w;
     const int wend = min(wstart + kernel_w, width);
     T cumsum = 0.;
-    bottom_slice = bottom_data + (n * channels + c) * height * width;
+    bottom_data = bottom_data + (n * channels + c) * height * width;
     // First pass: get sum
     for (int h = hstart; h < hend; ++h) {
       for (int w = wstart; w < wend; ++w) {
-        cumsum += bottom_slice[h * width + w];
+        cumsum += bottom_data[h * width + w];
       }
     }
     const float thres = rand_idx[index] * cumsum;
@@ -1063,25 +1060,25 @@ __kernel void void StoPoolForwardTrain(cl_kernel Kernel,const int count, const D
     cumsum = 0;
     for (int h = hstart; h < hend; ++h) {
       for (int w = wstart; w < wend; ++w) {
-        cumsum += bottom_slice[h * width + w];
+        cumsum += bottom_data[h * width + w];
         if (cumsum >= thres) {
           rand_idx[index] = ((n * channels + c) * height + h) * width + w;
-          top_data[index] = bottom_slice[h * width + w];
+          top_data[index] = bottom_data[h * width + w];
           return;
         }
       }
     }
     }
 }
-template __attribute__((mangled_name(StoPoolForwardTrainfloat))) __kernel void AvePoolForward(const int nthreads, __global float* bottom_data, const int num, const int channels, const int height, const int width, const int pooled_height, const int pooled_width, const int kernel_h, const int kernel_w, const int stride_h, const int stride_w, __global float* idx_data, __global float* top_data);
-template __attribute__((mangled_name(StoPoolForwardTrainDouble))) __kernel void AvePoolForward(const int nthreads, __global double* bottom_data, const int num, const int channels, const int height, const int width, const int pooled_height, const int pooled_width, const int kernel_h, const int kernel_w, const int stride_h, const int stride_w, __global double* idx_data, __global double* top_data);
+template __attribute__((mangled_name(StoPoolForwardTrainfloat))) __kernel void StoPoolForwardTrain(const int nthreads, __global float* bottom_data, const int num, const int channels, const int height, const int width, const int pooled_height, const int pooled_width, const int kernel_h, const int kernel_w, const int stride_h, const int stride_w, __global float* idx_data, __global float* top_data);
+template __attribute__((mangled_name(StoPoolForwardTrainDouble))) __kernel void StoPoolForwardTrain(const int nthreads, __global double* bottom_data, const int num, const int channels, const int height, const int width, const int pooled_height, const int pooled_width, const int kernel_h, const int kernel_w, const int stride_h, const int stride_w, __global double* idx_data, __global double* top_data);
 
 template <class T>
-__kernel void void StoPoolForwardTest(cl_kernel Kernel,const int count, const Dtype* bottom_data, const int clnum, const int channels, const int height, const int width, const int pooled_height, const int pooled_width,  const int kernel_h, const int kernel_w, const int stride_h, const int stride_w, __global T* top_data){
+__kernel void StoPoolForwardTest(const int count, __global T* bottom_data, const int clnum, const int channels, const int height, const int width, const int pooled_height, const int pooled_width,  const int kernel_h, const int kernel_w, const int stride_h, const int stride_w, __global T* top_data){
     int index = get_global_id(0);
     int tmp = get_global_size(0);
-    for(index; index < nthreads; index+=tmp){
-    const int pw = index % pooled_width;
+    for(index; index < count; index+=tmp){
+    const int pw = index % pooled_width; 
     const int ph = (index / pooled_width) % pooled_height;
     const int c = (index / pooled_width / pooled_height) % channels;
     const int n = index / pooled_width / pooled_height / channels;
@@ -1089,31 +1086,29 @@ __kernel void void StoPoolForwardTest(cl_kernel Kernel,const int count, const Dt
     const int hend = min(hstart + kernel_h, height);
     const int wstart = pw * stride_w;
     const int wend = min(wstart + kernel_w, width);
-    // We set cumsum to be 0 to avoid divide-by-zero problems
+    // We set cumsum to be 0 to avoid divide-by-zero problems    T cumsum = FLT_MIN;
     T cumsum = FLT_MIN;
     T cumvalues = 0.;
-    bottom_slice =
-        bottom_data + (n * channels + c) * height * width;
+    bottom_data =        bottom_data + (n * channels + c) * height * width;
     // First pass: get sum
     for (int h = hstart; h < hend; ++h) {
       for (int w = wstart; w < wend; ++w) {
-        cumsum += bottom_slice[h * width + w];
-        cumvalues += bottom_slice[h * width + w] * bottom_slice[h * width + w];
+        cumsum += bottom_data[h * width + w];
+        cumvalues += bottom_data[h * width + w] * bottom_data[h * width + w];
       }
     }
-    top_data[index] = cumvalues / cumsum;
-  }
+    top_data[index] = cumvalues / cumsum;  }
 }
-template __attribute__((mangled_name(StoPoolForwardTestfloat))) __kernel void AvePoolForward(const int nthreads, __global float* bottom_data, const int num, const int channels, const int height, const int width, const int pooled_height, const int pooled_width, const int kernel_h, const int kernel_w, const int stride_h, const int stride_w,__global float* top_data);
-template __attribute__((mangled_name(StoPoolForwardTestDouble))) __kernel void AvePoolForward(const int nthreads, __global double* bottom_data, const int num, const int channels, const int height, const int width, const int pooled_height, const int pooled_width, const int kernel_h, const int kernel_w, const int stride_h, const int stride_w, __global double* top_data);
+template __attribute__((mangled_name(StoPoolForwardTestfloat))) __kernel void StoPoolForwardTest(const int nthreads, __global float* bottom_data, const int num, const int channels, const int height, const int width, const int pooled_height, const int pooled_width, const int kernel_h, const int kernel_w, const int stride_h, const int stride_w,__global float* top_data);
+template __attribute__((mangled_name(StoPoolForwardTestdouble))) __kernel void StoPoolForwardTest(const int nthreads, __global double* bottom_data, const int num, const int channels, const int height, const int width, const int pooled_height, const int pooled_width, const int kernel_h, const int kernel_w, const int stride_h, const int stride_w, __global double* top_data);
 
 template <class T>
-void MaxPoolBackward(const int nthreads, const Dtype* const top_diff,
-    const int* const mask, const Dtype* const top_mask, const int num,
+void MaxPoolBackward(const int nthreads, __global T* top_diff,
+    __global int* mask, __global T* top_mask, const int num,
     const int channels, const int height, const int width,
     const int pooled_height, const int pooled_width, const int kernel_h,
     const int kernel_w, const int stride_h, const int stride_w, const int pad_h,
-    const int pad_w, Dtype* const bottom_diff) {
+    const int pad_w, __global T* const bottom_diff) {
      int index = get_global_id(0);
      int total = get_global_size(0);
      for(index; index < nthreads; index += total){
@@ -1131,22 +1126,22 @@ void MaxPoolBackward(const int nthreads, const Dtype* const top_diff,
     const int pwend = min((w + pad_w) / stride_w + 1, pooled_width);
     T gradient = 0;
     const int offset = (n * channels + c) * pooled_height * pooled_width;
-    top_diff_slice = top_diff + offset;
+    top_diff += offset;
     if (mask) {
-      const int* const mask_slice = mask + offset;
+      mask = mask + offset;
       for (int ph = phstart; ph < phend; ++ph) {
         for (int pw = pwstart; pw < pwend; ++pw) {
-          if (mask_slice[ph * pooled_width + pw] == h * width + w) {
-            gradient += top_diff_slice[ph * pooled_width + pw];
+          if (mask[ph * pooled_width + pw] == h * width + w) {
+            gradient += top_diff[ph * pooled_width + pw];
           }
         }
       }
     } else {
-      top_mask_slice = top_mask + offset;
+      top_mask = top_mask + offset;
       for (int ph = phstart; ph < phend; ++ph) {
         for (int pw = pwstart; pw < pwend; ++pw) {
-          if (top_mask_slice[ph * pooled_width + pw] == h * width + w) {
-            gradient += top_diff_slice[ph * pooled_width + pw];
+          if (top_mask[ph * pooled_width + pw] == h * width + w) {
+            gradient += top_diff[ph * pooled_width + pw];
           }
         }
       }
@@ -1154,34 +1149,34 @@ void MaxPoolBackward(const int nthreads, const Dtype* const top_diff,
     bottom_diff[index] = gradient;
   }
 }
-template __attribute__((mangled_name(MaxPoolBackwardfloat))) __kernel void MaxPoolBackward(const int nthreads, const float* const top_diff, const int* const mask, const float* const top_mask, const int num, const int channels, const int height, const int width, const int pooled_height, const int pooled_width, const int kernel_h, const int kernel_w, const int stride_h, const int stride_w, const int pad_h, const int pad_w, Dtype* float bottom_diff);
-template __attribute__((mangled_name(MaxPoolBackwarddouble))) __kernel void MaxPoolBackward(const int nthreads, const double* const top_diff, const int* const mask, const double* const top_mask, const int num, const int channels, const int height, const int width, const int pooled_height, const int pooled_width, const int kernel_h, const int kernel_w, const int stride_h, const int stride_w, const int pad_h, const int pad_w, double* float bottom_diff);
+template __attribute__((mangled_name(MaxPoolBackwardfloat))) __kernel void MaxPoolBackward(const int nthreads, __global float* const top_diff, __global int* const mask, __global float* const top_mask, const int num, const int channels, const int height, const int width, const int pooled_height, const int pooled_width, const int kernel_h, const int kernel_w, const int stride_h, const int stride_w, const int pad_h, const int pad_w, __global float* bottom_diff);
+template __attribute__((mangled_name(MaxPoolBackwarddouble))) __kernel void MaxPoolBackward(const int nthreads, __global double* top_diff, __global int* const mask, __global double* const top_mask, const int num, const int channels, const int height, const int width, const int pooled_height, const int pooled_width, const int kernel_h, const int kernel_w, const int stride_h, const int stride_w, const int pad_h, const int pad_w, __global double* bottom_diff);
 
 template <class T>
-__kernel void AvePoolBackward(const int nthreads, __global T* top_diff, const int num, const int channels, const int height, const int width, const int pooled_height, const int pooled_width, const int kernel_h, const int kernel_w, const int stride_h, const int stride_w, const int pad_h, const int pad_w, T* const bottom_diff){
+__kernel void AvePoolBackward(const int nthreads, __global T* top_diff, const int num, const int channels, const int height, const int width, const int pooled_height, const int pooled_width, const int kernel_h, const int kernel_w, const int stride_h, const int stride_w, const int pad_h, const int pad_w, __global T* const bottom_diff){
      int index = get_global_id(0);
      int total = get_global_size(0);
      for(index; index < nthreads; index += total){
-	    int w = index % width + pad;
-	    int h = (index / width) % height + pad;
-	    int c = (index / width / height) % channels;
-	    int n = index / width / height / channels;
-	    const int phstart = (h < kernel_h) ? 0 : (h - kernel_h) / stride_h + 1;
-    	    const int phend = min(h / stride_h + 1, pooled_height);
-	    const int pwstart = (w < kernel_w) ? 0 : (w - kernel_w) / stride_w + 1;
+            int w = index % width + pad_w;
+            int h = (index / width) % height + pad_h;
+            int c = (index / width / height) % channels;
+            int n = index / width / height / channels;
+            const int phstart = (h < kernel_h) ? 0 : (h - kernel_h) / stride_h + 1;
+            const int phend = min(h / stride_h + 1, pooled_height);
+            const int pwstart = (w < kernel_w) ? 0 : (w - kernel_w) / stride_w + 1;
             const int pwend = min(w / stride_w + 1, pooled_width);
-	    T gradient = 0;
-	    top_diff += (n * channels + c) * pooled_height * pooled_width;
-	    for (int ph = phstart; ph < phend; ++ph) {
-	      for (int pw = pwstart; pw < pwend; ++pw) {
-		// figure out the pooling size
-		int hstart = ph * stride_h - pad_h;
-		int wstart = pw * stride_w - pad_w;
-		int hend = min(hstart + kernel_h, height + pad_h);
-		int wend = min(wstart + kernel_w, width + pad_w);
-		int pool_size = (hend - hstart) * (wend - wstart);
-		gradient += top_diff_slice[ph * pooled_width + pw] / pool_size;
-	      }
+            T gradient = 0;
+            top_diff += (n * channels + c) * pooled_height * pooled_width;
+            for (int ph = phstart; ph < phend; ++ph) {
+              for (int pw = pwstart; pw < pwend; ++pw) {
+                // figure out the pooling size
+                int hstart = ph * stride_h - pad_h;
+                int wstart = pw * stride_w - pad_w;
+                int hend = min(hstart + kernel_h, height + pad_h);
+                int wend = min(wstart + kernel_w, width + pad_w);
+                int pool_size = (hend - hstart) * (wend - wstart);
+                gradient += top_diff[ph * pooled_width + pw] / pool_size;
+              }
     }
     bottom_diff[index] = gradient;
    }
@@ -1190,52 +1185,53 @@ __kernel void AvePoolBackward(const int nthreads, __global T* top_diff, const in
 template __attribute__((mangled_name(AvePoolBackwardfloat))) __kernel void AvePoolBackward(const int nthreads, __global float* top_diff, const int num, const int channels, const int height, const int width, const int pooled_height, const int pooled_width, const int kernel_h, const int kernel_w, const int stride_h, const int stride_w, const int pad_h, const int pad_w, __global float* bottom_diff);
 template __attribute__((mangled_name(AvePoolBackwarddouble))) __kernel void AvePoolBackward(const int nthreads, __global double* top_diff, const int num, const int channels, const int height, const int width, const int pooled_height, const int pooled_width, const int kernel_h, const int kernel_w, const int stride_h, const int stride_w, const int pad_h, const int pad_w, __global double* bottom_diff);
 
-template <class T>
+template <class Dtype>
 void StoPoolBackward(const int nthreads,
-    const Dtype* const rand_idx, const Dtype* const top_diff,
+    __global Dtype* rand_idx, __global Dtype* top_diff,
     const int num, const int channels, const int height,
     const int width, const int pooled_height, const int pooled_width,
     const int kernel_h, const int kernel_w, const int stride_h,
-    const int stride_w, Dtype* const bottom_diff) {
+    const int stride_w, __global Dtype* bottom_diff) {
       int index = get_global_id(0);
       int total = get_global_size(0);
       for(index; index < nthreads; index += total){
-	    // find out the local index
-	    // find out the local offset
-	    const int w = index % width;
-	    const int h = (index / width) % height;
-	    const int c = (index / width / height) % channels;
-	    const int n = index / width / height / channels;
-	    const int phstart = (h < kernel_h) ? 0 : (h - kernel_h) / stride_h + 1;
-	    const int phend = min(h / stride_h + 1, pooled_height);
-	    const int pwstart = (w < kernel_w) ? 0 : (w - kernel_w) / stride_w + 1;
-	    const int pwend = min(w / stride_w + 1, pooled_width);
-	    Dtype gradient = 0;
-	    const Dtype* const rand_idx_slice =
-		rand_idx + (n * channels + c) * pooled_height * pooled_width;
-	    const Dtype* const top_diff_slice =
-		top_diff + (n * channels + c) * pooled_height * pooled_width;
-	    for (int ph = phstart; ph < phend; ++ph) {
-	      for (int pw = pwstart; pw < pwend; ++pw) {
-		gradient += top_diff_slice[ph * pooled_width + pw] *
-		    (index == static_cast<int>(rand_idx_slice[ph * pooled_width + pw]));
-	      }
-	    }
-	    bottom_diff[index] = gradient;
+            // find out the local index
+            // find out the local offset
+            const int w = index % width;
+            const int h = (index / width) % height;
+            const int c = (index / width / height) % channels;
+            const int n = index / width / height / channels;
+            const int phstart = (h < kernel_h) ? 0 : (h - kernel_h) / stride_h + 1;
+            const int phend = min(h / stride_h + 1, pooled_height);
+            const int pwstart = (w < kernel_w) ? 0 : (w - kernel_w) / stride_w + 1;
+            const int pwend = min(w / stride_w + 1, pooled_width);
+            Dtype gradient = 0;
+            rand_idx =
+                rand_idx + (n * channels + c) * pooled_height * pooled_width;
+            top_diff =
+                top_diff + (n * channels + c) * pooled_height * pooled_width;
+            for (int ph = phstart; ph < phend; ++ph) {
+              for (int pw = pwstart; pw < pwend; ++pw) {
+                gradient += top_diff[ph * pooled_width + pw] *
+                    (index == static_cast<int>(rand_idx[ph * pooled_width + pw]));
+              }
+            }
+            bottom_diff[index] = gradient;
+
 	  }
 }
-template __attribute__ ((mangled_name(StoPoolBackwardfloat))) __kernel StoPoolBackward<float>(const int nthreads,
-    const float* const rand_idx, const float* const top_diff,
+template __attribute__ ((mangled_name(StoPoolBackwardfloat))) __kernel  void StoPoolBackward<float>(const int nthreads,
+    __global float* rand_idx, __global float* const top_diff,
     const int num, const int channels, const int height,
     const int width, const int pooled_height, const int pooled_width,
     const int kernel_h, const int kernel_w, const int stride_h,
-    const int stride_w, float* const bottom_diff);
-template __attribute__ ((mangled_name(StoPoolBackwarddouble))) __kernel StoPoolBackward<float>(const int nthreads,
-    const double* const rand_idx, const double* const top_diff,
+    const int stride_w, __global float* const bottom_diff);
+template __attribute__ ((mangled_name(StoPoolBackwarddouble))) __kernel void StoPoolBackward<double>(const int nthreads,
+    __global double* rand_idx, __global double* const top_diff,
     const int num, const int channels, const int height,
     const int width, const int pooled_height, const int pooled_width,
     const int kernel_h, const int kernel_w, const int stride_h,
-    const int stride_w, double* const bottom_diff);
+    const int stride_w, __global double* const bottom_diff);
 
 template <class T>
 __kernel void ReLUForward(const int count, __global T* in, __global T* out, T negative_slope){
@@ -1448,6 +1444,15 @@ __kernel void add_scalar (const int n, const T alpha, __global T* y){
 template __attribute__ ((mangled_name(add_scalar_float))) __kernel void add_scalar (const int n, const float alpha, __global float* y);
 template __attribute__ ((mangled_name(add_scalar_double))) __kernel void add_scalar (const int n, const double alpha, __global double* y);
 
+template <typename Dtype>
+__kernel void caffe_gpu_add(const int n, const Dtype* in1, const Dtype* in2, Dtype* y){
+        int index = get_global_id(0);
+        if (index < n)
+        y[index] = in1[index] + in2[index] ;
+}
+template __attribute__ ((mangled_name(caffe_gpu_add_float))) __kernel void caffe_gpu_add(const int n, const float* in1, const float* in2, float* y);
+template __attribute__ ((mangled_name(caffe_gpu_add_double))) __kernel void caffe_gpu_add(const int n, const double* in1, const double* in2, double* y);
+
 template <class T>
 __kernel void element_mul (const int n, __global const T* a, __global const T* b, __global T* y){
         int index = get_global_id(0);
@@ -1490,121 +1495,119 @@ template __attribute__((mangled_name(DropoutBackwardfloat))) __kernel void Dropo
 template __attribute__((mangled_name(DropoutBackwarddouble))) __kernel void DropoutBackward(const int n, __global double* in_diff, __global const int* mask, const unsigned int threshold, const double scale, __global double* out_diff);
 
 template <class T>
-__kernel void LRNFillScale(const int nthreads, __global const T* in, const int num, const int channels, const int height, const int width, const int size, const T alpha_over_size, __global T* scale) {
+__kernel void LRNFillScale(const int nthreads, __global T* in, const int num, const int channels, const int height, const int width, const int size, const T alpha_over_size, const T k,  __global T* scale) {
   int index = get_global_id(0);
   int tmp = get_global_size(0);
   for(index; index < nthreads; index += tmp) {
     // find out the local offset
-    int w = index % width;
-    int h = (index / width) % height;
-    int n = index / width / height;
-    int offset = (n * channels * height + h) * width + w;
-    int step = height * width;
-    in += offset;
-    scale += offset;
+    const int w = index % width;
+    const int h = (index / width) % height;
+    const int n = index / width / height;
+    const int offset = (n * channels * height + h) * width + w;
+    const int step = height * width;
+    in = in + offset;
+    scale = scale + offset;
     int head = 0;
-    int pre_pad = (size - 1) / 2;
-    int post_pad = size - pre_pad - 1;
+    const int pre_pad = (size - 1) / 2;
+    const int post_pad = size - pre_pad - 1;
     T accum_scale = 0;
     // fill the scale at [n, :, h, w]
     // accumulate values
-    while (head < post_pad) {
+    while (head < post_pad && head < channels) {
       accum_scale += in[head * step] * in[head * step];
-      ++head;
-    }
-    // until we reach size, nothing needs to be subtracted
-    while (head < size) {
-      accum_scale += in[head * step] * in[head * step];
-      scale[(head - post_pad) * step] = 1. + accum_scale * alpha_over_size;
       ++head;
     }
     // both add and subtract
     while (head < channels) {
       accum_scale += in[head * step] * in[head * step];
-      accum_scale -= in[(head - size) * step] * in[(head - size) * step];
-      scale[(head - post_pad) * step] = 1. + accum_scale * alpha_over_size;
+      if (head - size >= 0) {
+        accum_scale -= in[(head - size) * step]
+                       * in[(head - size) * step];
+      }
+      scale[(head - post_pad) * step] = k + accum_scale * alpha_over_size;
       ++head;
     }
     // subtract only
     while (head < channels + post_pad) {
-      accum_scale -= in[(head - size) * step] * in[(head - size) * step];
-      scale[(head - post_pad) * step] = 1. + accum_scale * alpha_over_size;
+      if (head - size >= 0) {
+        accum_scale -= in[(head - size) * step]
+                       * in[(head - size) * step];
+      }
+      scale[(head - post_pad) * step] = k + accum_scale * alpha_over_size;
       ++head;
     }
   }
 }
-template __attribute__((mangled_name(LRNFillScalefloat))) __kernel void LRNFillScale (const int nthreads, __global const float* in, const int num, const int channels, const int height, const int width, const int size, const float alpha_over_size, __global float* scale);
-template __attribute__((mangled_name(LRNFillScaledouble))) __kernel void LRNFillScale (const int nthreads, __global const double* in, const int num, const int channels, const int height, const int width, const int size, const double alpha_over_size, __global double* scale);
+
+template __attribute__((mangled_name(LRNFillScalefloat))) __kernel void LRNFillScale (const int nthreads, __global float* in, const int num, const int channels, const int height, const int width, const int size, const float alpha_over_size, const float k,  __global float* scale);
+template __attribute__((mangled_name(LRNFillScaledouble))) __kernel void LRNFillScale (const int nthreads, __global double* in, const int num, const int channels, const int height, const int width, const int size, const double alpha_over_size, const double k, __global double* scale);
 
 template <class T>
-__kernel void LRNComputeOutput(const int nthreads, __global const T* in, __global const T* scale, const T negative_beta, __global T* out) {
+__kernel void LRNComputeOutput(const int nthreads, __global T* in, __global T* scale, const T negative_beta, __global T* out) {
   int index = get_global_id(0);
   int tmp = get_global_size(0);
   for(index; index < nthreads; index += tmp) 
     out[index] = in[index] * pow(scale[index], negative_beta);
 }
-template __attribute__((mangled_name(LRNComputeOutputfloat))) __kernel void LRNComputeOutput(const int nthreads, __global const float* in, __global const float* scale, const float negative_beta, __global float* out);
-template __attribute__((mangled_name(LRNComputeOutputdouble))) __kernel void LRNComputeOutput(const int nthreads, __global const double* in, __global const double* scale, const double negative_beta, __global double* out);
+template __attribute__((mangled_name(LRNComputeOutputfloat))) __kernel void LRNComputeOutput(const int nthreads, __global float* in, __global float* scale, const float negative_beta, __global float* out);
+template __attribute__((mangled_name(LRNComputeOutputdouble))) __kernel void LRNComputeOutput(const int nthreads, __global double* in, __global double* scale, const double negative_beta, __global double* out);
 
 template <class T>
-__kernel void LRNComputeDiff(const int nthreads, __global const T* bottom_data, __global const T* top_data, __global const T* scale, __global const T* top_diff, const int num, const int channels, const int height, const int width, const int size, const T negative_beta, const T cache_ratio, __global T* bottom_diff) {
+__kernel void LRNComputeDiff(const int nthreads, __global T* bottom_data, __global T* top_data, __global T* scale, __global T* top_diff, const int num, const int channels, const int height, const int width, const int size, const T negative_beta, const T cache_ratio, __global T* bottom_diff) {
   int index = get_global_id(0);
   int tmp = get_global_size(0);
   for(index; index < nthreads; index += tmp) {
-    int w = index % width;
-    int h = (index / width) % height;
-    int n = index / width / height;
-    int offset = (n * channels * height + h) * width + w;
-    int step = height * width;
+    const int w = index % width;
+    const int h = (index / width) % height;
+    const int n = index / width / height;
+    const int offset = (n * channels * height + h) * width + w;
+    const int step = height * width;
     bottom_data += offset;
     top_data += offset;
     scale += offset;
     top_diff += offset;
     bottom_diff += offset;
     int head = 0;
-    int pre_pad = size - (size + 1) / 2;
-    int post_pad = size - pre_pad - 1;
+    const int pre_pad = size - (size + 1) / 2;
+    const int post_pad = size - pre_pad - 1;
     T accum_ratio = 0;
     // accumulate values
-    while (head < post_pad) {
+    while (head < post_pad && head < channels) {
       accum_ratio += top_diff[head * step] * top_data[head * step] /
           scale[head * step];
-      ++head;
-    }
-    // until we reach size, nothing needs to be subtracted
-    while (head < size) {
-      accum_ratio += top_diff[head * step] * top_data[head * step] /
-          scale[head * step];
-      bottom_diff[(head - post_pad) * step] = top_diff[(head - post_pad) * step]
-          * pow(scale[(head - post_pad) * step], negative_beta) - cache_ratio *
-          bottom_data[(head - post_pad) * step] * accum_ratio;
       ++head;
     }
     // both add and subtract
     while (head < channels) {
       accum_ratio += top_diff[head * step] * top_data[head * step] /
           scale[head * step];
-      accum_ratio -= top_diff[(head - size) * step] *
-          top_data[(head - size) * step] / scale[(head - size) * step];
-      bottom_diff[(head - post_pad) * step] = top_diff[(head - post_pad) * step]
-          * pow(scale[(head - post_pad) * step], negative_beta) - cache_ratio *
-          bottom_data[(head - post_pad) * step] * accum_ratio;
+      if (head - size >= 0) {
+        accum_ratio -= top_diff[(head - size) * step] *
+            top_data[(head - size) * step] / scale[(head - size) * step];
+      }
+      bottom_diff[(head - post_pad) * step] =
+          top_diff[(head - post_pad) * step]
+            * pow(scale[(head - post_pad) * step], negative_beta)
+          - cache_ratio * bottom_data[(head - post_pad) * step] * accum_ratio;
       ++head;
     }
     // subtract only
     while (head < channels + post_pad) {
-      accum_ratio -= top_diff[(head - size) * step] *
-          top_data[(head - size) * step] / scale[(head - size) * step];
-      bottom_diff[(head - post_pad) * step] = top_diff[(head - post_pad) * step]
-          * pow(scale[(head - post_pad) * step], negative_beta) - cache_ratio *
-          bottom_data[(head - post_pad) * step] * accum_ratio;
+      if (head - size >= 0) {
+        accum_ratio -= top_diff[(head - size) * step] *
+            top_data[(head - size) * step] / scale[(head - size) * step];
+      }
+      bottom_diff[(head - post_pad) * step] =
+          top_diff[(head - post_pad) * step]
+            * pow(scale[(head - post_pad) * step], negative_beta)
+          - cache_ratio * bottom_data[(head - post_pad) * step] * accum_ratio;
       ++head;
     }
-  }
+}
 }
 
-template __attribute__((mangled_name(LRNComputeDifffloat))) __kernel void LRNComputeDiff(const int nthreads, __global const float* bottom_data, __global const float* top_data, __global const float* scale, __global const float* top_diff, const int num, const int channels, const int height, const int width, const int size, const float negative_beta, const float cache_ratio, __global float* bottom_diff);
-template __attribute__((mangled_name(LRNComputeDiffdouble))) __kernel void LRNComputeDiff(const int nthreads, __global const double* bottom_data, __global const double* top_data, __global const double* scale, __global const double* top_diff, const int num, const int channels, const int height, const int width, const int size, const double negative_beta, const double cache_ratio, __global double* bottom_diff);
+template __attribute__((mangled_name(LRNComputeDifffloat))) __kernel void LRNComputeDiff(const int nthreads, __global float* bottom_data, __global float* top_data, __global float* scale, __global float* top_diff, const int num, const int channels, const int height, const int width, const int size, const float negative_beta, const float cache_ratio, __global float* bottom_diff);
+template __attribute__((mangled_name(LRNComputeDiffdouble))) __kernel void LRNComputeDiff(const int nthreads, __global double* bottom_data, __global double* top_data, __global double* scale, __global double* top_diff, const int num, const int channels, const int height, const int width, const int size, const double negative_beta, const double cache_ratio, __global double* bottom_diff);
 
 template <class T>
 __kernel void transpose(__global const T *src, __global T* dst, int width, int height, int optnum){

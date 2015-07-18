@@ -20,6 +20,21 @@ Solver<Dtype>::Solver(const SolverParameter& param)
 }
 
 template <typename Dtype>
+void Solver<Dtype>::ocl_setup(){
+   scalar_kernel = clCreateKernel(amdDevice.Program, "add_scalar_float", NULL);
+   div_kernel = clCreateKernel(amdDevice.Program, "div_float", NULL);
+   powx_kernel = clCreateKernel(amdDevice.Program, "powx_float", NULL);
+}
+
+/*
+template <typename Dtype>
+Solver<Dtype>::~Solver(){
+    OCL_CHECK( clReleaseKernel(scalar_kernel) );
+    OCL_CHECK( clReleaseKernel(div_kernel) );
+    OCL_CHECK( clReleaseKernel(powx_kernel) );
+}*/
+
+template <typename Dtype>
 Solver<Dtype>::Solver(const string& param_file)
     : net_() {
   SolverParameter param;
@@ -51,7 +66,6 @@ void Solver<Dtype>::Init(const SolverParameter& param) {
   LOG(INFO) << "Solver scaffolding done.";
   iter_ = 0;
   current_step_ = 0;
-
 }
 
 template <typename Dtype>
@@ -749,7 +763,7 @@ void AdaGradSolver<Dtype>::ComputeUpdateValue(int param_id, Dtype rate) {
   case Caffe::GPU: {
 #ifndef CPU_ONLY
     // compute square of gradient in update
-    caffe_gpu_powx(net_params[param_id]->count(),
+    caffe_gpu_powx(powx_kernel, net_params[param_id]->count(),
         net_params[param_id]->gpu_diff(), Dtype(2),
         this->update_[param_id]->mutable_gpu_data());
 
@@ -760,14 +774,14 @@ void AdaGradSolver<Dtype>::ComputeUpdateValue(int param_id, Dtype rate) {
         this->history_[param_id]->mutable_gpu_data());
 
     // prepare update
-    caffe_gpu_powx(net_params[param_id]->count(),
+    caffe_gpu_powx(powx_kernel, net_params[param_id]->count(),
               this->history_[param_id]->gpu_data(), Dtype(0.5),
               this->update_[param_id]->mutable_gpu_data());
 
-    caffe_gpu_add_scalar(net_params[param_id]->count(),
+    caffe_gpu_add_scalar(scalar_kernel, net_params[param_id]->count(),
               delta, this->update_[param_id]->mutable_gpu_data());
 
-    caffe_gpu_div(net_params[param_id]->count(),
+    caffe_gpu_div(div_kernel, net_params[param_id]->count(),
               net_params[param_id]->gpu_diff(),
               this->update_[param_id]->gpu_data(),
               this->update_[param_id]->mutable_gpu_data());

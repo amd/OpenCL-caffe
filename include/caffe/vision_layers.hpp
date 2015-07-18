@@ -392,10 +392,12 @@ class LRNLayer : public Layer<Dtype> {
   shared_ptr<EltwiseLayer<Dtype> > product_layer_;
   Blob<Dtype> product_input_;
   vector<Blob<Dtype>*> product_bottom_vec_;
+
+  cl_kernel LFSkernel, LCDkernel, LCOkernel;
 };
 
 
-/**
+/*n
  * @brief Pools the input image by taking the max, average, etc. within regions.
  *
  * TODO(dox): thorough documentation for Forward, Backward, and proto params.
