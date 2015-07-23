@@ -167,6 +167,13 @@ class DropoutLayer : public NeuronLayer<Dtype> {
       const vector<Blob<Dtype>*>& top);
 
   virtual inline const char* type() const { return "Dropout"; }
+  virtual ~DropoutLayer();
+  void ocl_setup(int bottom_count);
+  cl_mem MaskMem;
+  cl_kernel ocl_Kernel_Fwd;
+  cl_kernel ocl_Kernel_Bwd;
+  cl_kernel rng_kernel;
+
 
  protected:
   /**
@@ -420,8 +427,10 @@ class ReLULayer : public NeuronLayer<Dtype> {
    *     the value @f$ \nu @f$ by which negative values are multiplied.
    */
   explicit ReLULayer(const LayerParameter& param)
-      : NeuronLayer<Dtype>(param) {}
-
+      : NeuronLayer<Dtype>(param) {
+        ocl_setup();
+    }
+  ~ReLULayer();
   virtual inline const char* type() const { return "ReLU"; }
 
  protected:
@@ -473,6 +482,14 @@ class ReLULayer : public NeuronLayer<Dtype> {
       const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
   virtual void Backward_gpu(const vector<Blob<Dtype>*>& top,
       const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
+
+//OpenCL related setiup
+  void ocl_setup();
+
+ protected:
+   cl_kernel ReLUForward_kernel;
+   cl_kernel ReLUBackward_kernel;
+
 };
 
 #ifdef USE_CUDNN

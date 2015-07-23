@@ -1098,25 +1098,25 @@ template __attribute__((mangled_name(AvePoolBackwardfloat))) __kernel void AvePo
 template __attribute__((mangled_name(AvePoolBackwarddouble))) __kernel void AvePoolBackward(const int nthreads, __global double* top_diff, const int num, const int channels, const int height, const int width, const int pooled_height, const int pooled_width,  const int kernel_size, const int stride, const int pad, __global double* bottom_diff);
 
 template <class T>
-__kernel void ReLUForward(const int count, __global T* in, __global T* out){
+__kernel void ReLUForward(const int count, __global T* in, __global T* out, T negative_slope){
 	int index = get_global_id(0);
 	if(index < count)
-		out[index] = in[index] > 0? in[index]:0;
+		out[index] = in[index] > 0? in[index]:in[index]*negative_slope;
 }
 
-//template __attribute__ ((mangled_name(ReLUForwardfloat))) __kernel void ReLUForward(const int count, __global float4* in, __global float4* out);
-template __attribute__ ((mangled_name(ReLUForwardfloat))) __kernel void ReLUForward(const int count, __global float* in, __global float* out);
-template __attribute__ ((mangled_name(ReLUForwarddouble))) __kernel void ReLUForward(const int count, __global double* in, __global double* out);
+//template __attribute__ ((mangled_name(ReLUForwardfloat))) __kernel void ReLUForward(const int count, __global float4* in, __global float4* out, float negative_slope);
+template __attribute__ ((mangled_name(ReLUForwardfloat))) __kernel void ReLUForward(const int count, __global float* in, __global float* out, float negative_slope);
+template __attribute__ ((mangled_name(ReLUForwarddouble))) __kernel void ReLUForward(const int count, __global double* in, __global double* out, double negative_slope);
 
 template <class T>
-__kernel void ReLUBackward(const int count, __global T* in_diff, __global T* in_data,__global T* out_diff){
+__kernel void ReLUBackward(const int count, __global T* in_diff, __global T* in_data,__global T* out_diff,T negative_slope){
 	int index = get_global_id(0);
         if(index < count)
-		out_diff[index] = in_diff[index] * (in_data[index] > 0);
+		out_diff[index] = in_diff[index] * (in_data[index] > 0)+(in_data[index] <= 0) * negative_slope;
 }
 
-template __attribute__ ((mangled_name(ReLUBackwardfloat))) __kernel void ReLUBackward(const int count, __global float* in_diff, __global float* in_data, __global float* out_diff);
-template __attribute__ ((mangled_name(ReLUBackwarddouble))) __kernel void ReLUBackward(const int count, __global double* in_diff, __global double* in_data, __global double* out_diff);
+template __attribute__ ((mangled_name(ReLUBackwardfloat))) __kernel void ReLUBackward(const int count, __global float* in_diff, __global float* in_data, __global float* out_diff, float negative_slope);
+template __attribute__ ((mangled_name(ReLUBackwarddouble))) __kernel void ReLUBackward(const int count, __global double* in_diff, __global double* in_data, __global double* out_diff, double negative_slope);
 
 template <class T>
 __kernel void get_max(const int num, const int dim, __global T* data, __global T* out){
@@ -1192,6 +1192,74 @@ __kernel void softmax(__global T* prob_data, __global T* loss, __global T* label
 
 template __attribute__ ((mangled_name(softmax_float))) __kernel void softmax (__global float* prob_data, __global float* loss, __global float* label, int num, int dim, __local float* resultScratch);
 template __attribute__ ((mangled_name(softmax_double))) __kernel void softmax (__global double* prob_data, __global double* loss, __global double* label, int num, int dim, __local double* resultScratch);
+
+template <class T>
+__kernel void SoftmaxLossForwardGPU(const int nthreads,
+          __global T* prob_data, __global T* label,__global T* loss,
+          int num, int dim, int spatial_dim,
+          bool has_ignore_label_, int ignore_label_,
+          __global T* counts) {
+    int index = get_global_id(0);
+    if(index < nthreads) {
+        const int n = index / spatial_dim;
+        const int s = index % spatial_dim;
+        const int label_value = static_cast<int>(label[n * spatial_dim + s]);
+        if (has_ignore_label_ && label_value == ignore_label_) {
+           loss[index] = 0;
+           counts[index] = 0;
+        } else {
+           loss[index] = -log(max(prob_data[n * dim + label_value * spatial_dim + s],
+                      T(FLT_MIN)));
+        counts[index] = 1;
+    }
+  }
+}
+
+template __attribute__ ((mangled_name(softmax_loss_fp_float))) __kernel void SoftmaxLossForwardGPU(int nthreads,
+          __global float* prob_data, __global float* label,__global float* loss,
+          int num, int dim, int spatial_dim,
+          bool has_ignore_label_, int ignore_label_,
+          __global float* counts);
+template __attribute__ ((mangled_name(softmax_loss_fp_double))) __kernel void SoftmaxLossForwardGPU(int nthreads,
+          __global double* prob_data, __global double* label,__global double* loss,
+          int num, int dim, int spatial_dim,
+          bool has_ignore_label_, int ignore_label_,
+          __global double* counts);
+
+template <class T>
+__kernel void SoftmaxLossBackwardGPU(int nthreads, __global T* top,
+          __global T* label,__global T* bottom_diff, int num, int dim,
+          int spatial_dim, bool has_ignore_label_,
+          int ignore_label_, T* counts) {
+    const int channels = dim / spatial_dim;
+   int index  = get_global_id(0);
+   if(index <  nthreads) {
+       const int n = index / spatial_dim;
+       const int s = index % spatial_dim;
+       const int label_value = static_cast<int>(label[n * spatial_dim + s]);
+
+      if (has_ignore_label_ && label_value == ignore_label_) {
+          for (int c = 0; c < channels; ++c) {
+              bottom_diff[n * dim + c * spatial_dim + s] = 0;
+          }
+          counts[index] = 0;
+    } else {
+      bottom_diff[n * dim + label_value * spatial_dim + s] -= 1;
+      counts[index] = 1;
+    }
+  }
+}
+
+
+template __attribute__ ((mangled_name(softmax_loss_bp_float))) __kernel void SoftmaxLossBackwardGPU(int nthreads, __global float* top,
+          __global float* label,__global float* bottom_diff, int num, int dim,
+          int spatial_dim, bool has_ignore_label_,
+          int ignore_label_, float* counts);
+
+template __attribute__ ((mangled_name(softmax_loss_bp_double)))  __kernel void SoftmaxLossBackwardGPU(int nthreads, __global double* top,
+          __global double* label,__global double* bottom_diff, int num, int dim,
+          int spatial_dim, bool has_ignore_label_,
+          int ignore_label_, double* counts);
 
 
 template <class T>

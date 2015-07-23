@@ -105,6 +105,62 @@ Dtype softmax_gpu(cl_kernel Kernel, const int num, const int dim, const Dtype* p
 template float softmax_gpu<float>(cl_kernel Kernel, const int num, const int dim, const float* prob_data, const float* label, cl_mem d_loss);
 template double softmax_gpu<double>(cl_kernel Kernel, const int num, const int dim, const double* prob_data, const double* label, cl_mem d_loss);
 
+
+template <typename Dtype>
+void SoftmaxLossForwardGPU(cl_kernel Kernel, const int nthreads,
+          const Dtype* prob_data, const Dtype* label, Dtype* loss,
+          const int num, const int dim, const int spatial_dim,
+          const bool has_ignore_label_, const int ignore_label_,
+          Dtype* counts)
+{
+    OCL_CHECK(clSetKernelArg(Kernel, 0, sizeof(cl_int),  (void*)&nthreads));
+    OCL_CHECK(clSetKernelArg(Kernel, 1, sizeof(cl_mem),  (void*)&prob_data));
+    OCL_CHECK(clSetKernelArg(Kernel, 2, sizeof(cl_mem),  (void*)&label));
+    OCL_CHECK(clSetKernelArg(Kernel, 3, sizeof(cl_mem),  (void*)&loss));
+    OCL_CHECK(clSetKernelArg(Kernel, 4, sizeof(cl_int),  (void*)&num));
+    OCL_CHECK(clSetKernelArg(Kernel, 5, sizeof(cl_int),  (void*)&dim));
+    OCL_CHECK(clSetKernelArg(Kernel, 6, sizeof(cl_int),  (void*)&spatial_dim));
+    OCL_CHECK(clSetKernelArg(Kernel, 7, sizeof(cl_bool),  (void*)&has_ignore_label_));
+    OCL_CHECK(clSetKernelArg(Kernel, 8, sizeof(cl_int),  (void*)&ignore_label_));
+    OCL_CHECK(clSetKernelArg(Kernel, 9, sizeof(cl_mem),  (void*)&counts));
+    
+   size_t Global_Work_Size[1] = {nthreads};
+   size_t Local_Work_Size[1] = {256};
+   OCL_CHECK( clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, Global_Work_Size, Local_Work_Size, 0, NULL, NULL));
+}
+
+template void SoftmaxLossForwardGPU<float>(cl_kernel Kernel, const int nthreads, const float* prob_data, const float* label, float* loss,
+          const int num, const int dim, const int spatial_dim,const bool has_ignore_label_, const int ignore_label_,float* counts);
+template void SoftmaxLossForwardGPU<double>(cl_kernel Kernel, const int nthreads, const double* prob_data, const double* label, double* loss,
+          const int num, const int dim, const int spatial_dim,const bool has_ignore_label_, const int ignore_label_,double* counts);
+
+template <typename Dtype>
+void SoftmaxLossBackwardGPU(cl_kernel Kernel, const int nthreads, const Dtype* top,
+          const Dtype* label, Dtype* bottom_diff, const int num, const int dim,
+          const int spatial_dim, const bool has_ignore_label_,
+          const int ignore_label_, Dtype* counts)
+{
+    OCL_CHECK(clSetKernelArg(Kernel, 0, sizeof(cl_int),  (void*)&nthreads));
+    OCL_CHECK(clSetKernelArg(Kernel, 1, sizeof(cl_mem),  (void*)&top));
+    OCL_CHECK(clSetKernelArg(Kernel, 2, sizeof(cl_mem),  (void*)&label));
+    OCL_CHECK(clSetKernelArg(Kernel, 3, sizeof(cl_mem),  (void*)&bottom_diff));
+    OCL_CHECK(clSetKernelArg(Kernel, 4, sizeof(cl_int),  (void*)&num));
+    OCL_CHECK(clSetKernelArg(Kernel, 5, sizeof(cl_int),  (void*)&dim));
+    OCL_CHECK(clSetKernelArg(Kernel, 6, sizeof(cl_int),  (void*)&spatial_dim));
+    OCL_CHECK(clSetKernelArg(Kernel, 7, sizeof(cl_bool),  (void*)&has_ignore_label_));
+    OCL_CHECK(clSetKernelArg(Kernel, 8, sizeof(cl_int),  (void*)&ignore_label_));
+    OCL_CHECK(clSetKernelArg(Kernel, 9, sizeof(cl_mem),  (void*)&counts));
+
+   size_t Global_Work_Size[1] = {nthreads};
+   size_t Local_Work_Size[1] = {256};
+   OCL_CHECK( clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, Global_Work_Size, Local_Work_Size, 0, NULL, NULL));
+}
+
+template void SoftmaxLossBackwardGPU<float>(cl_kernel Kernel, const int nthreads, const float* top, const float* label, float* bottom_diff, 
+                       const int num, const int dim, const int spatial_dim, const bool has_ignore_label_, const int ignore_label_, float* counts);
+template void SoftmaxLossBackwardGPU<double>(cl_kernel Kernel, const int nthreads, const double* top, const double* label, double* bottom_diff, 
+                       const int num, const int dim, const int spatial_dim, const bool has_ignore_label_, const int ignore_label_, double* counts);
+
 template <typename Dtype>
 void scal_gpu(cl_kernel Kernel, const int num, const Dtype alpha, Dtype* data){
     OCL_CHECK( clSetKernelArg(Kernel, 0, sizeof(cl_int), (void*)&num) );
@@ -237,35 +293,37 @@ template void ave_pool_bp_gpu<float>(cl_kernel Kernel, const int count, const fl
 template void ave_pool_bp_gpu<double>(cl_kernel Kernel, const int count, const double* top_diff, const int clnum, const int channels_, const int intheight_, const int width_, const int pooled_height_, const int pooled_width_, const int kernel_size_, const int stride_, const int pad_, double* bottom_diff);
 
 template <typename Dtype> 
-void Relu_fp_gpu(cl_kernel Kernel, const int count, const Dtype* bottom_data, Dtype* top_data){
+void Relu_fp_gpu(cl_kernel Kernel, const int count, const Dtype* bottom_data, Dtype* top_data, Dtype negative_slope){
     cl_int ret;
     ret  = clSetKernelArg(Kernel, 0, sizeof(cl_int), (void*)&count);
     ret |= clSetKernelArg(Kernel, 1, sizeof(cl_mem), (void*)&bottom_data);
     ret |= clSetKernelArg(Kernel, 2, sizeof(cl_mem), (void*)&top_data);
+    ret |= clSetKernelArg(Kernel, 3, sizeof(Dtype), (void*)&negative_slope);
     OCL_CHECK(ret);
     size_t Global_Work_Size[] = {count * 1};
     size_t Local_Work_Size[] = {256};
     OCL_CHECK(clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, Global_Work_Size, Local_Work_Size, 0, NULL, NULL));
 }
 
-template void Relu_fp_gpu<float>(cl_kernel Kernel, const int count, const float* bottom_data, float* top_data);
-template void Relu_fp_gpu<double>(cl_kernel Kernel, const int count, const double* bottom_data, double* top_data);
+template void Relu_fp_gpu<float>(cl_kernel Kernel, const int count, const float* bottom_data, float* top_data, float negative_slope);
+template void Relu_fp_gpu<double>(cl_kernel Kernel, const int count, const double* bottom_data, double* top_data, double negative_slope);
 
 template <typename Dtype> 
-void Relu_bp_gpu(cl_kernel Kernel, const int count, const Dtype* top_diff, const Dtype* bottom_data, Dtype* bottom_diff){
+void Relu_bp_gpu(cl_kernel Kernel, const int count, const Dtype* top_diff, const Dtype* bottom_data, Dtype* bottom_diff, Dtype negative_slope){
     cl_int ret;
     ret  = clSetKernelArg(Kernel, 0, sizeof(cl_int), (void*)&count);
     ret |= clSetKernelArg(Kernel, 1, sizeof(cl_mem), (void*)&top_diff);
     ret |= clSetKernelArg(Kernel, 2, sizeof(cl_mem), (void*)&bottom_data);
     ret |= clSetKernelArg(Kernel, 3, sizeof(cl_mem), (void*)&bottom_diff);
+    ret |= clSetKernelArg(Kernel, 4, sizeof(Dtype), (void*)&negative_slope);
     OCL_CHECK(ret);
     size_t Global_Work_Size[] = {count * 1};
     size_t Local_Work_Size[] = {256};
     OCL_CHECK(clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, Global_Work_Size, Local_Work_Size, 0, NULL, NULL));
 }
 
-template void Relu_bp_gpu<float>(cl_kernel Kernel, const int count, const float* top_diff, const float* bottom_data, float* bottom_diff);
-template void Relu_bp_gpu<double>(cl_kernel Kernel, const int count, const double* top_diff, const double* bottom_data, double* bottom_diff);
+template void Relu_bp_gpu<float>(cl_kernel Kernel, const int count, const float* top_diff, const float* bottom_data, float* bottom_diff, float negative_slope);
+template void Relu_bp_gpu<double>(cl_kernel Kernel, const int count, const double* top_diff, const double* bottom_data, double* bottom_diff, double negative_slope);
 
 template <typename Dtype>
 void caffe_gpu_sign(cl_kernel Kernel,const int N,  const Dtype* X, Dtype * Y ){

@@ -536,6 +536,12 @@ double caffe_cpu_asum<double>(const int n, const double* x) {
 
 template <>
 void caffe_gpu_asum<float>(const int n, const float* x, float* y) {
+    cl_mem scratchBuff = clCreateBuffer(amdDevice.Context, CL_MEM_READ_WRITE, (n*sizeof(cl_float)), NULL, NULL);
+    cl_mem d_y = clCreateBuffer(amdDevice.Context, CL_MEM_READ_WRITE, (1*sizeof(cl_float)), NULL, NULL);
+    clblasSasum(n,d_y,0,(cl_mem)x,0,1,scratchBuff,1,&(amdDevice.CommandQueue),0,NULL,NULL);
+    clEnqueueReadBuffer(amdDevice.CommandQueue, d_y, CL_TRUE, 0, sizeof(float), y,0, NULL, NULL);
+    clReleaseMemObject(scratchBuff);
+    clReleaseMemObject(d_y);
 }
 
 template <>
