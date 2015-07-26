@@ -5,6 +5,10 @@
 
 namespace caffe {
 
+typedef unsigned int uint32_t;
+template <typename Dtype>
+void caffe_gpu_bernoulli(cl_kernel ker_rand, int* a, const unsigned int n, Dtype inf, Dtype sup, Dtype threshold);
+
 template <typename Dtype>
 void transform_gpu(cl_kernel Kernel, Dtype* src, Dtype* dst, const int top_offset, const int N_, const int M_, const int packing_num);
 
@@ -96,7 +100,6 @@ void SoftmaxLossBackwardGPU(cl_kernel Kernel, const int nthreads, const Dtype* t
           const Dtype* label, Dtype* bottom_diff, const int num, const int dim,
           const int spatial_dim, const bool has_ignore_label_,
           const int ignore_label_, Dtype* counts);
-}
 
 template <typename Dtype>
 void caffe_gpu_add(cl_kernel Kernel, const int n, const Dtype* in1, const Dtype* in2, Dtype* y);
@@ -111,8 +114,8 @@ void LRNFillScale(cl_kernel LFSkernel, const int nthreads, const Dtype* const in
     const Dtype k, Dtype* const scale);
 
 template <typename Dtype>
-void LRNComputeOutput(cl_kernel LCOkernel, const int nthreads, const Dtype* const in,
-    const Dtype* const scale, const Dtype negative_beta, Dtype* const out);
+void LRNComputeOutput(cl_kernel LCOkernel, int nthreads, const Dtype* in,
+     Dtype* scale, Dtype negative_beta, Dtype* out);
 
 template <typename Dtype>
 void LRNComputeDiff(cl_kernel LCDkernel, const int nthreads,
@@ -121,5 +124,11 @@ void LRNComputeDiff(cl_kernel LCDkernel, const int nthreads,
     const int num, const int channels, const int height,
     const int width, const int size, const Dtype negative_beta,
     const Dtype cache_ratio, Dtype* const bottom_diff);
-  // namespace caffe
+template <typename Dtype>
+void caffe_gpu_powx (cl_kernel Kernel, const int n, const Dtype* a, const Dtype alpha, Dtype* y);
+
+template <typename Dtype>
+void caffe_gpu_mul (cl_kernel Kernel, const int n, const Dtype* a, const Dtype* b, Dtype* y);
+}
 #endif  // CAFFE_UTIL_OCL_UTIL_HPP_
+  // namespace caffe

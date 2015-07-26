@@ -602,7 +602,6 @@ template <typename Dtype>
 void add_scalar_kernel(const int n, const Dtype alpha, Dtype* y) {
 }
 
-/*
 template <>
 void caffe_gpu_add_scalar(const int N, const float alpha, float* Y) {
 }
@@ -610,7 +609,6 @@ void caffe_gpu_add_scalar(const int N, const float alpha, float* Y) {
 template <>
 void caffe_gpu_add_scalar(const int N, const double alpha, double* Y) {
 }
-*/
 
 template <typename Dtype>
 void mul_kernel(const int n, const Dtype* a,
@@ -657,16 +655,6 @@ void caffe_gpu_div<double>(const int N, const double* a,
 template <typename Dtype>
 void powx_kernel(const int n, const Dtype* a,
     const Dtype alpha, Dtype* y) {
-}
-
-template <>
-void caffe_gpu_powx<float>(const int N, const float* a,
-    const float alpha, float* y) {
-}
-
-template <>
-void caffe_gpu_powx<double>(const int N, const double* a,
-    const double alpha, double* y) {
 }
 
 

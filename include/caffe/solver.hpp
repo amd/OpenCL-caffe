@@ -61,7 +61,7 @@ class Solver {
  
  void ocl_setup();
  protected:
- cl_kernel scalar_kernel, div_kernel, powx_kernel;
+ cl_kernel scalar_kernel, add_kernel, div_kernel, powx_kernel;
 
   DISABLE_COPY_AND_ASSIGN(Solver);
 };
@@ -99,7 +99,7 @@ class SGDSolver : public Solver<Dtype> {
 
  void ocl_setup();
  protected:
- cl_kernel scalar_kernel, div_kernel, powx_kernel;
+ cl_kernel scalar_kernel, add_kernel, div_kernel, powx_kernel;
 
   DISABLE_COPY_AND_ASSIGN(SGDSolver);
 };
@@ -117,7 +117,7 @@ class NesterovSolver : public SGDSolver<Dtype> {
 
  void ocl_setup();
  protected:
- cl_kernel scalar_kernel, div_kernel, powx_kernel;
+ cl_kernel scalar_kernel, add_kernel, div_kernel, powx_kernel;
 
   DISABLE_COPY_AND_ASSIGN(NesterovSolver);
 };
@@ -139,7 +139,7 @@ class AdaGradSolver : public SGDSolver<Dtype> {
 
  void ocl_setup();
  protected:
- cl_kernel scalar_kernel, div_kernel, powx_kernel;
+ cl_kernel scalar_kernel, add_kernel, div_kernel, powx_kernel;
   DISABLE_COPY_AND_ASSIGN(AdaGradSolver);
 };
 

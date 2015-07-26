@@ -1103,7 +1103,7 @@ template __attribute__((mangled_name(StoPoolForwardTestfloat))) __kernel void St
 template __attribute__((mangled_name(StoPoolForwardTestdouble))) __kernel void StoPoolForwardTest(const int nthreads, __global double* bottom_data, const int num, const int channels, const int height, const int width, const int pooled_height, const int pooled_width, const int kernel_h, const int kernel_w, const int stride_h, const int stride_w, __global double* top_data);
 
 template <class T>
-void MaxPoolBackward(const int nthreads, __global T* top_diff,
+__kernel void MaxPoolBackward(const int nthreads, __global T* top_diff,
     __global int* mask, __global T* top_mask, const int num,
     const int channels, const int height, const int width,
     const int pooled_height, const int pooled_width, const int kernel_h,

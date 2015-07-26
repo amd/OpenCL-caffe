@@ -168,7 +168,7 @@ void PowerLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
           caffe_gpu_scal(count, scale_, bottom_diff);
         }
         if (shift_ != Dtype(0)) {
-          caffe_gpu_add_scalar(scalar_kernel, count, shift_, bottom_diff);
+            caffe_gpu_add_scalar(scalar_kernel, count, shift_, bottom_diff);
         }
         const Dtype* top_data = top[0]->gpu_data();
         caffe_gpu_div(div_kernel, count, top_data, bottom_diff, bottom_diff);

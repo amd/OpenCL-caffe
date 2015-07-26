@@ -10,7 +10,7 @@
 #include "caffe/util/io.hpp"
 #include "caffe/util/math_functions.hpp"
 #include "caffe/util/upgrade_proto.hpp"
-
+#include "caffe/util/ocl_wrapper.hpp"
 namespace caffe {
 
 template <typename Dtype>
@@ -22,6 +22,7 @@ Solver<Dtype>::Solver(const SolverParameter& param)
 template <typename Dtype>
 void Solver<Dtype>::ocl_setup(){
    scalar_kernel = clCreateKernel(amdDevice.Program, "add_scalar_float", NULL);
+   add_kernel = clCreateKernel(amdDevice.Program, "caffe_gpu_add_float", NULL);
    div_kernel = clCreateKernel(amdDevice.Program, "div_float", NULL);
    powx_kernel = clCreateKernel(amdDevice.Program, "powx_float", NULL);
 }
@@ -52,6 +53,7 @@ void Solver<Dtype>::Init(const SolverParameter& param) {
 //#ifndef CPU_ONLY
   //AMD device related initialization
   amdDevice.Init();
+  ocl_setup();
 //  cl_int err =  clblasSetup();
 //#else
 //  NO_GPU;
@@ -768,7 +770,7 @@ void AdaGradSolver<Dtype>::ComputeUpdateValue(int param_id, Dtype rate) {
         this->update_[param_id]->mutable_gpu_data());
 
     // update history
-    caffe_gpu_add(net_params[param_id]->count(),
+    caffe_gpu_add(add_kernel, net_params[param_id]->count(),
         this->update_[param_id]->gpu_data(),
         this->history_[param_id]->gpu_data(),
         this->history_[param_id]->mutable_gpu_data());
@@ -778,8 +780,8 @@ void AdaGradSolver<Dtype>::ComputeUpdateValue(int param_id, Dtype rate) {
               this->history_[param_id]->gpu_data(), Dtype(0.5),
               this->update_[param_id]->mutable_gpu_data());
 
-    caffe_gpu_add_scalar(scalar_kernel, net_params[param_id]->count(),
-              delta, this->update_[param_id]->mutable_gpu_data());
+    caffe_gpu_add_scalar<Dtype>(scalar_kernel, net_params[param_id]->count(),
+             delta, this->update_[param_id]->mutable_gpu_data());
 
     caffe_gpu_div(div_kernel, net_params[param_id]->count(),
               net_params[param_id]->gpu_diff(),
