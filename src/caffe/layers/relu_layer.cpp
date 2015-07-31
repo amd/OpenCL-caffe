@@ -67,7 +67,7 @@ void ReLULayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
   //     << " top_data: " << (unsigned long)top_data
   //     << " blocks: " << CAFFE_GET_BLOCKS(count)
   //     << " threads: " << CAFFE_CUDA_NUM_THREADS;
- Relu_fp_gpu(ReLUForward_kernel,count,bottom_data,top_data,negative_slope);
+ ReLUForward(ReLUForward_kernel,count,bottom_data,top_data,negative_slope);
 }
 
 
@@ -85,7 +85,7 @@ void ReLULayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
 //    ReLUBackward<Dtype><<<CAFFE_GET_BLOCKS(count), CAFFE_CUDA_NUM_THREADS>>>(
   //      count, top_diff, bottom_data, bottom_diff, negative_slope);
    // CUDA_POST_KERNEL_CHECK;
-   Relu_bp_gpu(ReLUBackward_kernel,count,top_diff,bottom_data,bottom_diff,negative_slope);
+   ReLUBackward(ReLUBackward_kernel,count,top_diff,bottom_data,bottom_diff,negative_slope);
   }
 }
 

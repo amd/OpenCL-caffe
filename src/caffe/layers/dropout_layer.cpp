@@ -100,11 +100,11 @@ void DropoutLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
         static_cast<unsigned int*>(rand_vec_.mutable_cpu_data()); 
     caffe_rng_bernoulli(count, 1. - threshold_, mask_cpu);
     OCL_CHECK( clEnqueueWriteBuffer(amdDevice.CommandQueue, MaskMem, CL_TRUE, 0, count * sizeof(int), (void*)mask_cpu, 0, NULL, NULL) );
-    Dropout_fp_gpu(ocl_Kernel_Fwd, count, bottom_data, (int*)MaskMem, (Dtype)scale_, top_data);
+    DropoutForward(ocl_Kernel_Fwd, count, bottom_data, (int*)MaskMem, (Dtype)scale_, top_data);
 #else
 //    caffe_gpu_rng_uniform(count, mask);
      caffe_gpu_bernoulli(rng_kernel, (int*)MaskMem, count, (Dtype)0., (Dtype)1., threshold_);
-     Dropout_fp_gpu(ocl_Kernel_Fwd, count, bottom_data, (int*)MaskMem, (Dtype)scale_, top_data);
+     DropoutForward(ocl_Kernel_Fwd, count, bottom_data, (int*)MaskMem, (Dtype)scale_, top_data);
 #endif
     // set thresholds
     // NOLINT_NEXT_LINE(whitespace/operators)
@@ -135,7 +135,7 @@ void DropoutLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
        // CAFFE_CUDA_NUM_THREADS>>>(
          // count, top_diff, mask, uint_thres_, scale_, bottom_diff);
     //  CUDA_POST_KERNEL_CHECK;
-       Dropout_bp_gpu(ocl_Kernel_Bwd, count, top_diff, (int*)MaskMem, uint_thres_ , (Dtype)scale_, bottom_diff);
+       DropoutBackward(ocl_Kernel_Bwd, count, top_diff, (int*)MaskMem, uint_thres_ , (Dtype)scale_, bottom_diff);
     } else {
       caffe_gpu_copy(top[0]->count(), top_diff, bottom_diff);
     }

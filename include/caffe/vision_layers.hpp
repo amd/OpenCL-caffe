@@ -91,16 +91,16 @@ class BaseConvolutionLayer : public Layer<Dtype> {
   }
 #ifndef CPU_ONLY
   inline void conv_im2col_gpu(const Dtype* data, Dtype* col_buff) {
-//    im2col_gpu(data, conv_in_channels_, conv_in_height_, conv_in_width_,
-//        kernel_h_, kernel_w_, pad_h_, pad_w_, stride_h_, stride_w_, col_buff);
-      im2col_gpu(im2col_kernel, data, bottom_offset_, conv_in_channels_, conv_in_height_, 
-                conv_in_width_, kernel_h_, pad_h_, stride_h_, col_buff, 0);
+     im2col_gpu(im2col_gpu_kernel, data, bottom_offset_, conv_in_channels_, conv_in_height_, conv_in_width_,
+           kernel_h_, kernel_w_, pad_h_, pad_w_, stride_h_, stride_w_, col_buff, 0);
+   //   im2col_gpu(im2col_gpu_kernel, data, bottom_offset_, conv_in_channels_, conv_in_height_, 
+     //           conv_in_width_, kernel_h_, pad_h_, stride_h_, col_buff, 0);
   }
   inline void conv_col2im_gpu(const Dtype* col_buff, Dtype* data) {
-   // col2im_gpu(col_buff, conv_in_channels_, conv_in_height_, conv_in_width_,
-   //     kernel_h_, kernel_w_, pad_h_, pad_w_, stride_h_, stride_w_, data);
-      col2im_gpu(col2im_kernel, col_buff, 0, conv_in_channels_, conv_in_height_, conv_in_width_,
-                 kernel_h_, pad_h_, stride_h_, data, bottom_offset_);
+    col2im_gpu(col2im_gpu_kernel, col_buff, 0,  conv_in_channels_, conv_in_height_, conv_in_width_,
+        kernel_h_, kernel_w_, pad_h_, pad_w_, stride_h_, stride_w_, data, bottom_offset_);
+   //   col2im_gpu(col2im_gpu_kernel, col_buff, 0, conv_in_channels_, conv_in_height_, conv_in_width_,
+     //            kernel_h_, pad_h_, stride_h_, data, bottom_offset_);
   }
 #endif
 
@@ -119,7 +119,7 @@ class BaseConvolutionLayer : public Layer<Dtype> {
 
 //opencl related data structures
 protected:
-  cl_kernel im2col_kernel, col2im_kernel;
+  cl_kernel im2col_gpu_kernel, col2im_gpu_kernel;
   cl_kernel oclmem_kernel;
   cl_kernel ocl_Kernel_im2colfloat, ocl_Kernel_col2imfloat;
   cl_kernel ocl_Kernel_transpose, ocl_Kernel_transform;

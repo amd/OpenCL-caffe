@@ -32,8 +32,8 @@ void Alloc_public_tmp_mem(size_t subtop_size, size_t trans_size)
 
 template <typename Dtype>
 void BaseConvolutionLayer<Dtype>::ocl_setup() {
-  im2col_kernel = clCreateKernel(amdDevice.Program,"im2colfloat", NULL);
-  col2im_kernel = clCreateKernel(amdDevice.Program,"col2imfloat", NULL);
+  im2col_gpu_kernel = clCreateKernel(amdDevice.Program,"im2col_gpu_float_kernel", NULL);
+  col2im_gpu_kernel = clCreateKernel(amdDevice.Program,"col2im_gpu_float_kernel", NULL);
   oclmem_kernel = clCreateKernel(amdDevice.Program, "oclmemfloat", NULL);
   im2col_opt_kernel = clCreateKernel(amdDevice.Program, "im2col_optfloat", NULL);
   col2im_opt_kernel = clCreateKernel(amdDevice.Program, "col2im_optfloat", NULL);
@@ -53,8 +53,8 @@ void BaseConvolutionLayer<Dtype>::ocl_setup() {
 
 template <typename Dtype>
  BaseConvolutionLayer<Dtype>::~BaseConvolutionLayer(){
-  OCL_CHECK( clReleaseKernel(im2col_kernel) );
-  OCL_CHECK( clReleaseKernel(col2im_kernel) );
+  OCL_CHECK( clReleaseKernel(im2col_gpu_kernel) );
+  OCL_CHECK( clReleaseKernel(col2im_gpu_kernel) );
   OCL_CHECK( clReleaseKernel(oclmem_kernel) );
   OCL_CHECK( clReleaseKernel(ocl_Kernel_transpose) );
   OCL_CHECK( clReleaseKernel(ocl_Kernel_transform) );

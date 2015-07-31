@@ -68,19 +68,19 @@ template <typename Dtype>
 void ave_pool_bp_gpu(cl_kernel Kernel, const int count, const Dtype* top_diff, const int clnum, const int channels_, const int intheight_, const int width_, const int pooled_height_, const int pooled_width_, const int kernel_size_, const int stride_, const int pad_, Dtype* bottom_diff);
 
 template <typename Dtype>
-void Relu_fp_gpu(cl_kernel Kernel, const int count, const Dtype* bottom_data, Dtype* top_data, Dtype negative_slope);
+void ReLUForward(cl_kernel Kernel, const int count, const Dtype* bottom_data, Dtype* top_data, Dtype negative_slope);
 
 template <typename Dtype>
-void Relu_bp_gpu(cl_kernel Kernel, const int count, const Dtype* top_diff, const Dtype* bottom_data, Dtype* bottom_diff, Dtype negative_slope);
+void ReLUBackward(cl_kernel Kernel, const int count, const Dtype* top_diff, const Dtype* bottom_data, Dtype* bottom_diff, Dtype negative_slope);
 
 template <typename Dtype>
 void caffe_gpu_div (cl_kernel Kernel, const int n, const Dtype* a, const Dtype* b, Dtype* y);
 
 template <typename Dtype>
-void Dropout_fp_gpu(cl_kernel kernel, const int count, const Dtype* bottom_data, const int* MaskMem, const Dtype scale_, Dtype *top_data);
+void DropoutForward(cl_kernel kernel, const int count, const Dtype* bottom_data, const int* MaskMem, const Dtype scale_, Dtype *top_data);
 
 template <typename Dtype>
-void Dropout_bp_gpu(cl_kernel kernel, const int count, const Dtype* top_diff, const int* MaskMem, const float threshold_, const Dtype scale_, Dtype* bottom_diff);
+void DropoutBackward(cl_kernel kernel, const int count, const Dtype* top_diff, const int* MaskMem, const float threshold_, const Dtype scale_, Dtype* bottom_diff);
 
 template <typename Dtype>
 void caffe_gpu_bernoulli(cl_kernel ker_rand, int* a, const unsigned int n, Dtype inf, Dtype sup, Dtype threshold);

@@ -240,13 +240,14 @@ void caffe_copy<double>(const int N, const double* X, double* Y) {
 
 template <>
 void caffe_gpu_copy<float>(const int N, const float* X, float* Y) {
-  CLBLAS_CHECK( clblasScopy( N, (cl_mem)X, 0,1, (cl_mem)Y, 0, 1, 1, &(amdDevice.CommandQueue), 0, NULL, NULL) );
-
+  if(X != Y)
+      CLBLAS_CHECK( clblasScopy( N, (cl_mem)X, 0,1, (cl_mem)Y, 0, 1, 1, &(amdDevice.CommandQueue), 0, NULL, NULL) );
 }
 
 template <>
 void caffe_gpu_copy<double>(const int N, const double* X, double* Y) {
-  CLBLAS_CHECK( clblasDcopy( N, (cl_mem)X, 0,1, (cl_mem)Y, 0, 1, 1, &(amdDevice.CommandQueue), 0, NULL, NULL) );
+  if(X != Y)
+      CLBLAS_CHECK( clblasDcopy( N, (cl_mem)X, 0,1, (cl_mem)Y, 0, 1, 1, &(amdDevice.CommandQueue), 0, NULL, NULL) );
 }
 
 template <>
