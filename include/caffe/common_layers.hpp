@@ -482,7 +482,10 @@ template <typename Dtype>
 class SoftmaxLayer : public Layer<Dtype> {
  public:
   explicit SoftmaxLayer(const LayerParameter& param)
-      : Layer<Dtype>(param) {}
+      : Layer<Dtype>(param) {
+     ocl_setup(); 
+  }
+  ~SoftmaxLayer();
   virtual void Reshape(const vector<Blob<Dtype>*>& bottom,
       const vector<Blob<Dtype>*>& top);
 
@@ -499,6 +502,7 @@ class SoftmaxLayer : public Layer<Dtype> {
       const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
   virtual void Backward_gpu(const vector<Blob<Dtype>*>& top,
      const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
+  virtual void ocl_setup();
 
   int outer_num_;
   int inner_num_;
@@ -507,6 +511,10 @@ class SoftmaxLayer : public Layer<Dtype> {
   Blob<Dtype> sum_multiplier_;
   /// scale is an intermediate Blob to hold temporary results.
   Blob<Dtype> scale_;
+  protected:
+      cl_kernel channel_max_kernel,channel_subtract_kernel,exp_kernel, channel_sum_kernel;
+      cl_kernel channel_div_kernel,channel_dot_kernel;
+  
 };
 
 #ifdef USE_CUDNN

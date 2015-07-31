@@ -27,13 +27,14 @@ void Solver<Dtype>::ocl_setup(){
    powx_kernel = clCreateKernel(amdDevice.Program, "powx_float", NULL);
 }
 
-/*
-template <typename Dtype>
-Solver<Dtype>::~Solver(){
+//template <typename Dtype>
+/*Solver<Dtype>::~Solver(){
     OCL_CHECK( clReleaseKernel(scalar_kernel) );
+    OCL_CHECK( clReleaseKernel(add_kernel) );
     OCL_CHECK( clReleaseKernel(div_kernel) );
     OCL_CHECK( clReleaseKernel(powx_kernel) );
-}*/
+}
+*/
 
 template <typename Dtype>
 Solver<Dtype>::Solver(const string& param_file)

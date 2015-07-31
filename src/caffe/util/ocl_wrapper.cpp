@@ -133,6 +133,125 @@ Dtype softmax_gpu(cl_kernel Kernel, const int num, const int dim, const Dtype* p
 template float softmax_gpu<float>(cl_kernel Kernel, const int num, const int dim, const float* prob_data, const float* label, cl_mem d_loss);
 template double softmax_gpu<double>(cl_kernel Kernel, const int num, const int dim, const double* prob_data, const double* label, cl_mem d_loss);
 
+template <typename Dtype>
+void kernel_channel_max(cl_kernel Kernel, const int num, const int channels,
+    const int spatial_dim, const Dtype* data, Dtype* out)
+{
+    OCL_CHECK( clSetKernelArg(Kernel, 0, sizeof(cl_int), (void*)&num) );
+    OCL_CHECK( clSetKernelArg(Kernel, 1, sizeof(cl_int), (void*)&channels) );
+    OCL_CHECK( clSetKernelArg(Kernel, 2, sizeof(cl_int), (void*)&spatial_dim) );
+    OCL_CHECK( clSetKernelArg(Kernel, 3, sizeof(cl_mem), (void*)&data) );
+    OCL_CHECK( clSetKernelArg(Kernel, 4, sizeof(cl_mem), (void*)&out) );
+
+    size_t Global_Work_Size[1] = {num*spatial_dim};
+    size_t Local_Work_Size[1] = {256};
+    OCL_CHECK( clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, Global_Work_Size, Local_Work_Size, 0, NULL, NULL) );
+}
+
+template void kernel_channel_max<float>(cl_kernel Kernel, const int num, const int channels,
+    const int spatial_dim, const float* data, float* out);
+template void kernel_channel_max<double>(cl_kernel Kernel, const int num, const int channels,
+    const int spatial_dim, const double* data, double* out);
+
+template <typename Dtype>
+void kernel_channel_subtract(cl_kernel Kernel, const int count,
+    const int num, const int channels,
+    const int spatial_dim, const Dtype* channel_max, Dtype* data){
+    OCL_CHECK( clSetKernelArg(Kernel, 0, sizeof(cl_int), (void*)&count) );
+    OCL_CHECK( clSetKernelArg(Kernel, 1, sizeof(cl_int), (void*)&num) );
+    OCL_CHECK( clSetKernelArg(Kernel, 2, sizeof(cl_int), (void*)&channels) );
+    OCL_CHECK( clSetKernelArg(Kernel, 3, sizeof(cl_int), (void*)&spatial_dim) );
+    OCL_CHECK( clSetKernelArg(Kernel, 4, sizeof(cl_mem), (void*)&channel_max) );
+    OCL_CHECK( clSetKernelArg(Kernel, 5, sizeof(cl_mem), (void*)&data) );
+
+    size_t Global_Work_Size[1] = {count};
+    size_t Local_Work_Size[1] = {256};
+    OCL_CHECK( clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, Global_Work_Size, Local_Work_Size, 0, NULL, NULL) );
+}
+
+template void kernel_channel_subtract<float>(cl_kernel Kernel, const int count,
+    const int num, const int channels,
+    const int spatial_dim, const float* channel_max, float* data);
+template void kernel_channel_subtract<double>(cl_kernel Kernel, const int count,
+    const int num, const int channels,
+    const int spatial_dim, const double* channel_max, double* data);
+
+template <typename Dtype>
+void kernel_exp(cl_kernel Kernel, const int count, const Dtype* data, Dtype* out)
+{
+    OCL_CHECK( clSetKernelArg(Kernel, 0, sizeof(cl_int), (void*)&count) );
+    OCL_CHECK( clSetKernelArg(Kernel, 1, sizeof(cl_mem), (void*)&data) );
+    OCL_CHECK( clSetKernelArg(Kernel, 2, sizeof(cl_mem), (void*)&out) );
+
+    size_t Global_Work_Size[1] = {count};
+    size_t Local_Work_Size[1] = {256};
+    OCL_CHECK( clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, Global_Work_Size, Local_Work_Size, 0, NULL, NULL) );
+}
+
+template void kernel_exp<float>(cl_kernel Kernel, const int count, const float* data, float* out);
+template void kernel_exp<double>(cl_kernel Kernel, const int count, const double* data, double* out);
+
+template <typename Dtype>
+void kernel_channel_sum(cl_kernel Kernel, const int num, const int channels,
+    const int spatial_dim, const Dtype* data, Dtype* channel_sum)
+{
+    OCL_CHECK( clSetKernelArg(Kernel, 0, sizeof(cl_int), (void*)&num) );
+    OCL_CHECK( clSetKernelArg(Kernel, 1, sizeof(cl_int), (void*)&channels) );
+    OCL_CHECK( clSetKernelArg(Kernel, 2, sizeof(cl_int), (void*)&spatial_dim) );
+    OCL_CHECK( clSetKernelArg(Kernel, 3, sizeof(cl_mem), (void*)&data) );
+    OCL_CHECK( clSetKernelArg(Kernel, 4, sizeof(cl_mem), (void*)&channel_sum) );
+
+    size_t Global_Work_Size[1] = {num*channels};
+    size_t Local_Work_Size[1] = {256};
+    OCL_CHECK( clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, Global_Work_Size, Local_Work_Size, 0, NULL, NULL) );
+}
+
+template void kernel_channel_sum<float>(cl_kernel Kernel, const int num, const int channels, const int spatial_dim, const float* data, float* channel_sum);
+template void kernel_channel_sum<double>(cl_kernel Kernel, const int num, const int channels, const int spatial_dim, const double* data, double* channel_sum);
+
+template <typename Dtype>
+void kernel_channel_div(cl_kernel Kernel, const int count, const int num, const int channels,
+    const int spatial_dim, const Dtype* channel_sum, Dtype* data)
+{
+    OCL_CHECK( clSetKernelArg(Kernel, 0, sizeof(cl_int), (void*)&count) );
+    OCL_CHECK( clSetKernelArg(Kernel, 1, sizeof(cl_int), (void*)&num) );
+    OCL_CHECK( clSetKernelArg(Kernel, 2, sizeof(cl_int), (void*)&channels) );
+    OCL_CHECK( clSetKernelArg(Kernel, 3, sizeof(cl_int), (void*)&spatial_dim) );
+    OCL_CHECK( clSetKernelArg(Kernel, 4, sizeof(cl_mem), (void*)&channel_sum) );
+    OCL_CHECK( clSetKernelArg(Kernel, 5, sizeof(cl_mem), (void*)&data) );
+
+    size_t Global_Work_Size[1] = {count};
+    size_t Local_Work_Size[1] = {256};
+    OCL_CHECK( clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, Global_Work_Size, Local_Work_Size, 0, NULL, NULL) );
+}
+
+template  void kernel_channel_div<float>(cl_kernel Kernel, const int count, const int num, const int channels,
+    const int spatial_dim, const float* channel_sum, float* data);
+template  void kernel_channel_div<double>(cl_kernel Kernel, const int count, const int num, const int channels,
+    const int spatial_dim, const double* channel_sum, double* data);
+
+template <typename Dtype>
+void kernel_channel_dot(cl_kernel Kernel, const int num, const int channels,
+    const int spatial_dim, const Dtype* data_1, const Dtype* data_2,
+    Dtype* channel_dot)
+{
+    OCL_CHECK( clSetKernelArg(Kernel, 0, sizeof(cl_int), (void*)&num) );
+    OCL_CHECK( clSetKernelArg(Kernel, 1, sizeof(cl_int), (void*)&channels) );
+    OCL_CHECK( clSetKernelArg(Kernel, 2, sizeof(cl_int), (void*)&spatial_dim) );
+    OCL_CHECK( clSetKernelArg(Kernel, 3, sizeof(cl_mem), (void*)&data_1) );
+    OCL_CHECK( clSetKernelArg(Kernel, 4, sizeof(cl_mem), (void*)&data_2) );
+    OCL_CHECK( clSetKernelArg(Kernel, 5, sizeof(cl_mem), (void*)&channel_dot) );
+      
+    size_t Global_Work_Size[1] = {num*spatial_dim};
+    size_t Local_Work_Size[1] = {256};
+    OCL_CHECK( clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, Global_Work_Size, Local_Work_Size, 0, NULL, NULL) );
+}
+
+template void kernel_channel_dot<float>(cl_kernel Kernel, const int num, const int channels,
+    const int spatial_dim, const float* data_1, const float* data_2, float* channel_dot);
+template void kernel_channel_dot<double>(cl_kernel Kernel, const int num, const int channels,
+    const int spatial_dim, const double* data_1, const double* data_2, double* channel_dot);
+
 
 template <typename Dtype>
 void SoftmaxLossForwardGPU(cl_kernel Kernel, const int nthreads,

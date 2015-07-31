@@ -89,6 +89,30 @@ template <typename Dtype>
 void caffe_gpu_sign(cl_kernel Kernel,const int N, const Dtype* X, Dtype * Y );
 
 template <typename Dtype>
+void kernel_channel_max(cl_kernel Kernel, const int num, const int channels,
+    const int spatial_dim, const Dtype* data, Dtype* out);
+
+template <typename Dtype>
+void kernel_channel_subtract(cl_kernel Kernel, const int count,
+    const int num, const int channels,
+    const int spatial_dim, const Dtype* channel_max, Dtype* data);
+
+template <typename Dtype>
+void kernel_exp(cl_kernel Kernel, const int count, const Dtype* data, Dtype* out);
+
+template <typename Dtype>
+void kernel_channel_sum(cl_kernel Kernel, const int num, const int channels,
+    const int spatial_dim, const Dtype* data, Dtype* channel_sum);
+
+template <typename Dtype>
+void kernel_channel_div(cl_kernel Kernel, const int count, const int num, const int channels, const int spatial_dim, const Dtype* channel_sum, Dtype* data);
+
+template <typename Dtype>
+void kernel_channel_dot(cl_kernel Kernel, const int num, const int channels,
+    const int spatial_dim, const Dtype* data_1, const Dtype* data_2,
+    Dtype* channel_dot);
+
+template <typename Dtype>
 void SoftmaxLossForwardGPU(cl_kernel Kernel, const int nthreads,
           const Dtype* prob_data, const Dtype* label, Dtype* loss,
           const int num, const int dim, const int spatial_dim,

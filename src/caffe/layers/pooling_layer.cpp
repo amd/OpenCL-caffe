@@ -20,7 +20,7 @@ PoolingLayer<Dtype>::~PoolingLayer(){
   OCL_CHECK( clReleaseKernel(StoPoolForwardTrain_kernel) );
   OCL_CHECK( clReleaseKernel(StoPoolForwardTest_kernel) );
   OCL_CHECK( clReleaseKernel(MaxPoolBackward_kernel) );
-  OCL_CHECK( clReleaseKernel(AvePoolBackward_kernel) );
+  OCL_CHECK( clReleaseKernel(AvePoolBackward_kernel) );  
   OCL_CHECK( clReleaseKernel(StoPoolBackward_kernel) );
 }
 

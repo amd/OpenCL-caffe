@@ -291,8 +291,9 @@ int time() {
 RegisterBrewFunction(time);
 
 int main(int argc, char** argv) {
+  FLAGS_log_dir = "./log/";
   // Print output to stderr (while still logging).
-  FLAGS_alsologtostderr = 1;
+  FLAGS_alsologtostderr = 0;
   // Usage message.
   gflags::SetUsageMessage("command line brew\n"
       "usage: caffe <command> <args>\n\n"

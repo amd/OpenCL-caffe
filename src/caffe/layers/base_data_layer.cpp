@@ -103,7 +103,7 @@ void BasePrefetchingDataLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bo
 #ifdef Track_data_transfer
 #endif
   
-  CHECK_BLOB_DATA(top[0], 20, "top[0]");  
+//  CHECK_BLOB_DATA(top[0], 20, "top[0]");  
 
   // Start a new prefetch thread
   DLOG(INFO) << "CreatePrefetchThread";
