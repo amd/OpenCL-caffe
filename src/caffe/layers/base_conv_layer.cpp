@@ -5,6 +5,7 @@
 #include "caffe/util/im2col.hpp"
 #include "caffe/util/math_functions.hpp"
 #include "caffe/vision_layers.hpp"
+#include "caffe/common.hpp"
 
 namespace caffe {
 
@@ -38,15 +39,18 @@ void BaseConvolutionLayer<Dtype>::ocl_setup() {
   im2col_opt_kernel = clCreateKernel(amdDevice.Program, "im2col_optfloat", NULL);
   col2im_opt_kernel = clCreateKernel(amdDevice.Program, "col2im_optfloat", NULL);
   opttrans_kernel = clCreateKernel(amdDevice.Program, "opttransfloat", NULL);
-  ocl_Kernel_im2colfloat = clCreateKernel(amdDevice.Program,"im2colfloat_yuan",NULL);
-  ocl_Kernel_col2imfloat = clCreateKernel(amdDevice.Program,"col2imfloat_yuan",NULL);
   ocl_Kernel_transpose = clCreateKernel(amdDevice.Program,"transposefloat",NULL);
   ocl_Kernel_transform = clCreateKernel(amdDevice.Program,"transformfloat",NULL);
+
+  M_ = conv_out_channels_ / group_;
+  K_ = kernel_dim_ / group_;
+  N_ =  conv_out_spatial_dim_;
 
 #ifdef use_packing_scheme
   size_t subtop_size = (size_t)((M_ * group_) * N_ * global_packing_N * sizeof(Dtype));
   size_t trans_size = (size_t)((K_ * group_ )* N_ * global_packing_N * sizeof(Dtype));
   Alloc_public_tmp_mem<Dtype>(subtop_size, trans_size);
+  //printf("K_ =%d, N_=%d M_=%d, group_=%d, trans_size = %d, subtop_size=%d \n", K_, N_, M_, group_, trans_size, subtop_size);
 #endif
 }
 
@@ -58,8 +62,6 @@ template <typename Dtype>
   OCL_CHECK( clReleaseKernel(oclmem_kernel) );
   OCL_CHECK( clReleaseKernel(ocl_Kernel_transpose) );
   OCL_CHECK( clReleaseKernel(ocl_Kernel_transform) );
-  OCL_CHECK( clReleaseKernel(ocl_Kernel_im2colfloat) );
-  OCL_CHECK( clReleaseKernel(ocl_Kernel_col2imfloat) );
   OCL_CHECK( clReleaseKernel(im2col_opt_kernel) );
   OCL_CHECK( clReleaseKernel(col2im_opt_kernel) );
 }
@@ -126,8 +128,6 @@ void BaseConvolutionLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
     conv_in_channels_ = channels_;
   }
 
-  //initializa OpenCL kernels and cl_mem objects
-    ocl_setup();
 
   // Handle the parameters: weights and biases.
   // - blobs_[0] holds the filter weights
@@ -214,6 +214,8 @@ void BaseConvolutionLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
     caffe_set(bias_multiplier_.count(), Dtype(1),
         bias_multiplier_.mutable_cpu_data());
   }
+  //initializa OpenCL kernels and cl_mem objects
+    ocl_setup();
 }
 
 template <typename Dtype>
@@ -369,6 +371,176 @@ void BaseConvolutionLayer<Dtype>::backward_gpu_bias(Dtype* bias,
           (Dtype)1., input, top_offset_, height_out_*width_out_,
           reinterpret_cast<const Dtype*>(bias_multiplier_.gpu_data()), (size_t)0, (Dtype)1., 1,
           bias, (size_t)0, 1);
+}
+
+
+template <typename Dtype>
+void BaseConvolutionLayer<Dtype>::forward_gpu_opt(const vector<Blob<Dtype>*>& bottom, const Dtype* weight, const vector<Blob<Dtype>*>& top, bool skip_im2col){
+
+  for (int i = 0; i < bottom.size(); ++i) {
+    const Dtype* bottom_data = bottom[i]->gpu_data();
+     //CHECK_BLOB_DATA(bottom[i],10,"bottom");
+    Dtype* top_data = top[i]->mutable_gpu_data();
+
+  Dtype* col_data = col_buffer_.mutable_gpu_data();
+  /*in the packing schme, M, K stay the same. N multiplies by opt_num becomes much bigger N'. 
+   N' is the M in sgemm call.*/
+  int M_org = M_ * group_;
+  int col_offset = K_ * N_;
+  int top_offset = M_ * N_;
+  int weight_offset = M_ * K_;
+  int opt_num2 = global_packing_N;
+  cl_command_queue Queue;
+  cl_event prof_event;
+  //LOG(INFO) << "conv_fp optimized scheme";
+  for (int n = 0; n < num_; n += opt_num2) {
+    opt_num2 = opt_num2 > (num_ - n)? (num_ - n) : opt_num2;
+    /*col_offset is the offset for sgemm, including packing and groups
+    for the last loop, may not be 16. for correctness, col_offset, weight_offset, top_offset will all be different*/
+    top_offset = M_ * N_ * opt_num2;
+    col_offset = K_ * N_ * opt_num2;
+    //step1: packed im2col, col_size = (K_ * group_ ) * N_
+    //this should be opt_num2 images packing together.
+    im2col_opt_gpu(im2col_opt_kernel, bottom_data, bottom[i]->offset(n), channels_, height_,
+                       width_, kernel_w_, pad_w_, stride_w_, (Dtype*)transMem, 0, opt_num2);
+
+    //step 2: sgemm: Top (subTopMem) = weight * col_data
+#ifdef multiQ
+    for (int g = 0; g < group_; ++g) {
+       if(g == 0) Queue = amdDevice.CommandQueue;
+       else Queue =  amdDevice.CommandQueue_helper;
+       prof_event = caffe_gpu_gemmex<Dtype>(&(Queue), CblasNoTrans, CblasNoTrans, M_, N_ * opt_num2, K_,
+          (Dtype)1., weight, weight_offset * g, (Dtype*)transMem, col_offset * g,
+          (Dtype)0., (Dtype*)subTopMem, top_offset * g);
+       }
+   //sync two command queues
+     if(group_ == 2){
+       clFinish(amdDevice.CommandQueue);
+       clFinish(amdDevice.CommandQueue_helper);
+     }
+#else
+    Queue = amdDevice.CommandQueue;
+    //printf("M_=%d, N_=%d, K_=%d, opt_num2=%d, col_offset=%d, top_offset=%d, weight_offset=%d \n", M_, N_, K_, opt_num2, col_offset, top_offset, weight_offset);
+    for (int g = 0; g < group_; ++g) {
+       prof_event = caffe_gpu_gemmex<Dtype>(&(Queue), CblasNoTrans, CblasNoTrans, M_, N_ * opt_num2, K_,
+          (Dtype)1., weight, weight_offset * g, (Dtype*)transMem, col_offset * g,
+          (Dtype)0., (Dtype*)subTopMem, top_offset * g);
+       }
+#endif
+    //step 3: tranform
+    transform_gpu(ocl_Kernel_transform, (Dtype*)subTopMem, top_data, top[i]->offset(n), N_, M_org, opt_num2);
+    //step 4: add bias
+    /*note: this sgemm has to use num_output_ instead of M, because M = M /group, in setup*/
+
+   for (int z = 0; z < opt_num2; z++)
+      if (bias_term_) {
+      caffe_gpu_gemm_ex<Dtype>(CblasNoTrans, CblasNoTrans, num_output_,
+          N_, 1, (Dtype)1., this->blobs_[1]->gpu_data(), 0,
+          reinterpret_cast<const Dtype*>(bias_multiplier_.gpu_data()), 0,
+          (Dtype)1., top_data, top[i]->offset(n) + num_output_ * N_ * z);
+    }
+  }
+}
+}
+
+template <typename Dtype>
+void BaseConvolutionLayer<Dtype>::backward_gpu_opt(const vector<Blob<Dtype>*>& top,
+      const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
+
+  const Dtype* weight = this->blobs_[0]->gpu_data();
+  Dtype* weight_diff = this->blobs_[0]->mutable_gpu_diff();
+  for (int i = 0; i < top.size(); ++i) {
+    const Dtype* top_diff = top[i]->gpu_diff();
+
+    // Bias gradient, if necessary.
+    if (this->bias_term_ && this->param_propagate_down_[1]) {
+      Dtype* bias_diff = this->blobs_[1]->mutable_gpu_diff();
+      ocl_memset(oclmem_kernel, bias_diff, (Dtype)(0.), this->blobs_[1]->count());
+    for (int n = 0; n < num_; ++n) {
+      caffe_gpu_gemvv<Dtype>(CblasNoTrans, M_, N_,
+          (Dtype)1., top_diff, top[i]->offset(n), N_,
+          reinterpret_cast<const Dtype*>(bias_multiplier_.gpu_data()), (size_t)0, (Dtype)1., 1,
+          bias_diff, (size_t)0, 1);
+     }
+   }
+
+ if (this->param_propagate_down_[0] || propagate_down[i]) {
+  const Dtype* bottom_data = bottom[i]->gpu_data();
+  Dtype* bottom_diff = bottom[i]->mutable_gpu_diff();
+  Dtype* col_data = col_buffer_.mutable_gpu_data();
+  Dtype* col_diff = col_buffer_.mutable_gpu_diff();
+  int col_offset = K_ * N_;
+  int top_offset = M_ * N_;
+  int weight_offset = M_ * K_;
+  int opt_num2 = global_packing_N;
+  int g = 0;
+  cl_command_queue Queue;
+  cl_event prof_event;
+  //LOG(INFO) << "conv_bp optimized scheme";
+
+  for (int n = 0; n < num_; n += opt_num2) {
+    opt_num2 = opt_num2 > (num_ - n)? (num_ - n) : opt_num2;
+    /*col_offset is the offset for sgemm, including packing and groups
+    for the last loop, may not be 16. for correctness, col_offset, weight_offset, top_offset will all be different*/
+    top_offset = M_ * (N_ * opt_num2);
+    col_offset = K_ * (N_ * opt_num2);
+    //step1: packed im2col, col_size = (K_ * group_ ) * N_
+    //this should be opt_num2 images packing together.
+    im2col_opt_gpu(im2col_opt_kernel, bottom_data, bottom[i]->offset(n), channels_, height_,
+                       width_, kernel_w_, pad_w_, stride_w_, (Dtype*)transMem, 0, opt_num2);
+
+    //step 2: transform top[n] into shoulder by shoulder, right now i cheated by just copying the data over. without re-organize
+    int height_top = M_ * group_, width_top = N_;
+    //if (opt_num2 >1)
+    opttrans(opttrans_kernel, top_diff, top[i]->offset(n), 1, height_top, width_top, (Dtype*)subTopMem, 0, opt_num2);
+
+    //step 3: sgemm: Top (subTopMem) = weight * col_data
+    for(g = 0; g < group_; ++g) {
+#ifdef multiQ
+       if(g == 0) Queue = amdDevice.CommandQueue;
+       else Queue =  amdDevice.CommandQueue_helper;
+#else
+       Queue =  amdDevice.CommandQueue;
+#endif
+       prof_event = caffe_gpu_gemmex<Dtype>(&(Queue), CblasNoTrans, CblasTrans, M_, K_, N_ * opt_num2,
+        (Dtype)1., (Dtype*)subTopMem, top_offset * g,
+        (Dtype*)transMem, col_offset * g, (Dtype)1.,
+        (Dtype*)weight_diff, weight_offset * g);
+    }
+
+   //step4:
+   if (propagate_down[i]) {
+      for (g = 0; g < group_; ++g) {
+#ifdef multiQ
+       if(g == 0) Queue = amdDevice.CommandQueue;
+       else Queue =  amdDevice.CommandQueue_helper;
+#else
+       Queue =  amdDevice.CommandQueue;
+#endif
+       prof_event =  caffe_gpu_gemmex<Dtype>(&(Queue), CblasTrans, CblasNoTrans, K_, N_*opt_num2, M_,
+          (Dtype)1., weight,  weight_offset * g,
+          (Dtype*)subTopMem, top_offset * g,
+          (Dtype)0., (Dtype*)transMem, col_offset * g);
+      }
+    }
+
+#ifdef multiQ
+   if(group_ ==2){
+      clFinish(amdDevice.CommandQueue);
+      clFinish(amdDevice.CommandQueue_helper);
+    }
+#endif
+
+    //step5: col2im
+       col2im_gpu_opt(col2im_opt_kernel, (Dtype*)transMem, 0, channels_, height_, width_, kernel_w_, pad_w_,
+                  stride_w_, bottom_diff, bottom[i]->offset(n), opt_num2);
+#ifdef Track_layer
+    LOG(WARNING) << "conv bp done";
+#endif
+
+   }
+  }
+ }
 }
 
 #endif  // !CPU_ONLY

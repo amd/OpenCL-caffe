@@ -75,6 +75,52 @@ void ConvolutionLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
 
 template <typename Dtype>
 void ConvolutionLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
+    const  vector<Blob<Dtype>*>& top) {
+  if (use_packing_scheme && global_packing_N >1)
+   Forward_gpu_opt(bottom, top);
+  else
+   Forward_gpu_org(bottom, top);
+}
+
+template <typename Dtype>
+void ConvolutionLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
+       const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
+    if (use_packing_scheme && global_packing_N >1)
+      Backward_gpu_opt(top, propagate_down, bottom);
+    else
+      Backward_gpu_org(top, propagate_down, bottom);
+}
+
+template <typename Dtype>
+void ConvolutionLayer<Dtype>::Forward_gpu_opt(const vector<Blob<Dtype>*>& bottom,
+      const vector<Blob<Dtype>*>& top) {
+  const Dtype* weight = this->blobs_[0]->gpu_data();
+  this->forward_gpu_opt(bottom, weight, top);
+
+/*
+#ifdef check_gradient
+   const Dtype *cpu_bottom_data = bottom[0]->cpu_data();   Dtype *cpu_top_data = (Dtype*)(*top)[0]->cpu_data();
+
+   printf("\n\nbottom data GPU:\n");
+   for(int i=0; i<channels_*height_*width_; i+=1000){
+       printf("%f,",cpu_bottom_data[i]);
+       if(i%16==15) printf("\n");
+   }
+  printf("\n\ntop data GPU:\n");
+   for(int i=0; i<M_org*N_*num_; i+=100000){
+       printf("%f,",cpu_top_data[i]);
+      if(i%16==15) printf("\n");
+   }
+  printf("\n\n");#endif
+*/
+#ifdef Track_layer
+  LOG(WARNING) << "conv fp done";
+#endif
+
+}
+
+template <typename Dtype>
+void ConvolutionLayer<Dtype>::Forward_gpu_org(const vector<Blob<Dtype>*>& bottom,
       const vector<Blob<Dtype>*>& top) {
   const Dtype* weight = this->blobs_[0]->gpu_data();
   for (int i = 0; i < bottom.size(); ++i) {
@@ -99,9 +145,13 @@ void ConvolutionLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
   // CHECK_BLOB_DATA(this->blobs_[0],20, "weights");
   CHECK_BLOB_DATA(top[0],20, "top[0]");
 }
-
 template <typename Dtype>
-void ConvolutionLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
+void ConvolutionLayer<Dtype>::Backward_gpu_opt(const vector<Blob<Dtype>*>& top,
+      const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
+      //this->backward_gpu_opt(top, propagate_down, bottom);
+}
+template <typename Dtype>
+void ConvolutionLayer<Dtype>::Backward_gpu_org(const vector<Blob<Dtype>*>& top,
       const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
   const Dtype* weight = this->blobs_[0]->gpu_data();
   Dtype* weight_diff = this->blobs_[0]->mutable_gpu_diff();

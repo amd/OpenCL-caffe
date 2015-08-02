@@ -82,45 +82,42 @@ template void col2im_cpu<double>(const double* data_col, const int channels,
     const int stride_w, double* data_im);
 
 
-/*
 template <typename Dtype>
-void im2col_gpu(const Dtype* data_im, const int channels,
-    const int height, const int width, const int kernel_h, const int kernel_w,
-    const int pad_h, const int pad_w,
-    const int stride_h, const int stride_w,
-    Dtype* data_col) {
-   
+void col2im_gpu_opt(cl_kernel Kernel, const Dtype* data_col, const int col_offset, const int channels,
+    const int height, const int width, const int ksize, const int pad,
+    const int stride, Dtype* data_im, const int img_offset, int optnum){
+    int height_col = (height + 2 * pad - ksize) / stride + 1;
+    int width_col = (width + 2 * pad - ksize) / stride + 1;
+    int num_kernels = channels * height * width;
+
+    cl_int ret;
+    ret=clSetKernelArg(Kernel,0,sizeof(cl_int),(void*)&num_kernels);
+    ret|=clSetKernelArg(Kernel,1,sizeof(cl_mem),(void*)&data_col);
+    ret|=clSetKernelArg(Kernel,2,sizeof(cl_int),(void*)&col_offset);
+    ret|=clSetKernelArg(Kernel,3,sizeof(cl_int),(void*)&height);
+    ret|=clSetKernelArg(Kernel,4,sizeof(cl_int),(void*)&width);
+    ret|=clSetKernelArg(Kernel,5,sizeof(cl_int),(void*)&channels);
+    ret|=clSetKernelArg(Kernel,6,sizeof(cl_int),(void*)&ksize);
+    ret|=clSetKernelArg(Kernel,7,sizeof(cl_int),(void*)&pad);
+    ret|=clSetKernelArg(Kernel,8,sizeof(cl_int),(void*)&stride);
+    ret|=clSetKernelArg(Kernel,9,sizeof(cl_int),(void*)&height_col);
+    ret|=clSetKernelArg(Kernel,10,sizeof(cl_int),(void*)&width_col);
+    ret|=clSetKernelArg(Kernel,11,sizeof(cl_mem),(void*)&data_im);
+    ret|=clSetKernelArg(Kernel,12,sizeof(cl_int),(void*)&img_offset);
+    ret|=clSetKernelArg(Kernel,13,sizeof(cl_int),(void*)&optnum);
+    OCL_CHECK(ret);
+
+    size_t uiGlobal_Work_Size[] = {num_kernels};
+    size_t uiLocal_Work_Size[] = {256};
+    OCL_CHECK( clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, uiGlobal_Work_Size, uiLocal_Work_Size, 0, NULL, NULL) );
 }
 
-
-// Explicit instantiation
-template void im2col_gpu<float>(const float* data_im, const int channels,
-    const int height, const int width, const int kernel_h, const int kernel_w,
-    const int pad_h, const int pad_w, const int stride_h, const int stride_w,
-    float* data_col);
-template void im2col_gpu<double>(const double* data_im, const int channels,
-    const int height, const int width, const int kernel_h, const int kernel_w,
-    const int pad_h, const int pad_w, const int stride_h, const int stride_w,
-    double* data_col);
-*/
-/*
-template <typename Dtype>
-void col2im_gpu(const Dtype* data_col, const int channels,
-    const int height, const int width, const int patch_h, const int patch_w,
-    const int pad_h, const int pad_w, const int stride_h,
-    const int stride_w, Dtype* data_im) {
-}
-
-// Explicit instantiation
-template void col2im_gpu<float>(const float* data_col, const int channels,
-    const int height, const int width, const int patch_h, const int patch_w,
-    const int pad_h, const int pad_w, const int stride_h,
-    const int stride_w, float* data_im);
-template void col2im_gpu<double>(const double* data_col, const int channels,
-    const int height, const int width, const int patch_h, const int patch_w,
-    const int pad_h, const int pad_w, const int stride_h,
-    const int stride_w, double* data_im);
-*/
+template void col2im_gpu_opt<float>(cl_kernel kernel, const float* data_col, const int col_offset, const int channels,
+    const int height, const int width, const int ksize, const int pad,
+    const int stride, float* data_im, const int img_offset, int optnum);
+template void col2im_gpu_opt<double>(cl_kernel kernel, const double* data_col, const int col_offset, const int channels,
+    const int height, const int width, const int ksize, const int pad,
+    const int stride, double* data_im, const int img_offset, int optnum);
 
 //cannot use now, need to modify kernel.
 template <typename Dtype>
@@ -290,7 +287,7 @@ template void im2col_16_gpu<double>(cl_kernel Kernel, const double* data_im, con
 template <typename Dtype>
 void im2col_opt_gpu(cl_kernel Kernel, const Dtype* data_im, const int img_offset, const int channels,
     const int height, const int width, const int ksize, const int pad,
-    const int stride, Dtype* data_col, const int col_offset, const int optnum) {
+    const int stride, Dtype* data_col, const int col_offset, int optnum) {
 
     int height_col = (height + 2 * pad - ksize) / stride + 1;
     int width_col = (width + 2 * pad - ksize) / stride + 1;
@@ -320,10 +317,10 @@ void im2col_opt_gpu(cl_kernel Kernel, const Dtype* data_im, const int img_offset
 
 template void im2col_opt_gpu<float>(cl_kernel Kernel, const float* data_im, const int img_offset, const int channels,
     const int height, const int width, const int ksize, const int pad,
-    const int stride, float* data_col, const int col_offset, const int optnum);
+    const int stride, float* data_col, const int col_offset, int optnum);
 template void im2col_opt_gpu<double>(cl_kernel Kernel, const double* data_im, const int img_offset, const int channels,
     const int height, const int width, const int ksize, const int pad,
-    const int stride, double* data_col, const int col_offset, const int optnum);
+    const int stride, double* data_col, const int col_offset,  int optnum);
 
 template <typename Dtype>
 void col2im_gpu(cl_kernel Kernel, const Dtype* data_col, const int col_offset, const int channels,

@@ -113,13 +113,18 @@ class BaseConvolutionLayer : public Layer<Dtype> {
   int weight_offset_;
   int col_offset_;
   int output_offset_;
+  int M_, N_, K_;
 
   Blob<Dtype> col_buffer_;
   Blob<Dtype> bias_multiplier_;
 
 //opencl related data structures
 protected:
-  cl_kernel im2col_gpu_kernel, col2im_gpu_kernel;
+  void forward_gpu_opt(const vector<Blob<Dtype>*>& bottom, const Dtype* weight, 
+      const vector<Blob<Dtype>*>& top,  bool skip_im2col = false) ;
+  void backward_gpu_opt(const vector<Blob<Dtype>*>& top,
+      const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
+  cl_kernel im2col_kernel, col2im_kernel;
   cl_kernel oclmem_kernel;
   cl_kernel ocl_Kernel_im2colfloat, ocl_Kernel_col2imfloat;
   cl_kernel ocl_Kernel_transpose, ocl_Kernel_transform;
@@ -184,7 +189,7 @@ class ConvolutionLayer : public BaseConvolutionLayer<Dtype> {
 
   virtual inline const char* type() const { return "Convolution"; }
 
- protected:
+protected:
   virtual void Forward_cpu(const vector<Blob<Dtype>*>& bottom,
       const vector<Blob<Dtype>*>& top);
   virtual void Forward_gpu(const vector<Blob<Dtype>*>& bottom,
@@ -195,6 +200,15 @@ class ConvolutionLayer : public BaseConvolutionLayer<Dtype> {
       const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
   virtual inline bool reverse_dimensions() { return false; }
   virtual void compute_output_shape();
+  
+  virtual void Forward_gpu_org(const vector<Blob<Dtype>*>& bottom,
+      const vector<Blob<Dtype>*>& top);
+  virtual void Backward_gpu_org(const vector<Blob<Dtype>*>& top,
+      const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
+  virtual void Forward_gpu_opt(const vector<Blob<Dtype>*>& bottom,
+      const vector<Blob<Dtype>*>& top);
+  virtual void Backward_gpu_opt(const vector<Blob<Dtype>*>& top,
+      const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
 };
 
 /**

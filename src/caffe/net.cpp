@@ -13,6 +13,7 @@
 #include "caffe/util/io.hpp"
 #include "caffe/util/math_functions.hpp"
 #include "caffe/util/upgrade_proto.hpp"
+#include "caffe/util/benchmark.hpp"
 
 #include "caffe/test/test_caffe_main.hpp"
 
@@ -503,6 +504,10 @@ Dtype Net<Dtype>::ForwardFromTo(int start, int end) {
       InputDebugInfo(i);
     }
   }
+
+  CPUTimer forward_timer;
+  forward_timer.Start();
+
   for (int i = start; i <= end; ++i) {
     // LOG(ERROR) << "Forwarding " << layer_names_[i];
 //Yibing add for porting
@@ -513,6 +518,10 @@ Dtype Net<Dtype>::ForwardFromTo(int start, int end) {
 //Yibing add for porting
     clFinish(amdDevice.CommandQueue);
   }
+
+  forward_timer.Stop();
+  printf("Forward time: %f\n\n", forward_timer.MilliSeconds());
+
   return loss;
 }
 
@@ -571,6 +580,10 @@ template <typename Dtype>
 void Net<Dtype>::BackwardFromTo(int start, int end) {
   CHECK_GE(end, 0);
   CHECK_LT(start, layers_.size());
+  
+  CPUTimer backward_timer;
+  backward_timer.Start();
+
   for (int i = start; i >= end; --i) {
     if (layer_need_backward_[i]) {
 //Yibing add for porting
@@ -582,6 +595,9 @@ void Net<Dtype>::BackwardFromTo(int start, int end) {
     clFinish(amdDevice.CommandQueue);
     }
   }
+
+  backward_timer.Stop();
+  printf("Backward time: %f\n\n", backward_timer.MilliSeconds());
 }
 
 template <typename Dtype>

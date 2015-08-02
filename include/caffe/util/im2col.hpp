@@ -55,7 +55,7 @@ void im2col_16_gpu(cl_kernel Kernel, const Dtype* data_im, const int img_offset,
 template <typename Dtype>
 void im2col_opt_gpu(cl_kernel Kernel, const Dtype* data_im, const int img_offset, const int channels,
     const int height, const int width, const int ksize, const int pad,
-    const int stride, Dtype* data_col, const int col_offset, const int optnum);
+    const int stride, Dtype* data_col, const int col_offset, int optnum);
 
 template <typename Dtype>
 void col2im_gpu(cl_kernel Kernel, const Dtype* data_col, const int col_offset, const int channels,
@@ -65,7 +65,7 @@ void col2im_gpu(cl_kernel Kernel, const Dtype* data_col, const int col_offset, c
 template <typename Dtype>
 void col2im_gpu_opt(cl_kernel Kernel, const Dtype* data_col, const int col_offset, const int channels,
     const int height, const int width, const int ksize, const int pad,
-    const int stride, Dtype* data_im, const int img_offset, const int optnum);
+    const int stride, Dtype* data_im, const int img_offset, int optnum);
 
 template <typename Dtype>
 void col2im_gpu_ocl(cl_mem data_col, const int channels,

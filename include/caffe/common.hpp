@@ -22,6 +22,8 @@
 #include "caffe/device.hpp"
 #include "caffe/util/device_alternate.hpp"
 #include "caffe/util/ocl_wrapper.hpp"
+#include "caffe/util/ocl_util.hpp"
+#include "caffe/util/im2col.hpp"
 
 // gflags 2.1 issue: namespace google was changed to gflags without warning.
 // Luckily we will be able to use GFLAGS_GFLAGS_H_ to detect if it is version
@@ -79,10 +81,10 @@ private:\
 //the following are macro defines for optimization schmes in conv layer
 /*ifdef: use proposed img_packing scheme;
  ifndef: use proposed packing im2col + sgemm scheme*/
-//#define use_packing_scheme 1
+#define use_packing_scheme 1
 /* global_packing_N defines packing number of the use_packing scheme
   for intial design, we use the same packing number for all conv layers*/
-//#define global_packing_N 16
+#define global_packing_N 16
 /*ifdef: use multi-command queues for groups in conv layer;
  ifndef: use single commane queue for groups*/
 //#define multiQ
