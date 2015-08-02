@@ -124,11 +124,10 @@ protected:
       const vector<Blob<Dtype>*>& top,  bool skip_im2col = false) ;
   void backward_gpu_opt(const vector<Blob<Dtype>*>& top,
       const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
-  cl_kernel im2col_kernel, col2im_kernel;
-  cl_kernel oclmem_kernel;
-  cl_kernel ocl_Kernel_im2colfloat, ocl_Kernel_col2imfloat;
-  cl_kernel ocl_Kernel_transpose, ocl_Kernel_transform;
+  cl_kernel im2col_gpu_kernel, col2im_gpu_kernel;
   cl_kernel im2col_opt_kernel, col2im_opt_kernel, opttrans_kernel;
+  cl_kernel oclmem_kernel;
+  cl_kernel ocl_Kernel_transpose, ocl_Kernel_transform;
 public:
   static cl_mem subTopMem, transMem;
   static size_t subtop_mem_size, trans_mem_size;

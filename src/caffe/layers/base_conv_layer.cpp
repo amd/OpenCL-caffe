@@ -50,7 +50,6 @@ void BaseConvolutionLayer<Dtype>::ocl_setup() {
   size_t subtop_size = (size_t)((M_ * group_) * N_ * global_packing_N * sizeof(Dtype));
   size_t trans_size = (size_t)((K_ * group_ )* N_ * global_packing_N * sizeof(Dtype));
   Alloc_public_tmp_mem<Dtype>(subtop_size, trans_size);
-  //printf("K_ =%d, N_=%d M_=%d, group_=%d, trans_size = %d, subtop_size=%d \n", K_, N_, M_, group_, trans_size, subtop_size);
 #endif
 }
 
@@ -413,14 +412,12 @@ void BaseConvolutionLayer<Dtype>::forward_gpu_opt(const vector<Blob<Dtype>*>& bo
           (Dtype)1., weight, weight_offset * g, (Dtype*)transMem, col_offset * g,
           (Dtype)0., (Dtype*)subTopMem, top_offset * g);
        }
-   //sync two command queues
      if(group_ == 2){
        clFinish(amdDevice.CommandQueue);
        clFinish(amdDevice.CommandQueue_helper);
      }
 #else
     Queue = amdDevice.CommandQueue;
-    //printf("M_=%d, N_=%d, K_=%d, opt_num2=%d, col_offset=%d, top_offset=%d, weight_offset=%d \n", M_, N_, K_, opt_num2, col_offset, top_offset, weight_offset);
     for (int g = 0; g < group_; ++g) {
        prof_event = caffe_gpu_gemmex<Dtype>(&(Queue), CblasNoTrans, CblasNoTrans, M_, N_ * opt_num2, K_,
           (Dtype)1., weight, weight_offset * g, (Dtype*)transMem, col_offset * g,
