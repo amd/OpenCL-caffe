@@ -285,7 +285,7 @@ template void im2col_16_gpu<double>(cl_kernel Kernel, const double* data_im, con
     const int stride, double* data_col, const int col_offset);
 
 template <typename Dtype>
-void im2col_opt_gpu(cl_kernel Kernel, const Dtype* data_im, const int img_offset, const int channels,
+void im2col_gpu_opt(cl_kernel Kernel, const Dtype* data_im, const int img_offset, const int channels,
     const int height, const int width, const int ksize, const int pad,
     const int stride, Dtype* data_col, const int col_offset, int optnum) {
 
@@ -315,10 +315,10 @@ void im2col_opt_gpu(cl_kernel Kernel, const Dtype* data_im, const int img_offset
     OCL_CHECK( clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, uiGlobal_Work_Size, uiLocal_Work_Size, 0, NULL, NULL) );
 }
 
-template void im2col_opt_gpu<float>(cl_kernel Kernel, const float* data_im, const int img_offset, const int channels,
+template void im2col_gpu_opt<float>(cl_kernel Kernel, const float* data_im, const int img_offset, const int channels,
     const int height, const int width, const int ksize, const int pad,
     const int stride, float* data_col, const int col_offset, int optnum);
-template void im2col_opt_gpu<double>(cl_kernel Kernel, const double* data_im, const int img_offset, const int channels,
+template void im2col_gpu_opt<double>(cl_kernel Kernel, const double* data_im, const int img_offset, const int channels,
     const int height, const int width, const int ksize, const int pad,
     const int stride, double* data_col, const int col_offset,  int optnum);
 
@@ -384,7 +384,6 @@ void im2col_gpu_ocl(cl_mem data_im, const int channels,
     ret|=clSetKernelArg(Kernel,8,sizeof(cl_int),(void*)&width_col);
     OCL_CHECK( clSetKernelArg(Kernel,9,sizeof(cl_mem),(void*)&data_col) );
 
-    //std::cout<<"num_kernels"<<num_kernels<<" data_im"<<data_im<<" height"<<height<<" width"<<width<<" ksize"<<ksize<<" pad"<<pad<<" stride"<<stride<<" height_col"<<height_col<<" width_col"<<width_col<<" data_col"<<data_col<<std::endl;
     if(ret!=CL_SUCCESS){
         fprintf(stderr,"Failed to Set Args\n");
     }

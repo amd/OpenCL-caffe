@@ -59,6 +59,9 @@ class BaseConvolutionLayer : public Layer<Dtype> {
   void weight_gpu_gemm(const Dtype* col_input, const Dtype* output, Dtype*
       weights);
   void backward_gpu_bias(Dtype* bias, const Dtype* input);
+  void forward_gpu_gemm_opt(const Dtype* col_input, const Dtype* weights,
+      Dtype* output, bool skip_im2col = false);
+  void forward_gpu_bias_opt(Dtype* output, const Dtype* bias);
 #endif
 
   // reverse_dimensions should return true iff we are implementing deconv, so
@@ -99,12 +102,16 @@ class BaseConvolutionLayer : public Layer<Dtype> {
         kernel_h_, kernel_w_, pad_h_, pad_w_, stride_h_, stride_w_, data, bottom_offset_);
   }
   inline void conv_im2col_gpu_opt(const Dtype* data, Dtype* col_buff) {
-     im2col_gpu(im2col_opt_kernel, data, bottom_offset_, conv_in_channels_, conv_in_height_, conv_in_width_,
+     im2col_gpu_opt(im2col_opt_kernel, data, bottom_offset_, conv_in_channels_, conv_in_height_, conv_in_width_,
            kernel_w_, pad_w_, stride_h_,(Dtype*)transMem, 0, opt_num2);
   }
   inline void conv_col2im_gpu_opt(const Dtype* col_buff, Dtype* data) {
-    col2im_gpu(col2im_opt_kernel, (Dtype*)transMem, 0,  conv_in_channels_, conv_in_height_, conv_in_width_,
+    col2im_gpu_opt(col2im_opt_kernel, (Dtype*)transMem, 0,  conv_in_channels_, conv_in_height_, conv_in_width_,
         kernel_h_, pad_h_, stride_w_, data, bottom_offset_, opt_num2);
+}
+  inline void conv_transform_gpu(const Dtype* temp_buffer, Dtype* top_data) {
+    transform_gpu(ocl_Kernel_transform, (Dtype*)temp_buffer, top_data, top_offset_n, N_, M_*opt_num2, opt_num2);
+}
 #endif
 
   int conv_out_channels_;
@@ -113,11 +120,6 @@ class BaseConvolutionLayer : public Layer<Dtype> {
   int conv_in_height_;
   int conv_in_width_;
   int kernel_dim_;
-  int weight_offset_;
-  int col_offset_;
-  int output_offset_;
-  int M_, N_, K_;
-  int opt_num2;
 
   Blob<Dtype> col_buffer_;
   Blob<Dtype> bias_multiplier_;
@@ -132,12 +134,15 @@ protected:
   cl_kernel im2col_opt_kernel, col2im_opt_kernel, opttrans_kernel;
   cl_kernel oclmem_kernel;
   cl_kernel ocl_Kernel_transpose, ocl_Kernel_transform;
+  int opt_num2;
+  int M_, N_, K_;
+  int weight_offset_;
+  int col_offset_;
+  int output_offset_;
+  int top_offset_, top_offset_n, bottom_offset_;
 public:
   static cl_mem subTopMem, transMem;
   static size_t subtop_mem_size, trans_mem_size;
-
-public:
-  size_t top_offset_, bottom_offset_;
 };
 
 /**
@@ -209,6 +214,8 @@ protected:
   virtual void Backward_gpu_org(const vector<Blob<Dtype>*>& top,
       const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
   virtual void Forward_gpu_opt(const vector<Blob<Dtype>*>& bottom,
+      const vector<Blob<Dtype>*>& top);
+  virtual void Forward_gpu_opt2(const vector<Blob<Dtype>*>& bottom,
       const vector<Blob<Dtype>*>& top);
   virtual void Backward_gpu_opt(const vector<Blob<Dtype>*>& top,
       const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);

@@ -307,23 +307,40 @@ void BaseConvolutionLayer<Dtype>::forward_gpu_gemm(const Dtype* input,
 
 template <typename Dtype>
 void BaseConvolutionLayer<Dtype>::forward_gpu_gemm_opt (const Dtype* input,
-    const Dtype* weights, Dtype* output, bool skip_im2col) {
+    const Dtype* weight, Dtype* output, bool skip_im2col) {
   const Dtype* col_buff = input;
+  cl_command_queue Queue;
+  cl_event prof_event;
   if (!is_1x1_) {
     if (!skip_im2col) {
-      conv_im2col_gpu(input, col_buffer_.mutable_gpu_data());
-    im2col_opt_gpu(im2col_opt_kernel, bottom_data, bottom[i]->offset(n), channels_, height_,
-                       width_, kernel_w_, pad_w_, stride_w_, (Dtype*)transMem, 0, opt_num2);
+      conv_im2col_gpu_opt(input, col_buffer_.mutable_gpu_data());
     }   
-    col_buff = col_buffer_.gpu_data();
+    //col_buff = col_buffer_.gpu_data();
   }
-  
-  for (int g = 0; g < group_; ++g) {
-    caffe_gpu_gemm<Dtype>(&(amdDevice.CommandQueue), CblasNoTrans, CblasNoTrans,
-          conv_out_channels_/group_, conv_out_spatial_dim_, kernel_dim_ / group_,
-        (Dtype)1., weights, weight_offset_ * g, col_buff, col_offset_ * g,
-        (Dtype)0., output,  top_offset_+output_offset_ * g); 
-   }   
+ 
+#ifdef multiQ
+    for (int g = 0; g < group_; ++g) {
+       if(g == 0) Queue = amdDevice.CommandQueue;
+       else Queue =  amdDevice.CommandQueue_helper;
+       prof_event = caffe_gpu_gemm<Dtype>(&(Queue), CblasNoTrans, CblasNoTrans, M_, N_ * opt_num2, K_,
+          (Dtype)1., weight, weight_offset_ * g, (Dtype*)transMem, col_offset_ * g,
+          (Dtype)0., (Dtype*)subTopMem, top_offset_ * g);
+       }
+     if(group_ == 2){
+       clFinish(amdDevice.CommandQueue);
+       clFinish(amdDevice.CommandQueue_helper);
+     }
+#else
+    Queue = amdDevice.CommandQueue;
+    for (int g = 0; g < group_; ++g) {
+       prof_event = caffe_gpu_gemm<Dtype>(&(Queue), CblasNoTrans, CblasNoTrans, M_, N_ * opt_num2, K_,
+          (Dtype)1., weight, weight_offset_ * g, (Dtype*)transMem, col_offset_ * g,
+          (Dtype)0., (Dtype*)subTopMem, top_offset_ * g);
+       }
+#endif
+
+   conv_transform_gpu((Dtype*)subTopMem, output);
+
 }
 
 
@@ -334,6 +351,16 @@ void BaseConvolutionLayer<Dtype>::forward_gpu_bias(Dtype* output,
           height_out_*width_out_, 1, (Dtype)1., bias, 0,
           reinterpret_cast<const Dtype*>(bias_multiplier_.gpu_data()), 0,
           (Dtype)1., output, top_offset_);
+}
+
+template <typename Dtype>
+void BaseConvolutionLayer<Dtype>::forward_gpu_bias_opt(Dtype* output,
+    const Dtype* bias) {
+   for (int z = 0; z < opt_num2; z++)
+      caffe_gpu_gemm<Dtype>(CblasNoTrans, CblasNoTrans, num_output_,
+          N_, 1, (Dtype)1., bias, 0,
+          reinterpret_cast<const Dtype*>(bias_multiplier_.gpu_data()), 0,
+          (Dtype)1., output, top_offset_n + num_output_ * N_ * z);
 }
 
 template <typename Dtype>
@@ -413,7 +440,7 @@ void BaseConvolutionLayer<Dtype>::forward_gpu_opt(const vector<Blob<Dtype>*>& bo
     col_offset = K_ * N_ * opt_num2;
     //step1: packed im2col, col_size = (K_ * group_ ) * N_
     //this should be opt_num2 images packing together.
-    im2col_opt_gpu(im2col_opt_kernel, bottom_data, bottom[i]->offset(n), channels_, height_,
+    im2col_gpu_opt(im2col_opt_kernel, bottom_data, bottom[i]->offset(n), channels_, height_,
                        width_, kernel_w_, pad_w_, stride_w_, (Dtype*)transMem, 0, opt_num2);
 
     //step 2: sgemm: Top (subTopMem) = weight * col_data
@@ -496,7 +523,7 @@ void BaseConvolutionLayer<Dtype>::backward_gpu_opt(const vector<Blob<Dtype>*>& t
     col_offset = K_ * (N_ * opt_num2);
     //step1: packed im2col, col_size = (K_ * group_ ) * N_
     //this should be opt_num2 images packing together.
-    im2col_opt_gpu(im2col_opt_kernel, bottom_data, bottom[i]->offset(n), channels_, height_,
+    im2col_gpu_opt(im2col_opt_kernel, bottom_data, bottom[i]->offset(n), channels_, height_,
                        width_, kernel_w_, pad_w_, stride_w_, (Dtype*)transMem, 0, opt_num2);
 
     //step 2: transform top[n] into shoulder by shoulder, right now i cheated by just copying the data over. without re-organize

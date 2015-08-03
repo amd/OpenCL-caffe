@@ -132,20 +132,22 @@ void ConvolutionLayer<Dtype>::Forward_gpu_opt2(const vector<Blob<Dtype>*>& botto
     //int col_offset = K_ * N_;
     //int top_offset = M_ * N_;
     //int weight_offset = M_ * K_;
-    int opt_num2 = global_packing_N;
+    this->opt_num2 = global_packing_N;
 
-    for (int n = 0; n < this->num_; ++n) {
-      opt_num2 = opt_num2 > (num_ - n)? (num_ - n) : opt_num2;
+    for (int n = 0; n < this->num_; n += this->opt_num2) {
+      this->opt_num2 = this->opt_num2 > (this->num_ - n)? (this->num_ - n) : this->opt_num2;
        //two intermediate variables to pass offset
-      this->top_offset_ = M_ * N_ * opt_num2;
-      this->col_offset_ = K_ * N_ * opt_num2;
+      this->top_offset_ = this->M_ * this->N_ * this->opt_num2;
+      this->top_offset_n = top[i]->offset(n);
+      this->col_offset_ = this->K_ * this->N_ * this->opt_num2;
       this->bottom_offset_ = bottom[i]->offset(n);
+      this->weight_offset_ = this->M_ * this->K_;
       this->forward_gpu_gemm_opt(bottom_data, weight,
             top_data);
 
       if (this->bias_term_) {
         const Dtype* bias = this->blobs_[1]->gpu_data();
-          this->forward_gpu_bias(top_data, bias);
+          this->forward_gpu_bias_opt(top_data, bias);
       }
     }
   }
