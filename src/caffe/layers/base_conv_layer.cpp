@@ -298,12 +298,6 @@ void BaseConvolutionLayer<Dtype>::forward_gpu_gemm(const Dtype* input,
   }
   
   for (int g = 0; g < group_; ++g) {
-    /*caffe_gpu_gemm<Dtype>(CblasNoTrans, CblasNoTrans, conv_out_channels_ /
-        group_, conv_out_spatial_dim_, kernel_dim_ / group_,
-        (Dtype)1., weights + weight_offset_ * g, col_buff + col_offset_ * g,
-        (Dtype)0., output + output_offset_ * g);
-    */
-    //printf("weights.count() = %d, col_buff.count() = %d, output = %d\n", weights.count(), col_buff.count(), output.count());   
     caffe_gpu_gemm<Dtype>(&(amdDevice.CommandQueue), CblasNoTrans, CblasNoTrans,
           conv_out_channels_/group_, conv_out_spatial_dim_, kernel_dim_ / group_,
         (Dtype)1., weights, weight_offset_ * g, col_buff, col_offset_ * g,
@@ -312,11 +306,30 @@ void BaseConvolutionLayer<Dtype>::forward_gpu_gemm(const Dtype* input,
 }
 
 template <typename Dtype>
+void BaseConvolutionLayer<Dtype>::forward_gpu_gemm_opt (const Dtype* input,
+    const Dtype* weights, Dtype* output, bool skip_im2col) {
+  const Dtype* col_buff = input;
+  if (!is_1x1_) {
+    if (!skip_im2col) {
+      conv_im2col_gpu(input, col_buffer_.mutable_gpu_data());
+    im2col_opt_gpu(im2col_opt_kernel, bottom_data, bottom[i]->offset(n), channels_, height_,
+                       width_, kernel_w_, pad_w_, stride_w_, (Dtype*)transMem, 0, opt_num2);
+    }   
+    col_buff = col_buffer_.gpu_data();
+  }
+  
+  for (int g = 0; g < group_; ++g) {
+    caffe_gpu_gemm<Dtype>(&(amdDevice.CommandQueue), CblasNoTrans, CblasNoTrans,
+          conv_out_channels_/group_, conv_out_spatial_dim_, kernel_dim_ / group_,
+        (Dtype)1., weights, weight_offset_ * g, col_buff, col_offset_ * g,
+        (Dtype)0., output,  top_offset_+output_offset_ * g); 
+   }   
+}
+
+
+template <typename Dtype>
 void BaseConvolutionLayer<Dtype>::forward_gpu_bias(Dtype* output,
     const Dtype* bias) {
-  /*caffe_gpu_gemm<Dtype>(CblasNoTrans, CblasNoTrans, num_output_,
-      height_out_ * width_out_, 1, (Dtype)1., bias, bias_multiplier_.gpu_data(),
-      (Dtype)1., output);*/
      caffe_gpu_gemm<Dtype>(CblasNoTrans, CblasNoTrans, num_output_,
           height_out_*width_out_, 1, (Dtype)1., bias, 0,
           reinterpret_cast<const Dtype*>(bias_multiplier_.gpu_data()), 0,

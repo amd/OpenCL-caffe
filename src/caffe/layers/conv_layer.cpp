@@ -120,6 +120,42 @@ void ConvolutionLayer<Dtype>::Forward_gpu_opt(const vector<Blob<Dtype>*>& bottom
 }
 
 template <typename Dtype>
+void ConvolutionLayer<Dtype>::Forward_gpu_opt2(const vector<Blob<Dtype>*>& bottom,
+      const vector<Blob<Dtype>*>& top) {
+
+  const Dtype* weight = this->blobs_[0]->gpu_data();
+  for (int i = 0; i < bottom.size(); ++i) {
+    const Dtype* bottom_data = bottom[i]->gpu_data();
+     //CHECK_BLOB_DATA(bottom[i],10,"bottom");
+
+    Dtype* top_data = top[i]->mutable_gpu_data();
+    //int col_offset = K_ * N_;
+    //int top_offset = M_ * N_;
+    //int weight_offset = M_ * K_;
+    int opt_num2 = global_packing_N;
+
+    for (int n = 0; n < this->num_; ++n) {
+      opt_num2 = opt_num2 > (num_ - n)? (num_ - n) : opt_num2;
+       //two intermediate variables to pass offset
+      this->top_offset_ = M_ * N_ * opt_num2;
+      this->col_offset_ = K_ * N_ * opt_num2;
+      this->bottom_offset_ = bottom[i]->offset(n);
+      this->forward_gpu_gemm_opt(bottom_data, weight,
+            top_data);
+
+      if (this->bias_term_) {
+        const Dtype* bias = this->blobs_[1]->gpu_data();
+          this->forward_gpu_bias(top_data, bias);
+      }
+    }
+  }
+
+  // CHECK_BLOB_DATA(this->blobs_[0],20, "weights");
+  CHECK_BLOB_DATA(top[0],20, "top[0]");
+
+}
+
+template <typename Dtype>
 void ConvolutionLayer<Dtype>::Forward_gpu_org(const vector<Blob<Dtype>*>& bottom,
       const vector<Blob<Dtype>*>& top) {
   const Dtype* weight = this->blobs_[0]->gpu_data();

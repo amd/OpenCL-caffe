@@ -93,15 +93,18 @@ class BaseConvolutionLayer : public Layer<Dtype> {
   inline void conv_im2col_gpu(const Dtype* data, Dtype* col_buff) {
      im2col_gpu(im2col_gpu_kernel, data, bottom_offset_, conv_in_channels_, conv_in_height_, conv_in_width_,
            kernel_h_, kernel_w_, pad_h_, pad_w_, stride_h_, stride_w_, col_buff, 0);
-   //   im2col_gpu(im2col_gpu_kernel, data, bottom_offset_, conv_in_channels_, conv_in_height_, 
-     //           conv_in_width_, kernel_h_, pad_h_, stride_h_, col_buff, 0);
   }
   inline void conv_col2im_gpu(const Dtype* col_buff, Dtype* data) {
     col2im_gpu(col2im_gpu_kernel, col_buff, 0,  conv_in_channels_, conv_in_height_, conv_in_width_,
         kernel_h_, kernel_w_, pad_h_, pad_w_, stride_h_, stride_w_, data, bottom_offset_);
-   //   col2im_gpu(col2im_gpu_kernel, col_buff, 0, conv_in_channels_, conv_in_height_, conv_in_width_,
-     //            kernel_h_, pad_h_, stride_h_, data, bottom_offset_);
   }
+  inline void conv_im2col_gpu_opt(const Dtype* data, Dtype* col_buff) {
+     im2col_gpu(im2col_opt_kernel, data, bottom_offset_, conv_in_channels_, conv_in_height_, conv_in_width_,
+           kernel_w_, pad_w_, stride_h_,(Dtype*)transMem, 0, opt_num2);
+  }
+  inline void conv_col2im_gpu_opt(const Dtype* col_buff, Dtype* data) {
+    col2im_gpu(col2im_opt_kernel, (Dtype*)transMem, 0,  conv_in_channels_, conv_in_height_, conv_in_width_,
+        kernel_h_, pad_h_, stride_w_, data, bottom_offset_, opt_num2);
 #endif
 
   int conv_out_channels_;
@@ -114,6 +117,7 @@ class BaseConvolutionLayer : public Layer<Dtype> {
   int col_offset_;
   int output_offset_;
   int M_, N_, K_;
+  int opt_num2;
 
   Blob<Dtype> col_buffer_;
   Blob<Dtype> bias_multiplier_;
