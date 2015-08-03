@@ -31,7 +31,7 @@ void caffe_gpu_gemm(const CBLAS_TRANSPOSE TransA,
     Dtype* C);
 
 template <typename Dtype>
-cl_event caffe_gpu_gemmex( cl_command_queue *queue, const CBLAS_TRANSPOSE TransA,
+cl_event caffe_gpu_gemm( cl_command_queue *queue, const CBLAS_TRANSPOSE TransA,
     const CBLAS_TRANSPOSE TransB, const int M, const int N, const int K,
     const Dtype alpha, const Dtype* A, const int offA, const Dtype* B, const int offB, const Dtype beta,
     Dtype* C, const int offC);
@@ -44,7 +44,7 @@ void caffe_gpu_exgemm(const CBLAS_TRANSPOSE TransA,
 
 
 template <typename Dtype>
-cl_event caffe_gpu_gemm_ex(const CBLAS_TRANSPOSE TransA,
+cl_event caffe_gpu_gemm(const CBLAS_TRANSPOSE TransA,
     const CBLAS_TRANSPOSE TransB, const int M, const int N, const int K,
     const Dtype alpha, const Dtype* A, const int offA, const Dtype* B, const int offB, const Dtype beta,
     Dtype* C, const int offC);

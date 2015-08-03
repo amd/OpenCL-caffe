@@ -304,7 +304,7 @@ void BaseConvolutionLayer<Dtype>::forward_gpu_gemm(const Dtype* input,
         (Dtype)0., output + output_offset_ * g);
     */
     //printf("weights.count() = %d, col_buff.count() = %d, output = %d\n", weights.count(), col_buff.count(), output.count());   
-    caffe_gpu_gemmex<Dtype>(&(amdDevice.CommandQueue), CblasNoTrans, CblasNoTrans,
+    caffe_gpu_gemm<Dtype>(&(amdDevice.CommandQueue), CblasNoTrans, CblasNoTrans,
           conv_out_channels_/group_, conv_out_spatial_dim_, kernel_dim_ / group_,
         (Dtype)1., weights, weight_offset_ * g, col_buff, col_offset_ * g,
         (Dtype)0., output,  top_offset_+output_offset_ * g);
@@ -317,7 +317,7 @@ void BaseConvolutionLayer<Dtype>::forward_gpu_bias(Dtype* output,
   /*caffe_gpu_gemm<Dtype>(CblasNoTrans, CblasNoTrans, num_output_,
       height_out_ * width_out_, 1, (Dtype)1., bias, bias_multiplier_.gpu_data(),
       (Dtype)1., output);*/
-     caffe_gpu_gemm_ex<Dtype>(CblasNoTrans, CblasNoTrans, num_output_,
+     caffe_gpu_gemm<Dtype>(CblasNoTrans, CblasNoTrans, num_output_,
           height_out_*width_out_, 1, (Dtype)1., bias, 0,
           reinterpret_cast<const Dtype*>(bias_multiplier_.gpu_data()), 0,
           (Dtype)1., output, top_offset_);
@@ -331,7 +331,7 @@ void BaseConvolutionLayer<Dtype>::backward_gpu_gemm(const Dtype* output,
     col_buff = input;
   }
   for (int g = 0; g < group_; ++g) {
-        caffe_gpu_gemmex<Dtype>(&(amdDevice.CommandQueue), CblasTrans, CblasNoTrans, kernel_dim_ / group_, conv_out_spatial_dim_, conv_out_channels_ / group_,
+        caffe_gpu_gemm<Dtype>(&(amdDevice.CommandQueue), CblasTrans, CblasNoTrans, kernel_dim_ / group_, conv_out_spatial_dim_, conv_out_channels_ / group_,
           (Dtype)1., weights,  weight_offset_ * g,
           output, top_offset_+output_offset_ * g,
           (Dtype)0., col_buff, col_offset_ * g);
@@ -354,7 +354,7 @@ void BaseConvolutionLayer<Dtype>::weight_gpu_gemm(const Dtype* input,
         kernel_dim_ / group_, conv_out_spatial_dim_,
         (Dtype)1., output + output_offset_ * g, col_buff + col_offset_ * g,
         (Dtype)1., weights + weight_offset_ * g);*/
-      caffe_gpu_gemmex<Dtype>(&(amdDevice.CommandQueue), CblasNoTrans, CblasTrans, conv_out_channels_ / group_, kernel_dim_ / group_, conv_out_spatial_dim_,
+      caffe_gpu_gemm<Dtype>(&(amdDevice.CommandQueue), CblasNoTrans, CblasTrans, conv_out_channels_ / group_, kernel_dim_ / group_, conv_out_spatial_dim_,
         (Dtype)1., output, top_offset_,
         (Dtype*)col_buff, col_offset_ * g, (Dtype)1.,
         (Dtype*)weights, weight_offset_ * g);
@@ -408,7 +408,7 @@ void BaseConvolutionLayer<Dtype>::forward_gpu_opt(const vector<Blob<Dtype>*>& bo
     for (int g = 0; g < group_; ++g) {
        if(g == 0) Queue = amdDevice.CommandQueue;
        else Queue =  amdDevice.CommandQueue_helper;
-       prof_event = caffe_gpu_gemmex<Dtype>(&(Queue), CblasNoTrans, CblasNoTrans, M_, N_ * opt_num2, K_,
+       prof_event = caffe_gpu_gemm<Dtype>(&(Queue), CblasNoTrans, CblasNoTrans, M_, N_ * opt_num2, K_,
           (Dtype)1., weight, weight_offset * g, (Dtype*)transMem, col_offset * g,
           (Dtype)0., (Dtype*)subTopMem, top_offset * g);
        }
@@ -419,7 +419,7 @@ void BaseConvolutionLayer<Dtype>::forward_gpu_opt(const vector<Blob<Dtype>*>& bo
 #else
     Queue = amdDevice.CommandQueue;
     for (int g = 0; g < group_; ++g) {
-       prof_event = caffe_gpu_gemmex<Dtype>(&(Queue), CblasNoTrans, CblasNoTrans, M_, N_ * opt_num2, K_,
+       prof_event = caffe_gpu_gemm<Dtype>(&(Queue), CblasNoTrans, CblasNoTrans, M_, N_ * opt_num2, K_,
           (Dtype)1., weight, weight_offset * g, (Dtype*)transMem, col_offset * g,
           (Dtype)0., (Dtype*)subTopMem, top_offset * g);
        }
@@ -431,7 +431,7 @@ void BaseConvolutionLayer<Dtype>::forward_gpu_opt(const vector<Blob<Dtype>*>& bo
 
    for (int z = 0; z < opt_num2; z++)
       if (bias_term_) {
-      caffe_gpu_gemm_ex<Dtype>(CblasNoTrans, CblasNoTrans, num_output_,
+      caffe_gpu_gemm<Dtype>(CblasNoTrans, CblasNoTrans, num_output_,
           N_, 1, (Dtype)1., this->blobs_[1]->gpu_data(), 0,
           reinterpret_cast<const Dtype*>(bias_multiplier_.gpu_data()), 0,
           (Dtype)1., top_data, top[i]->offset(n) + num_output_ * N_ * z);
@@ -499,7 +499,7 @@ void BaseConvolutionLayer<Dtype>::backward_gpu_opt(const vector<Blob<Dtype>*>& t
 #else
        Queue =  amdDevice.CommandQueue;
 #endif
-       prof_event = caffe_gpu_gemmex<Dtype>(&(Queue), CblasNoTrans, CblasTrans, M_, K_, N_ * opt_num2,
+       prof_event = caffe_gpu_gemm<Dtype>(&(Queue), CblasNoTrans, CblasTrans, M_, K_, N_ * opt_num2,
         (Dtype)1., (Dtype*)subTopMem, top_offset * g,
         (Dtype*)transMem, col_offset * g, (Dtype)1.,
         (Dtype*)weight_diff, weight_offset * g);
@@ -514,7 +514,7 @@ void BaseConvolutionLayer<Dtype>::backward_gpu_opt(const vector<Blob<Dtype>*>& t
 #else
        Queue =  amdDevice.CommandQueue;
 #endif
-       prof_event =  caffe_gpu_gemmex<Dtype>(&(Queue), CblasTrans, CblasNoTrans, K_, N_*opt_num2, M_,
+       prof_event =  caffe_gpu_gemm<Dtype>(&(Queue), CblasTrans, CblasNoTrans, K_, N_*opt_num2, M_,
           (Dtype)1., weight,  weight_offset * g,
           (Dtype*)subTopMem, top_offset * g,
           (Dtype)0., (Dtype*)transMem, col_offset * g);

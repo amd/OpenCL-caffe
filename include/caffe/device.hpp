@@ -20,9 +20,10 @@ public:
     cl_command_queue CommandQueue;
     cl_command_queue CommandQueue_helper;
     cl_program Program; 
+    cl_device_id * pDevices;
     clblasOrder col;
     clblasOrder row;
-
+    
      
     cl_int Init(); 
     cl_int ConvertToString(const char *pFileName,std::string &Str);
@@ -30,6 +31,8 @@ public:
     void DisplayInfo(cl_platform_id id, cl_platform_info name, std::string str);
 
     void GetDeviceInfo();
+    
+    cl_program BuildProgram(const char*);    
 
     template <typename T>
     void DisplayDeviceInfo(cl_device_id id, cl_device_info name, std::string str);

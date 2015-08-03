@@ -51,7 +51,6 @@ cl_int Device::Init(){
     //printf("%s %s\n", platformName, openclVersion);
   
     GetDeviceInfo();
-    cl_device_id * pDevices;
     cl_uint uiNumDevices;
     cl_bool unified_memory = false;
     switch(Caffe::mode()) {
@@ -231,6 +230,35 @@ cl_int Device::ConvertToString(const char *pFileName,std::string &Str){
     }
     LOG(ERROR) << "Err: Failed to open cl file!";
     return -1;
+}
+
+cl_program Device::BuildProgram(const char *pFileName)
+{
+      //Read our own kernel file
+    const char *pSource;
+    std::string strSource = "";
+    ConvertToString(pFileName, strSource);
+    pSource = strSource.c_str();
+    size_t uiArrSourceSize[] = {0};
+    uiArrSourceSize[0] = strlen(pSource);
+    cl_program program = NULL;
+    program = clCreateProgramWithSource(Context, 1, &pSource, uiArrSourceSize, NULL);
+    if(NULL == program){
+        fprintf(stderr,"Err: Failed to create program\n");
+    }
+
+    //Build Program
+    cl_int iStatus = clBuildProgram(program, 1, pDevices, buildOption, NULL, NULL);
+    LOG(INFO) << "Build Program";
+    if(CL_SUCCESS != iStatus){
+        fprintf(stderr,"Err: Failed to build program\n");
+        char szBuildLog[16384];
+        clGetProgramBuildInfo(program, *pDevices, CL_PROGRAM_BUILD_LOG, sizeof(szBuildLog), szBuildLog, NULL);
+        std::cout << szBuildLog;
+        clReleaseProgram(program);
+        return NULL;
+    }
+  return program;
 }
 
 void Device::DisplayPlatformInfo(){

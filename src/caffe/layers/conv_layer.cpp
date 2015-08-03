@@ -148,7 +148,7 @@ void ConvolutionLayer<Dtype>::Forward_gpu_org(const vector<Blob<Dtype>*>& bottom
 template <typename Dtype>
 void ConvolutionLayer<Dtype>::Backward_gpu_opt(const vector<Blob<Dtype>*>& top,
       const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
-      //this->backward_gpu_opt(top, propagate_down, bottom);
+      this->backward_gpu_opt(top, propagate_down, bottom);
 }
 template <typename Dtype>
 void ConvolutionLayer<Dtype>::Backward_gpu_org(const vector<Blob<Dtype>*>& top,
