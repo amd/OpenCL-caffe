@@ -3,6 +3,7 @@
 
 #include "caffe/data_layers.hpp"
 #include "caffe/util/io.hpp"
+#include "caffe/util/benchmark.hpp"
 
 namespace caffe {
 
@@ -86,8 +87,12 @@ void BasePrefetchingDataLayer<Dtype>::Forward_cpu(
 template <typename Dtype>
 void BasePrefetchingDataLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
      const  vector<Blob<Dtype>*>& top) {
+  printf("HHHHHH Data forward time: n\n");
   // First, join the thread
   JoinPrefetchThread();
+  CPUTimer forward_timer;
+  forward_timer.Start();
+
   // Copy the data from prefetch thread to data_layer
    //OCL_CHECK( clEnqueueCopyBuffer (amdDevice.CommandQueue, (cl_mem) prefetch_data_->gpu_data(), (cl_mem) (*top)[0]->mutable_gpu_data(), 0, 0, sizeof(Dtype)*prefetch_data_->count(), 0, NULL, NULL) );
    top[0]->ReshapeLike(prefetch_data_);
@@ -99,7 +104,10 @@ void BasePrefetchingDataLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bo
    //OCL_CHECK( clEnqueueCopyBuffer (amdDevice.CommandQueue, (cl_mem) prefetch_label_->gpu_data(), (cl_mem) (*top)[1]->mutable_gpu_data(), 0, 0, sizeof(Dtype)*prefetch_label_->count(), 0, NULL, NULL) );
    }
   clFinish(amdDevice.CommandQueue);
-  
+  forward_timer.Stop();
+  printf("Data forward time: %f\n\n", forward_timer.MilliSeconds());
+
+ 
 #ifdef Track_data_transfer
 #endif
   
