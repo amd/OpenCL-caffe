@@ -13,11 +13,6 @@ namespace caffe {
 template <typename Dtype>
 void ocl_memset(cl_kernel Kernel, Dtype* buffer, const Dtype value, const int count){
     cl_int err=0;
-    //cl_kernel Kernel = clCreateKernel(amdDevice.Program, "oclmemfloat", &err);
-    //if(NULL==Kernel){
-    //    fprintf(stderr, "Failed to create kernel %d\n", err);
-    //}   
- 
     err=clSetKernelArg(Kernel, 0, sizeof(cl_mem), (void*)&buffer);
     err|=clSetKernelArg(Kernel, 1, sizeof(Dtype), (void*)&value);
     err|=clSetKernelArg(Kernel, 2, sizeof(cl_int), (void*)&count);
@@ -35,12 +30,7 @@ template void ocl_memset<double>(cl_kernel Kernel, double* buffer, const double 
 
 
 void ocl_memset(cl_kernel Kernel, cl_mem buffer, const int value, const int count){
-   cl_int err=0;
-  //  cl_kernel Kernel = clCreateKernel(amdDevice.Program, "OCL_memset2", &err);
-   // if(NULL==Kernel){
-   //     fprintf(stderr, "Failed to create kernel %d\n", err);
-   // }
-
+    cl_int err=0;
     err =clSetKernelArg(Kernel, 0, sizeof(cl_mem), (void*)&buffer);
     err|=clSetKernelArg(Kernel, 1, sizeof(cl_int), (void*)&value);
     err|=clSetKernelArg(Kernel, 2, sizeof(cl_int), (void*)&count);

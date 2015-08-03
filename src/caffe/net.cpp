@@ -506,17 +506,21 @@ Dtype Net<Dtype>::ForwardFromTo(int start, int end) {
   }
 
   CPUTimer forward_timer;
+  CPUTimer layer_timer;
   forward_timer.Start();
 
   for (int i = start; i <= end; ++i) {
-    // LOG(ERROR) << "Forwarding " << layer_names_[i];
-//Yibing add for porting
-   printf("Forwarding %s\n",layer_names_[i].c_str());
-   Dtype layer_loss = layers_[i]->Forward(bottom_vecs_[i], top_vecs_[i]);
+   //double begin_time = GettickCount();
+    layer_timer.Start();
+   //printf("Forwarding %s\n",layer_names_[i].c_str());
+    Dtype layer_loss = layers_[i]->Forward(bottom_vecs_[i], top_vecs_[i]);
     loss += layer_loss;
     if (debug_info_) { ForwardDebugInfo(i); }
-//Yibing add for porting
     clFinish(amdDevice.CommandQueue);
+    //double end_time = GettickCount();
+    layer_timer.Stop();
+    //printf("Forwarding %s,\ttime %f ms\n", layer_names_[i].c_str(), end_time-begin_time);
+    printf("Forwarding %s,\ttime %f ms\n", layer_names_[i].c_str(), layer_timer.MilliSeconds());
   }
 
   forward_timer.Stop();
