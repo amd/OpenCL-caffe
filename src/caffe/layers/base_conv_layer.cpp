@@ -382,6 +382,38 @@ void BaseConvolutionLayer<Dtype>::backward_gpu_gemm(const Dtype* output,
 }
 
 template <typename Dtype>
+void BaseConvolutionLayer<Dtype>::backward_gpu_gemm_opt(const Dtype* output,
+    const Dtype* weights, Dtype* input) {
+  //Dtype* col_buff = col_buffer_.mutable_gpu_data();
+  cl_command_queue Queue;
+  if (is_1x1_) {
+    (Dtype*)transMem = input;
+  }
+  for (int g = 0; g < group_; ++g) {
+#ifdef multiQ
+       if(g == 0) Queue = amdDevice.CommandQueue;
+       else Queue =  amdDevice.CommandQueue_helper;
+#else
+       Queue =  amdDevice.CommandQueue;
+#endif
+       caffe_gpu_gemm<Dtype>(&(Queue), CblasTrans, CblasNoTrans, kernel_dim_ / group_, conv_out_spatial_dim_ * opt_num2, conv_out_channels_ / group_,
+          (Dtype)1., weights,  weight_offset_ * g,
+          (Dtype*)subTopMem, top_offset_ * g,
+          (Dtype)0., (Dtype*)transMem, col_offset_ * g);
+      }
+#ifdef multiQ
+   if(group_ ==2){
+      clFinish(amdDevice.CommandQueue);
+      clFinish(amdDevice.CommandQueue_helper);
+    }
+#endif
+
+  if (!is_1x1_) {
+      conv_col2im_gpu_opt((Dtype*)transMem, input);
+  }
+}
+
+template <typename Dtype>
 void BaseConvolutionLayer<Dtype>::weight_gpu_gemm(const Dtype* input,
     const Dtype* output, Dtype* weights) {
   const Dtype* col_buff = input;
@@ -390,15 +422,41 @@ void BaseConvolutionLayer<Dtype>::weight_gpu_gemm(const Dtype* input,
     col_buff = col_buffer_.gpu_data();
   }
   for (int g = 0; g < group_; ++g) {
-   /* caffe_gpu_gemm<Dtype>(CblasNoTrans, CblasTrans, conv_out_channels_ / group_,
-        kernel_dim_ / group_, conv_out_spatial_dim_,
-        (Dtype)1., output + output_offset_ * g, col_buff + col_offset_ * g,
-        (Dtype)1., weights + weight_offset_ * g);*/
       caffe_gpu_gemm<Dtype>(&(amdDevice.CommandQueue), CblasNoTrans, CblasTrans, conv_out_channels_ / group_, kernel_dim_ / group_, conv_out_spatial_dim_,
         (Dtype)1., output, top_offset_,
         (Dtype*)col_buff, col_offset_ * g, (Dtype)1.,
         (Dtype*)weights, weight_offset_ * g);
  }
+}
+template <typename Dtype>
+void BaseConvolutionLayer<Dtype>::weight_gpu_gemm_opt(const Dtype* input,
+    const Dtype* output, Dtype* weights) {
+  const Dtype* col_buff = input;
+  cl_command_queue Queue;
+  if (!is_1x1_) {
+    conv_im2col_gpu_opt(input, col_buffer_.mutable_gpu_data());
+    //col_buff = col_buffer_.gpu_data();
+  }
+    conv_transpose_gpu(output);
+
+  for (int g = 0; g < group_; ++g) {
+#ifdef multiQ
+       if(g == 0) Queue = amdDevice.CommandQueue;
+       else Queue =  amdDevice.CommandQueue_helper;
+#else
+       Queue =  amdDevice.CommandQueue;
+#endif
+       caffe_gpu_gemm<Dtype>(&(Queue), CblasNoTrans, CblasTrans, conv_out_channels_ / group_, kernel_dim_ / group_, conv_out_spatial_dim_ * opt_num2,
+        (Dtype)1., (Dtype*)subTopMem, top_offset_ * g,
+        (Dtype*)transMem, col_offset_ * g, (Dtype)1.,
+        (Dtype*)weights, weight_offset_ * g);
+#ifdef multiQ
+     if(group_ == 2){
+       clFinish(amdDevice.CommandQueue);
+       clFinish(amdDevice.CommandQueue_helper);
+     }
+#endif
+    }
 }
 
 template <typename Dtype>

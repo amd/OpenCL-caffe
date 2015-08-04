@@ -53,15 +53,19 @@ class BaseConvolutionLayer : public Layer<Dtype> {
 #ifndef CPU_ONLY
   void forward_gpu_gemm(const Dtype* col_input, const Dtype* weights,
       Dtype* output, bool skip_im2col = false);
+  void forward_gpu_gemm_opt(const Dtype* col_input, const Dtype* weights,
+      Dtype* output, bool skip_im2col = false);
   void forward_gpu_bias(Dtype* output, const Dtype* bias);
+  void forward_gpu_bias_opt(Dtype* output, const Dtype* bias);
   void backward_gpu_gemm(const Dtype* input, const Dtype* weights,
+      Dtype* col_output);
+  void backward_gpu_gemm_opt(const Dtype* input, const Dtype* weights,
       Dtype* col_output);
   void weight_gpu_gemm(const Dtype* col_input, const Dtype* output, Dtype*
       weights);
+  void weight_gpu_gemm_opt(const Dtype* col_input, const Dtype* output, Dtype*
+      weights);
   void backward_gpu_bias(Dtype* bias, const Dtype* input);
-  void forward_gpu_gemm_opt(const Dtype* col_input, const Dtype* weights,
-      Dtype* output, bool skip_im2col = false);
-  void forward_gpu_bias_opt(Dtype* output, const Dtype* bias);
 #endif
 
   // reverse_dimensions should return true iff we are implementing deconv, so
@@ -111,6 +115,12 @@ class BaseConvolutionLayer : public Layer<Dtype> {
 }
   inline void conv_transform_gpu(const Dtype* temp_buffer, Dtype* top_data) {
     transform_gpu(ocl_Kernel_transform, (Dtype*)temp_buffer, top_data, top_offset_n, N_, M_*opt_num2, opt_num2);
+}
+ inline void conv_transpose_gpu(const Dtype* data){
+    opttrans(opttrans_kernel, data, top_offset_n, 1, M_ * group_, N_, (Dtype*)subTopMem, 0, opt_num2);
+}
+  inline void ocl_memset(Dtype* data, Dtype value, int count) {
+    ocl_memset(oclmem_kernel, data, value, count);
 }
 #endif
 
@@ -218,6 +228,8 @@ protected:
   virtual void Forward_gpu_opt2(const vector<Blob<Dtype>*>& bottom,
       const vector<Blob<Dtype>*>& top);
   virtual void Backward_gpu_opt(const vector<Blob<Dtype>*>& top,
+      const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
+  virtual void Backward_gpu_opt2(const vector<Blob<Dtype>*>& top,
       const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
 };
 
