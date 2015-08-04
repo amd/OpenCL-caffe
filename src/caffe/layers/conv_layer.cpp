@@ -77,7 +77,7 @@ template <typename Dtype>
 void ConvolutionLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
     const  vector<Blob<Dtype>*>& top) {
   if (use_packing_scheme && global_packing_N >1)
-   Forward_gpu_opt2(bottom, top);
+   Forward_gpu_opt(bottom, top);
   else
    Forward_gpu_org(bottom, top);
 }
