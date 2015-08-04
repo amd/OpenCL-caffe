@@ -119,7 +119,8 @@ class BaseConvolutionLayer : public Layer<Dtype> {
  inline void conv_transpose_gpu(const Dtype* data){
     opttrans(opttrans_kernel, data, top_offset_n, 1, M_ * group_, N_, (Dtype*)subTopMem, 0, opt_num2);
 }
-  inline void ocl_memset(Dtype* data, Dtype value, int count) {
+protected:
+  inline void gpu_memset(Dtype* data, Dtype value, int count) {
     ocl_memset(oclmem_kernel, data, value, count);
 }
 #endif

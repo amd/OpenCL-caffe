@@ -387,7 +387,8 @@ void BaseConvolutionLayer<Dtype>::backward_gpu_gemm_opt(const Dtype* output,
   //Dtype* col_buff = col_buffer_.mutable_gpu_data();
   cl_command_queue Queue;
   if (is_1x1_) {
-    (Dtype*)transMem = input;
+    int count = height_ * width_ * conv_in_channels_ * opt_num2;
+    caffe_gpu_copy(count, input, (Dtype*)transMem);
   }
   for (int g = 0; g < group_; ++g) {
 #ifdef multiQ
