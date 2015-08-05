@@ -137,7 +137,7 @@ void caffe_cpu_gemv<double>(const CBLAS_TRANSPOSE TransA, const int M,
 }
 
 template <>
-void caffe_gpu_gemvv<float>(const CBLAS_TRANSPOSE TransA, const int M,
+void caffe_gpu_gemv<float>(const CBLAS_TRANSPOSE TransA, const int M,
     const int N, const float alpha, const float* A, size_t offA, int lda, 
     const float* x, size_t offx, const float beta, int incx, 
     float* y, size_t offy, int incy) {
@@ -150,7 +150,7 @@ void caffe_gpu_gemvv<float>(const CBLAS_TRANSPOSE TransA, const int M,
 }
 
 template <>
-void caffe_gpu_gemvv<double>(const CBLAS_TRANSPOSE TransA, const int M,
+void caffe_gpu_gemv<double>(const CBLAS_TRANSPOSE TransA, const int M,
     const int N, const double alpha, const double* A, size_t offA, int lda,
     const double* x, size_t offx, const double beta, int incx,
     double* y, size_t offy, int incy) {

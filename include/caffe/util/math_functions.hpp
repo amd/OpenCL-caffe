@@ -55,7 +55,7 @@ void caffe_cpu_gemv(const CBLAS_TRANSPOSE TransA, const int M, const int N,
     Dtype* y);
 
 template <typename Dtype>
-void caffe_gpu_gemvv(const CBLAS_TRANSPOSE TransA, const int M,
+void caffe_gpu_gemv(const CBLAS_TRANSPOSE TransA, const int M,
     const int N, const Dtype alpha, const Dtype* A, size_t offA, int lda,
     const Dtype * x, size_t offx, const Dtype beta, int incx,
     Dtype* y, size_t offy, int incy);

@@ -742,6 +742,7 @@ __kernel void OCL_memset2(__global int* buffer, const int value, const int size)
                 buffer[gdx] = value;    
         }
 }
+template __attribute__ ((mangled_name(oclmem))) __kernel void OCL_memset2(__global int* buffer, const int value, const int size);
 
 template <class T>
 __kernel void caffe_gpu_sign(const int N, __global T* X, __global T* Y){

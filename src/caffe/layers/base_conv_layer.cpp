@@ -465,7 +465,7 @@ void BaseConvolutionLayer<Dtype>::backward_gpu_bias(Dtype* bias,
     const Dtype* input) {
  /* caffe_gpu_gemv<Dtype>(CblasNoTrans, num_output_, height_out_ * width_out_, 1.,
       input, bias_multiplier_.gpu_data(), 1., bias);*/
-      caffe_gpu_gemvv<Dtype>(CblasNoTrans, num_output_, height_out_*width_out_,
+      caffe_gpu_gemv<Dtype>(CblasNoTrans, num_output_, height_out_*width_out_,
           (Dtype)1., input, top_offset_, height_out_*width_out_,
           reinterpret_cast<const Dtype*>(bias_multiplier_.gpu_data()), (size_t)0, (Dtype)1., 1,
           bias, (size_t)0, 1);
@@ -553,7 +553,7 @@ void BaseConvolutionLayer<Dtype>::backward_gpu_opt(const vector<Blob<Dtype>*>& t
       Dtype* bias_diff = this->blobs_[1]->mutable_gpu_diff();
       ocl_memset(oclmem_kernel, bias_diff, (Dtype)(0.), this->blobs_[1]->count());
     for (int n = 0; n < num_; ++n) {
-      caffe_gpu_gemvv<Dtype>(CblasNoTrans, M_, N_,
+      caffe_gpu_gemv<Dtype>(CblasNoTrans, M_, N_,
           (Dtype)1., top_diff, top[i]->offset(n), N_,
           reinterpret_cast<const Dtype*>(bias_multiplier_.gpu_data()), (size_t)0, (Dtype)1., 1,
           bias_diff, (size_t)0, 1);

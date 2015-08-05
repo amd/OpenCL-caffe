@@ -148,7 +148,7 @@ void InnerProductLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
   if (bias_term_ && this->param_propagate_down_[1]) {
     const Dtype* top_diff = top[0]->gpu_diff();
     // Gradient with respect to bias
-    caffe_gpu_gemvv<Dtype>(CblasTrans, M_, N_, (Dtype)1., (Dtype*)top_diff,
+    caffe_gpu_gemv<Dtype>(CblasTrans, M_, N_, (Dtype)1., (Dtype*)top_diff,
         (size_t)0, N_, reinterpret_cast<const Dtype*>(bias_multiplier_.gpu_data()),
          (size_t)0, (Dtype)0., 1,
         this->blobs_[1]->mutable_gpu_diff(), (size_t)0, 1);
