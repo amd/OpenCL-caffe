@@ -77,7 +77,7 @@ template <typename Dtype>
 void ConvolutionLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
     const  vector<Blob<Dtype>*>& top) {
   if (use_packing_scheme && global_packing_N >1)
-   Forward_gpu_opt(bottom, top);
+   Forward_gpu_opt2(bottom, top);
   else
    Forward_gpu_org(bottom, top);
 }
@@ -86,11 +86,12 @@ template <typename Dtype>
 void ConvolutionLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
        const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
     if (use_packing_scheme && global_packing_N >1)
-      Backward_gpu_opt(top, propagate_down, bottom);
+      Backward_gpu_opt2(top, propagate_down, bottom);
     else
       Backward_gpu_org(top, propagate_down, bottom);
 }
 
+/*
 template <typename Dtype>
 void ConvolutionLayer<Dtype>::Forward_gpu_opt(const vector<Blob<Dtype>*>& bottom,
       const vector<Blob<Dtype>*>& top) {
@@ -101,7 +102,7 @@ void ConvolutionLayer<Dtype>::Forward_gpu_opt(const vector<Blob<Dtype>*>& bottom
   LOG(WARNING) << "conv fp done";
 #endif
 
-}
+}*/
 
 template <typename Dtype>
 void ConvolutionLayer<Dtype>::Forward_gpu_opt2(const vector<Blob<Dtype>*>& bottom,
@@ -117,7 +118,7 @@ void ConvolutionLayer<Dtype>::Forward_gpu_opt2(const vector<Blob<Dtype>*>& botto
 
     for (int n = 0; n < this->num_; n += this->opt_num2) {
       this->opt_num2 = this->opt_num2 > (this->num_ - n)? (this->num_ - n) : this->opt_num2;
-       //two intermediate variables to pass offset
+       //intermediate variables to pass offset
       this->top_offset_ = this->M_ * this->N_ * this->opt_num2;
       this->top_offset_n = top[i]->offset(n);
       this->col_offset_ = this->K_ * this->N_ * this->opt_num2;
@@ -133,7 +134,7 @@ void ConvolutionLayer<Dtype>::Forward_gpu_opt2(const vector<Blob<Dtype>*>& botto
     }
   }
 
-  // CHECK_BLOB_DATA(this->blobs_[0],20, "weights");
+  CHECK_BLOB_DATA(this->blobs_[0],20, "weights");
   CHECK_BLOB_DATA(top[0],20, "top[0]");
 
 }
@@ -165,12 +166,13 @@ void ConvolutionLayer<Dtype>::Forward_gpu_org(const vector<Blob<Dtype>*>& bottom
   CHECK_BLOB_DATA(top[0],20, "top[0]");
 }
 
+/*
 template <typename Dtype>
 void ConvolutionLayer<Dtype>::Backward_gpu_opt(const vector<Blob<Dtype>*>& top,
       const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
       this->backward_gpu_opt(top, propagate_down, bottom);
 }
-
+*/
 
 template <typename Dtype>
 void ConvolutionLayer<Dtype>::Backward_gpu_opt2(const vector<Blob<Dtype>*>& top,
