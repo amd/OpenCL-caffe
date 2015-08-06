@@ -105,11 +105,11 @@ class BaseConvolutionLayer : public Layer<Dtype> {
     col2im_gpu(col2im_gpu_kernel, col_buff, 0,  conv_in_channels_, conv_in_height_, conv_in_width_,
         kernel_h_, kernel_w_, pad_h_, pad_w_, stride_h_, stride_w_, data, bottom_offset_);
   }
-  inline void conv_im2col_gpu_opt(const Dtype* data, Dtype* col_buff) {
+  inline void conv_im2col_gpu_opt(const Dtype* data) {
      im2col_gpu_opt(im2col_opt_kernel, data, bottom_offset_, conv_in_channels_, conv_in_height_, conv_in_width_,
            kernel_w_, pad_w_, stride_h_,(Dtype*)transMem, 0, opt_num2);
   }
-  inline void conv_col2im_gpu_opt(const Dtype* col_buff, Dtype* data) {
+  inline void conv_col2im_gpu_opt( Dtype* data) {
     col2im_gpu_opt(col2im_opt_kernel, (Dtype*)transMem, 0,  conv_in_channels_, conv_in_height_, conv_in_width_,
         kernel_h_, pad_h_, stride_w_, data, bottom_offset_, opt_num2);
 }
@@ -225,12 +225,12 @@ protected:
       const vector<Blob<Dtype>*>& top);
   virtual void Backward_gpu_org(const vector<Blob<Dtype>*>& top,
       const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
-  //virtual void Forward_gpu_opt(const vector<Blob<Dtype>*>& bottom,
-    //  const vector<Blob<Dtype>*>& top);
+  virtual void Forward_gpu_opt(const vector<Blob<Dtype>*>& bottom,
+      const vector<Blob<Dtype>*>& top);
   virtual void Forward_gpu_opt2(const vector<Blob<Dtype>*>& bottom,
       const vector<Blob<Dtype>*>& top);
-  //virtual void Backward_gpu_opt(const vector<Blob<Dtype>*>& top,
-    //  const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
+  virtual void Backward_gpu_opt(const vector<Blob<Dtype>*>& top,
+      const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
   virtual void Backward_gpu_opt2(const vector<Blob<Dtype>*>& top,
       const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
 };

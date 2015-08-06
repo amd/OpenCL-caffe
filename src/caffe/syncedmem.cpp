@@ -36,7 +36,7 @@ if (cpu_ptr_ && own_cpu_data_) {
 
 void SyncedMemory::ocl_setup() {
   cl_int err=0;
-  oclmem_kernel = clCreateKernel(amdDevice.Program, "memset", &err);
+  oclmem_kernel = clCreateKernel(amdDevice.Program, "OCL_memset2", &err);
   OCL_CHECK(err);
 }
 

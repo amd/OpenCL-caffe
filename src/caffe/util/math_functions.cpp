@@ -102,7 +102,6 @@ cl_event caffe_gpu_gemm<float>(cl_command_queue *queue, const CBLAS_TRANSPOSE Tr
     int lda = (TransA == CblasNoTrans) ? K : M;
     int ldb = (TransB == CblasNoTrans) ? N : K;
     int ldc = N;
-    //AMDBLAS_CHECK( clAmdBlasSgemmEx(amdDevice.col, transB, transA, N, M, K, (cl_float)alpha, (cl_mem)B, offB, ldb, (cl_mem)A, offA, lda, (cl_float)beta, (cl_mem)C, offC, ldc, 1, queue, 0, NULL, NULL) );
     CLBLAS_CHECK( clblasSgemm(amdDevice.col, transB, transA, N, M, K, (cl_float)alpha, (cl_mem)B, offB, ldb, (cl_mem)A, offA, lda, (cl_float)beta, (cl_mem)C, offC, ldc, 1, queue, 0, NULL, &event) );
     return event;
  }
@@ -117,7 +116,6 @@ cl_event caffe_gpu_gemm<double>(cl_command_queue *queue, const CBLAS_TRANSPOSE T
     int lda = (TransA == CblasNoTrans) ? K : M;
     int ldb = (TransB == CblasNoTrans) ? N : K;
     int ldc = N;
-    //AMDBLAS_CHECK( clAmdBlasSgemmEx(amdDevice.col, transB, transA, N, M, K, (cl_float)alpha, (cl_mem)B, offB, ldb, (cl_mem)A, offA, lda, (cl_float)beta, (cl_mem)C, offC, ldc, 1, queue, 0, NULL, NULL) );
     CLBLAS_CHECK( clblasDgemm(amdDevice.col, transB, transA, N, M, K, (cl_float)alpha, (cl_mem)B, offB, ldb, (cl_mem)A, offA, lda, (cl_float)beta, (cl_mem)C, offC, ldc, 1, queue, 0, NULL, &event) );
     return event;
 }
