@@ -125,11 +125,25 @@ cl_int Device::Init(){
         return 0;
     }
 
-    //Read our own kernel file
-    const char *pFileName = "./src/caffe/OCL_kernel.cl";
-    const char *pSource;
     std::string strSource = "";
-    ConvertToString(pFileName, strSource);
+
+    std::string pFileName[8];
+    pFileName[0] = "./src/caffe/ocl/OCL_kernel.cl";
+    pFileName[1] = "./src/caffe/ocl/lrn_layer.cl";
+    pFileName[2] = "./src/caffe/ocl/pooling_layer.cl";
+    pFileName[3] = "./src/caffe/ocl/dropout_layer.cl";
+    pFileName[4] = "./src/caffe/ocl/relu_layer.cl";
+    pFileName[5] = "./src/caffe/ocl/softmax_layer.cl";
+    pFileName[6] = "./src/caffe/ocl/softmaxwithloss_layer.cl";
+    pFileName[7] = "./src/caffe/ocl/im2col.cl";
+
+    for(int fileNum = 0; fileNum < 8; fileNum++) {
+      std::string tmpSource = "";
+      ConvertToString(pFileName[fileNum], tmpSource);
+      strSource += tmpSource;
+    }
+
+    const char *pSource;
     pSource = strSource.c_str();
     size_t uiArrSourceSize[] = {0};
     uiArrSourceSize[0] = strlen(pSource);
@@ -206,11 +220,12 @@ cl_int Device::Init(){
 
 
 //Use to read OpenCL source code
-cl_int Device::ConvertToString(const char *pFileName,std::string &Str){
+cl_int Device::ConvertToString(std::string pFileName,std::string &Str){
     size_t uiSize=0;
     size_t uiFileSize=0;
     char *pStr=NULL;
-    std::fstream fFile(pFileName,(std::fstream::in|std::fstream::binary));
+    char *tmp = (char*)pFileName.data();
+    std::fstream fFile(tmp,(std::fstream::in|std::fstream::binary));
     if(fFile.is_open()){
         fFile.seekg(0,std::fstream::end);
         uiSize=uiFileSize=(size_t)fFile.tellg();
@@ -232,7 +247,7 @@ cl_int Device::ConvertToString(const char *pFileName,std::string &Str){
     return -1;
 }
 
-cl_program Device::BuildProgram(const char *pFileName)
+cl_program Device::BuildProgram(std::string pFileName)
 {
       //Read our own kernel file
     const char *pSource;

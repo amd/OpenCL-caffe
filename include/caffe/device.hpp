@@ -26,13 +26,13 @@ public:
     
      
     cl_int Init(); 
-    cl_int ConvertToString(const char *pFileName,std::string &Str);
+    cl_int ConvertToString(std::string pFileName,std::string &Str);
     void DisplayPlatformInfo();
     void DisplayInfo(cl_platform_id id, cl_platform_info name, std::string str);
 
     void GetDeviceInfo();
     
-    cl_program BuildProgram(const char*);    
+    cl_program BuildProgram(std::string);    
 
     template <typename T>
     void DisplayDeviceInfo(cl_device_id id, cl_device_info name, std::string str);
