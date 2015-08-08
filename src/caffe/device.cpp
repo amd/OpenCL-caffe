@@ -4,6 +4,8 @@
 #include <fstream>
 #include <iostream>
 #include <malloc.h>
+#include <dirent.h>
+
 namespace caffe {
 //delete it after test, Yibing
 cl_mem test_alloc_mem[10];
@@ -11,6 +13,7 @@ extern long long unsigned device_mem_consumption;
 
 Device amdDevice;
 char* buildOption = "-x clc++ ";
+std::string oclKernelPath="./src/caffe/ocl/";
 
 Device::~Device(){
     //clAmdBlasTeardown(); 
@@ -41,15 +44,6 @@ cl_int Device::Init(){
     }
     platformName[nameLen] = 0;
 
-    //Get OpenCL Information 
-    //res = clGetPlatformInfo(PlatformIDs[0], CL_PLATFORM_VERSION, 64, openclVersion, &nameLen);
-    //if(res != CL_SUCCESS) {
-    //    fprintf(stderr, "Err: Get OpenCL Info failed!\n", res);
-    //    return 0;
-    //}
-    //openclVersion[nameLen] = 0;
-    //printf("%s %s\n", platformName, openclVersion);
-  
     GetDeviceInfo();
     cl_uint uiNumDevices;
     cl_bool unified_memory = false;
@@ -124,57 +118,13 @@ cl_int Device::Init(){
         fprintf(stderr,"Err: Failed to Create Commandqueue\n");
         return 0;
     }
+   
+  
+    //BuildProgram from OpenCL kernel files
+    BuildProgram(oclKernelPath);
 
-    std::string strSource = "";
-
-    std::string pFileName[8];
-    pFileName[0] = "./src/caffe/ocl/OCL_kernel.cl";
-    pFileName[1] = "./src/caffe/ocl/lrn_layer.cl";
-    pFileName[2] = "./src/caffe/ocl/pooling_layer.cl";
-    pFileName[3] = "./src/caffe/ocl/dropout_layer.cl";
-    pFileName[4] = "./src/caffe/ocl/relu_layer.cl";
-    pFileName[5] = "./src/caffe/ocl/softmax_layer.cl";
-    pFileName[6] = "./src/caffe/ocl/softmaxwithloss_layer.cl";
-    pFileName[7] = "./src/caffe/ocl/im2col.cl";
-
-    for(int fileNum = 0; fileNum < 8; fileNum++) {
-      std::string tmpSource = "";
-      ConvertToString(pFileName[fileNum], tmpSource);
-      strSource += tmpSource;
-    }
-
-    const char *pSource;
-    pSource = strSource.c_str();
-    size_t uiArrSourceSize[] = {0};
-    uiArrSourceSize[0] = strlen(pSource);
-    Program = NULL;
-    Program = clCreateProgramWithSource(Context, 1, &pSource, uiArrSourceSize, NULL);
-    if(NULL == Program){
-        fprintf(stderr,"Err: Failed to create program\n");
-    }
-
-    //Build Program
-    cl_int iStatus = clBuildProgram(Program, 1, pDevices, buildOption, NULL, NULL);
-    LOG(INFO) << "Build Program";
-    if(CL_SUCCESS != iStatus){
-        fprintf(stderr,"Err: Failed to build program\n");
-        char szBuildLog[16384];
-        clGetProgramBuildInfo(Program, *pDevices, CL_PROGRAM_BUILD_LOG, sizeof(szBuildLog), szBuildLog, NULL);
-        std::cout << szBuildLog;
-        clReleaseProgram(Program);
-    }
-
-    /*
-    //Setup AmdBlas;
-    cl_int err;
-    err = clAmdBlasSetup();
-    if(err != CL_SUCCESS){
-        printf("clAmdBlasSetup() failed with %d\n", err);
-    }
-    */
     row = clblasRowMajor;
     col = clblasColumnMajor;
-	
 	/* 
 	//delete after test the large buffer allocation, Yibing	
 	long long global_mem_size_limit = 1024*1024; //4*1024*1024*1024;
@@ -218,6 +168,50 @@ cl_int Device::Init(){
     return 0;
 }
 
+void Device::BuildProgram(std::string kernel_dir)
+{  
+  //Access opencl kernel files
+    std::string strSource = "";
+    DIR *ocl_dir;
+    struct dirent *dirp;
+    if((ocl_dir=opendir(kernel_dir.c_str())) == NULL)
+    {
+        printf("Open ocl dir failed!\n");
+    }
+    while((dirp = readdir(ocl_dir)) != NULL)
+    {  
+        //Ignore hidden files
+        if(dirp->d_name[0] == '.')
+            continue;
+        std::string ocl_kernel_full_path=kernel_dir+std::string(dirp->d_name);
+        std::string tmpSource = "";
+        ConvertToString(ocl_kernel_full_path.c_str(), tmpSource);
+        strSource += tmpSource;
+    }
+
+    const char *pSource;
+    pSource = strSource.c_str();
+    size_t uiArrSourceSize[] = {0};
+    uiArrSourceSize[0] = strlen(pSource);
+    Program = NULL;
+    Program = clCreateProgramWithSource(Context, 1, &pSource, uiArrSourceSize, NULL);
+    if(NULL == Program){
+        fprintf(stderr,"Err: Failed to create program\n");
+    }
+
+    //Build Program
+    cl_int iStatus = clBuildProgram(Program, 1, pDevices, buildOption, NULL, NULL);
+    LOG(INFO) << "Build Program";
+    if(CL_SUCCESS != iStatus){
+        fprintf(stderr,"Err: Failed to build program\n");
+        char szBuildLog[16384];
+        clGetProgramBuildInfo(Program, *pDevices, CL_PROGRAM_BUILD_LOG, sizeof(szBuildLog), szBuildLog, NULL);
+        std::cout << szBuildLog;
+        clReleaseProgram(Program);
+    }
+
+  // return Program;
+}
 
 //Use to read OpenCL source code
 cl_int Device::ConvertToString(std::string pFileName,std::string &Str){
@@ -247,6 +241,7 @@ cl_int Device::ConvertToString(std::string pFileName,std::string &Str){
     return -1;
 }
 
+/*
 cl_program Device::BuildProgram(std::string pFileName)
 {
       //Read our own kernel file
@@ -274,6 +269,19 @@ cl_program Device::BuildProgram(std::string pFileName)
         return NULL;
     }
   return program;
+}
+*/
+cl_kernel Device::GetKernel(std::string kernel_name)
+{
+    std::map<std::string, cl_kernel>::iterator it = Kernels.find(kernel_name);
+    if(it == Kernels.end())
+    {
+        cl_int _err=0;
+        cl_kernel kernel = clCreateKernel(Program,kernel_name.c_str(),&_err);
+        OCL_CHECK(_err);
+        Kernels[kernel_name] = kernel;
+    }
+    return Kernels[kernel_name];
 }
 
 void Device::DisplayPlatformInfo(){

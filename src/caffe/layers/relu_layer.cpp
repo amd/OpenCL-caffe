@@ -6,22 +6,6 @@
 
 namespace caffe {
 template <typename Dtype>
-void ReLULayer<Dtype>::ocl_setup(){
-    cl_program program = amdDevice.BuildProgram("src/caffe/layers/relu_layer.cl");
-    cl_int _err=0;
-    ReLUForward_kernel = clCreateKernel(program,"ReLUForwardfloat",&_err);
-    ReLUBackward_kernel = clCreateKernel(program,"ReLUBackwardfloat",&_err);
-}
-
-template <typename Dtype>
-ReLULayer<Dtype>::~ReLULayer(){
-  OCL_CHECK( clReleaseKernel(ReLUForward_kernel) );
-  OCL_CHECK( clReleaseKernel(ReLUBackward_kernel) );
-}
-
-
-
-template <typename Dtype>
 void ReLULayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
     const vector<Blob<Dtype>*>& top) {
   const Dtype* bottom_data = bottom[0]->cpu_data();
@@ -68,7 +52,7 @@ void ReLULayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
   //     << " top_data: " << (unsigned long)top_data
   //     << " blocks: " << CAFFE_GET_BLOCKS(count)
   //     << " threads: " << CAFFE_CUDA_NUM_THREADS;
- ReLUForward_gpu(count,bottom_data,top_data,negative_slope);
+ ReLUForward(count,bottom_data,top_data,negative_slope);
 }
 
 
@@ -86,7 +70,7 @@ void ReLULayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
 //    ReLUBackward<Dtype><<<CAFFE_GET_BLOCKS(count), CAFFE_CUDA_NUM_THREADS>>>(
   //      count, top_diff, bottom_data, bottom_diff, negative_slope);
    // CUDA_POST_KERNEL_CHECK;
-   ReLUBackward_gpu(count,top_diff,bottom_data,bottom_diff,negative_slope);
+   ReLUBackward(count,top_diff,bottom_data,bottom_diff,negative_slope);
   }
 }
 

@@ -68,10 +68,10 @@ template <typename Dtype>
 void ave_pool_bp_gpu(cl_kernel Kernel, const int count, const Dtype* top_diff, const int clnum, const int channels_, const int intheight_, const int width_, const int pooled_height_, const int pooled_width_, const int kernel_size_, const int stride_, const int pad_, Dtype* bottom_diff);
 
 template <typename Dtype>
-void ReLUForward(cl_kernel Kernel, const int count, const Dtype* bottom_data, Dtype* top_data, Dtype negative_slope);
+void ReLUForward(const int count, const Dtype* bottom_data, Dtype* top_data, Dtype negative_slope);
 
 template <typename Dtype>
-void ReLUBackward(cl_kernel Kernel, const int count, const Dtype* top_diff, const Dtype* bottom_data, Dtype* bottom_diff, Dtype negative_slope);
+void ReLUBackward(const int count, const Dtype* top_diff, const Dtype* bottom_data, Dtype* bottom_diff, Dtype negative_slope);
 
 template <typename Dtype>
 void caffe_gpu_div (cl_kernel Kernel, const int n, const Dtype* a, const Dtype* b, Dtype* y);

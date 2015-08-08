@@ -433,9 +433,7 @@ class ReLULayer : public NeuronLayer<Dtype> {
    */
   explicit ReLULayer(const LayerParameter& param)
       : NeuronLayer<Dtype>(param) {
-        ocl_setup();
     }
-  ~ReLULayer();
   virtual inline const char* type() const { return "ReLU"; }
 
  protected:
@@ -487,22 +485,6 @@ class ReLULayer : public NeuronLayer<Dtype> {
       const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
   virtual void Backward_gpu(const vector<Blob<Dtype>*>& top,
       const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
-
-//OpenCL related setup
-  void ocl_setup();
-//OpenCL wrapper
-  void ReLUForward_gpu(int count, const Dtype *bottom_data,Dtype *top_data, Dtype negative_slope)
-  { 
-      ReLUForward(ReLUForward_kernel,count,bottom_data,top_data,negative_slope);
-  }
-  void ReLUBackward_gpu(int count, const Dtype* top_diff, const Dtype* bottom_data, Dtype *bottom_diff, Dtype negative_slope)
-  {
-      ReLUBackward(ReLUBackward_kernel,count,top_diff,bottom_data,bottom_diff,negative_slope);
-  }
- protected:
-   cl_kernel ReLUForward_kernel;
-   cl_kernel ReLUBackward_kernel;
-
 };
 
 #ifdef USE_CUDNN
