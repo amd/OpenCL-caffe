@@ -412,10 +412,6 @@ class PowerLayer : public NeuronLayer<Dtype> {
   Dtype shift_;
   /// @brief Result of @f$ \alpha \gamma @f$
   Dtype diff_scale_;
-
- protected:
- void ocl_setup();
- cl_kernel memset_kernel, scalar_kernel, div_kernel, mul_kernel, powx_kernel;
 };
 
 /**

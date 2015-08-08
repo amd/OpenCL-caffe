@@ -547,7 +547,7 @@ void BaseConvolutionLayer<Dtype>::backward_gpu_opt(const vector<Blob<Dtype>*>& t
     // Bias gradient, if necessary.
     if (this->bias_term_ && this->param_propagate_down_[1]) {
       Dtype* bias_diff = this->blobs_[1]->mutable_gpu_diff();
-      ocl_memset(oclmem_kernel, bias_diff, (Dtype)(0.), this->blobs_[1]->count());
+      ocl_memset(bias_diff, (Dtype)(0.), this->blobs_[1]->count());
     for (int n = 0; n < num_; ++n) {
       caffe_gpu_gemv<Dtype>(CblasNoTrans, M_, N_,
           (Dtype)1., top_diff, top[i]->offset(n), N_,

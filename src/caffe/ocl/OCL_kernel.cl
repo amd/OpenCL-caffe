@@ -718,9 +718,9 @@ __kernel void PRNG_threefry4x32(
 }
 
 
-template __attribute__((mangled_name(RNGBernoulliFloat))) __kernel void PRNG_threefry4x32(__global uint4 *randomnumber, threefry4x32_ctr_t ctr_i, float inf, float sup, float threshold, uint nrounds, uint numrandonm);
+template __attribute__((mangled_name(RNGBernoulli_float))) __kernel void PRNG_threefry4x32(__global uint4 *randomnumber, threefry4x32_ctr_t ctr_i, float inf, float sup, float threshold, uint nrounds, uint numrandonm);
 
-template __attribute__((mangled_name(RNGBernoulliDouble))) __kernel void PRNG_threefry4x32(__global uint4 *randomnumber, threefry4x32_ctr_t ctr_i, double inf, double sup, double threshold, uint nrounds, uint numrandonm);
+template __attribute__((mangled_name(RNGBernoulli_double))) __kernel void PRNG_threefry4x32(__global uint4 *randomnumber, threefry4x32_ctr_t ctr_i, double inf, double sup, double threshold, uint nrounds, uint numrandonm);
 
 //end of the looooooong gpu_random_generator kernel 
 
@@ -733,8 +733,8 @@ __kernel void OCL_memset(__global T* buffer, const T value, const int size){
 	}
 }
 
-template __attribute__((mangled_name(oclmemfloat))) __kernel void OCL_memset(__global float* buffer, const float value, const int size);
-template __attribute__((mangled_name(oclmemdouble))) __kernel void OCL_memset(__global double* buffer, const double value, const int size);
+template __attribute__((mangled_name(oclmem_float))) __kernel void OCL_memset(__global float* buffer, const float value, const int size);
+template __attribute__((mangled_name(oclmem_double))) __kernel void OCL_memset(__global double* buffer, const double value, const int size);
 
 __kernel void OCL_memset2(__global int* buffer, const int value, const int size){
         int gdx = get_global_id(0);

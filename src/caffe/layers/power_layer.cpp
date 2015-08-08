@@ -18,18 +18,8 @@ void PowerLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
   scale_ = this->layer_param_.power_param().scale();
   shift_ = this->layer_param_.power_param().shift();
   diff_scale_ = power_  * scale_;
- //OpenCL related set up
-  ocl_setup();
 }
 
-template <typename Dtype>
-void PowerLayer<Dtype>::ocl_setup(){
-   memset_kernel = clCreateKernel(amdDevice.Program, "oclmemfloat", NULL);
-   scalar_kernel = clCreateKernel(amdDevice.Program, "add_scalar_float", NULL);
-   div_kernel = clCreateKernel(amdDevice.Program, "div_float", NULL);
-   powx_kernel = clCreateKernel(amdDevice.Program, "powx_float", NULL);
-   mul_kernel = clCreateKernel(amdDevice.Program, "element_mul_float", NULL);
-}
 
 // Compute y = (shift + scale * x)^power
 template <typename Dtype>
@@ -116,7 +106,7 @@ void PowerLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
   // Special case where we can ignore the input: scale or power is 0.
   if (diff_scale_ == Dtype(0)) {
     Dtype value = (power_ == 0) ? Dtype(1) : pow(shift_, power_);
-    ocl_memset(memset_kernel, top_data, value, count);
+    ocl_memset(top_data, value, count);
     return;
   }
   const Dtype* bottom_data = bottom[0]->gpu_data();
@@ -125,10 +115,10 @@ void PowerLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
     caffe_gpu_scal(count, scale_, top_data);
   }
   if (shift_ != Dtype(0)) {
-    caffe_gpu_add_scalar(scalar_kernel, count, shift_, top_data);
+    caffe_gpu_add_scalar(count, shift_, top_data);
   }
   if (power_ != Dtype(1)) {
-    caffe_gpu_powx(powx_kernel, count, top_data, power_, top_data);
+    caffe_gpu_powx(count, top_data, power_, top_data);
   }
 }
 
@@ -140,7 +130,7 @@ void PowerLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
     const int count = bottom[0]->count();
     const Dtype* top_diff = top[0]->gpu_diff();
     if (diff_scale_ == Dtype(0) || power_ == Dtype(1)) {
-      ocl_memset(memset_kernel, bottom_diff, diff_scale_,count);
+      ocl_memset(bottom_diff, diff_scale_,count);
     } else {
       const Dtype* bottom_data = bottom[0]->gpu_data();
       // Compute dy/dx = scale * power * (shift + scale * x)^(power - 1)
@@ -152,7 +142,7 @@ void PowerLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
         caffe_gpu_axpby(count, diff_scale_ * scale_, bottom_data,
             Dtype(0), bottom_diff);
         if (shift_ != Dtype(0)) {
-          caffe_gpu_add_scalar(scalar_kernel, count, diff_scale_ * shift_, bottom_diff);
+          caffe_gpu_add_scalar(count, diff_scale_ * shift_, bottom_diff);
         }
       } else if (shift_ == Dtype(0)) {
         // Special case for y = (scale * x)^power
@@ -160,7 +150,7 @@ void PowerLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
         //              = scale * power * (scale * x)^power * (scale * x)^(-1)
         //              = power * y / x
         const Dtype* top_data = top[0]->gpu_data();
-        caffe_gpu_div(div_kernel, count, top_data, bottom_data, bottom_diff);
+        caffe_gpu_div(count, top_data, bottom_data, bottom_diff);
         caffe_gpu_scal(count, power_, bottom_diff);
       } else {
         caffe_gpu_copy(count, bottom_data, bottom_diff);
@@ -168,16 +158,16 @@ void PowerLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
           caffe_gpu_scal(count, scale_, bottom_diff);
         }
         if (shift_ != Dtype(0)) {
-            caffe_gpu_add_scalar(scalar_kernel, count, shift_, bottom_diff);
+            caffe_gpu_add_scalar(count, shift_, bottom_diff);
         }
         const Dtype* top_data = top[0]->gpu_data();
-        caffe_gpu_div(div_kernel, count, top_data, bottom_diff, bottom_diff);
+        caffe_gpu_div(count, top_data, bottom_diff, bottom_diff);
         if (diff_scale_ != Dtype(1)) {
           caffe_gpu_scal(count, diff_scale_, bottom_diff);
         }
       }
     }
-    caffe_gpu_mul(mul_kernel, count, top_diff, bottom_diff, bottom_diff);
+    caffe_gpu_mul(count, top_diff, bottom_diff, bottom_diff);
   }
 }
 

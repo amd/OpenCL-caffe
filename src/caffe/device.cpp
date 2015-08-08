@@ -13,6 +13,7 @@ extern long long unsigned device_mem_consumption;
 
 Device amdDevice;
 char* buildOption = "-x clc++ ";
+//char* buildOption = "-x clc++, -hsail-reg-slots=8-Wb, -hsail-reg32-pressure-limit=64-Wb, -hsail-reg64-pressure-limit=64";
 std::string oclKernelPath="./src/caffe/ocl/";
 
 Device::~Device(){
@@ -176,7 +177,7 @@ void Device::BuildProgram(std::string kernel_dir)
     struct dirent *dirp;
     if((ocl_dir=opendir(kernel_dir.c_str())) == NULL)
     {
-        printf("Open ocl dir failed!\n");
+        fprintf(stderr,"Err: Open ocl dir failed!\n");
     }
     while((dirp = readdir(ocl_dir)) != NULL)
     {  

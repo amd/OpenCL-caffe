@@ -121,7 +121,7 @@ class BaseConvolutionLayer : public Layer<Dtype> {
 }
 protected:
   inline void gpu_memset(Dtype* data, Dtype value, int count) {
-    ocl_memset(oclmem_kernel, data, value, count);
+    ocl_memset(data, value, count);
 }
 #endif
 
@@ -445,12 +445,10 @@ class PoolingLayer : public Layer<Dtype> {
  public:
   explicit PoolingLayer(const LayerParameter& param)
       : Layer<Dtype>(param) {}
-  ~PoolingLayer();
   virtual void LayerSetUp(const vector<Blob<Dtype>*>& bottom,
       const vector<Blob<Dtype>*>& top);
   virtual void Reshape(const vector<Blob<Dtype>*>& bottom,
       const vector<Blob<Dtype>*>& top);
-  void ocl_setup();
 
   virtual inline const char* type() const { return "Pooling"; }
   virtual inline int ExactNumBottomBlobs() const { return 1; }
@@ -481,16 +479,6 @@ class PoolingLayer : public Layer<Dtype> {
   bool global_pooling_;
   Blob<Dtype> rand_idx_;
   Blob<int> max_idx_;
-
-//opencl related data structures
-protected:
-  cl_kernel MaxPoolForward_kernel,
-            AvePoolForward_kernel,
-            StoPoolForwardTrain_kernel,
-            StoPoolForwardTest_kernel,
-            MaxPoolBackward_kernel,
-            AvePoolBackward_kernel,
-            StoPoolBackward_kernel;
 
 };
 

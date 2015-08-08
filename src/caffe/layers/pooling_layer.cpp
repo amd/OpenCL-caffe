@@ -14,17 +14,6 @@ using std::min;
 using std::max;
 
 template <typename Dtype>
-PoolingLayer<Dtype>::~PoolingLayer(){
-  OCL_CHECK( clReleaseKernel(MaxPoolForward_kernel) );
-  OCL_CHECK( clReleaseKernel(AvePoolForward_kernel) );
-  OCL_CHECK( clReleaseKernel(StoPoolForwardTrain_kernel) );
-  OCL_CHECK( clReleaseKernel(StoPoolForwardTest_kernel) );
-  OCL_CHECK( clReleaseKernel(MaxPoolBackward_kernel) );
-  OCL_CHECK( clReleaseKernel(AvePoolBackward_kernel) );  
-  OCL_CHECK( clReleaseKernel(StoPoolBackward_kernel) );
-}
-
-template <typename Dtype>
 void PoolingLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
       const vector<Blob<Dtype>*>& top) {
   PoolingParameter pool_param = this->layer_param_.pooling_param();
@@ -87,20 +76,8 @@ void PoolingLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
     CHECK_LT(pad_h_, kernel_h_);
     CHECK_LT(pad_w_, kernel_w_);
   }
-  //Intialize OpenCL related
-  ocl_setup();
 }
 
-template <typename Dtype>
- void PoolingLayer<Dtype>::ocl_setup(){
-  MaxPoolForward_kernel = clCreateKernel(amdDevice.Program, "MaxPoolForwardfloat", NULL);
-  AvePoolForward_kernel = clCreateKernel(amdDevice.Program, "AvePoolForwardfloat", NULL);
-  StoPoolForwardTrain_kernel = clCreateKernel(amdDevice.Program, "StoPoolForwardTrainfloat", NULL);
-  StoPoolForwardTest_kernel = clCreateKernel(amdDevice.Program, "StoPoolForwardTestfloat", NULL);
-  MaxPoolBackward_kernel = clCreateKernel(amdDevice.Program, "MaxPoolBackwardfloat", NULL);
-  AvePoolBackward_kernel = clCreateKernel(amdDevice.Program, "AvePoolBackwardfloat", NULL);
-  StoPoolBackward_kernel = clCreateKernel(amdDevice.Program, "StoPoolBackwardfloat", NULL);
-}
 
 template <typename Dtype>
 void PoolingLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
@@ -352,8 +329,7 @@ void PoolingLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
       mask = max_idx_.mutable_gpu_data();
     }
     // NOLINT_NEXT_LINE(whitespace/operators)
-    MaxPoolForward(MaxPoolForward_kernel,
-        count, bottom_data, bottom[0]->num(), channels_,
+    MaxPoolForward(count, bottom_data, bottom[0]->num(), channels_,
         height_, width_, pooled_height_, pooled_width_, kernel_h_,
         kernel_w_, stride_h_, stride_w_, pad_h_, pad_w_, top_data,
         mask, top_mask);
@@ -367,8 +343,7 @@ void PoolingLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
     break;
  case PoolingParameter_PoolMethod_AVE:
     // NOLINT_NEXT_LINE(whitespace/operators)
-    AvePoolForward(AvePoolForward_kernel,
-        count, bottom_data, bottom[0]->num(), channels_,
+    AvePoolForward(count, bottom_data, bottom[0]->num(), channels_,
         height_, width_, pooled_height_, pooled_width_, kernel_h_,
         kernel_w_, stride_h_, stride_w_, pad_h_, pad_w_, top_data);
  /*
@@ -384,15 +359,13 @@ void PoolingLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
       caffe_gpu_rng_uniform(count, Dtype(0), Dtype(1),
                             rand_idx_.mutable_gpu_data());
       // NOLINT_NEXT_LINE(whitespace/operators)
-      StoPoolForwardTrain(StoPoolForwardTrain_kernel,
-          count, bottom_data, bottom[0]->num(), channels_,
+      StoPoolForwardTrain(count, bottom_data, bottom[0]->num(), channels_,
           height_, width_, pooled_height_, pooled_width_, kernel_h_,
           kernel_w_, stride_h_, stride_w_,
           rand_idx_.mutable_gpu_data(), top_data);
     } else {
       // NOLINT_NEXT_LINE(whitespace/operators)
-      StoPoolForwardTest(StoPoolForwardTest_kernel,
-          count, bottom_data, bottom[0]->num(), channels_,
+      StoPoolForwardTest(count, bottom_data, bottom[0]->num(), channels_,
           height_, width_, pooled_height_, pooled_width_, kernel_h_,
           kernel_w_, stride_h_, stride_w_, top_data);
     }
@@ -425,23 +398,20 @@ void PoolingLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
       mask = max_idx_.gpu_data();
     }
     // NOLINT_NEXT_LINE(whitespace/operators)
-    MaxPoolBackward(MaxPoolBackward_kernel,
-        count, top_diff, mask, top_mask, top[0]->num(), channels_,
+    MaxPoolBackward(count, top_diff, mask, top_mask, top[0]->num(), channels_,
         height_, width_, pooled_height_, pooled_width_,
         kernel_h_, kernel_w_, stride_h_, stride_w_, pad_h_, pad_w_,
         bottom_diff);
     break;
   case PoolingParameter_PoolMethod_AVE:
     // NOLINT_NEXT_LINE(whitespace/operators)
-    AvePoolBackward(AvePoolBackward_kernel,
-        count, top_diff, top[0]->num(), channels_,
+    AvePoolBackward(count, top_diff, top[0]->num(), channels_,
         height_, width_, pooled_height_, pooled_width_, kernel_h_,
         kernel_w_, stride_h_, stride_w_, pad_h_, pad_w_, bottom_diff);
     break;
   case PoolingParameter_PoolMethod_STOCHASTIC:
     // NOLINT_NEXT_LINE(whitespace/operators)
-     StoPoolBackward(StoPoolBackward_kernel,
-        count, rand_idx_.gpu_data(), top_diff,
+     StoPoolBackward(count, rand_idx_.gpu_data(), top_diff,
         top[0]->num(), channels_, height_, width_, pooled_height_,
         pooled_width_, kernel_h_, kernel_w_, stride_h_, stride_w_,
         bottom_diff);

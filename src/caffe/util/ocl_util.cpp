@@ -8,10 +8,12 @@
 #include "caffe/common.hpp"
 #include "caffe/util/ocl_util.hpp"
 namespace caffe {
-
+template <typename dtype> extern std::string get_dtype_suffix();
 
 template <typename Dtype>
-void ocl_memset(cl_kernel Kernel, Dtype* buffer, const Dtype value, const int count){
+void ocl_memset(Dtype* buffer, const Dtype value, const int count){
+    std::string kernel_name = std::string("oclmem") + get_dtype_suffix<Dtype>();
+    cl_kernel Kernel = amdDevice.GetKernel(kernel_name);
     cl_int err=0;
     err=clSetKernelArg(Kernel, 0, sizeof(cl_mem), (void*)&buffer);
     err|=clSetKernelArg(Kernel, 1, sizeof(Dtype), (void*)&value);
@@ -25,8 +27,8 @@ void ocl_memset(cl_kernel Kernel, Dtype* buffer, const Dtype value, const int co
 }
 
 // Explicit instantiation
-template void ocl_memset<float>(cl_kernel Kernel, float* buffer, const float value, const int count);
-template void ocl_memset<double>(cl_kernel Kernel, double* buffer, const double value, const int count);
+template void ocl_memset<float>(float* buffer, const float value, const int count);
+template void ocl_memset<double>(double* buffer, const double value, const int count);
 
 
 void ocl_memset(cl_kernel Kernel, cl_mem buffer, const int value, const int count){

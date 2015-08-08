@@ -766,7 +766,7 @@ void AdaGradSolver<Dtype>::ComputeUpdateValue(int param_id, Dtype rate) {
   case Caffe::GPU: {
 #ifndef CPU_ONLY
     // compute square of gradient in update
-    caffe_gpu_powx(powx_kernel, net_params[param_id]->count(),
+    caffe_gpu_powx(net_params[param_id]->count(),
         net_params[param_id]->gpu_diff(), Dtype(2),
         this->update_[param_id]->mutable_gpu_data());
 
@@ -777,14 +777,14 @@ void AdaGradSolver<Dtype>::ComputeUpdateValue(int param_id, Dtype rate) {
         this->history_[param_id]->mutable_gpu_data());
 
     // prepare update
-    caffe_gpu_powx(powx_kernel, net_params[param_id]->count(),
+    caffe_gpu_powx( net_params[param_id]->count(),
               this->history_[param_id]->gpu_data(), Dtype(0.5),
               this->update_[param_id]->mutable_gpu_data());
 
-    caffe_gpu_add_scalar<Dtype>(scalar_kernel, net_params[param_id]->count(),
+    caffe_gpu_add_scalar<Dtype>(net_params[param_id]->count(),
              delta, this->update_[param_id]->mutable_gpu_data());
 
-    caffe_gpu_div(div_kernel, net_params[param_id]->count(),
+    caffe_gpu_div(net_params[param_id]->count(),
               net_params[param_id]->gpu_diff(),
               this->update_[param_id]->gpu_data(),
               this->update_[param_id]->mutable_gpu_data());

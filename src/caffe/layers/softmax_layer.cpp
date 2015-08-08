@@ -24,25 +24,9 @@ void SoftmaxLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
   scale_.Reshape(scale_dims);
 }
 
-template <typename Dtype>
-void SoftmaxLayer<Dtype>::ocl_setup(){
-    cl_int err = 0;
-    channel_max_kernel  = clCreateKernel(amdDevice.Program, "kernel_channel_max_float", &err);
-    channel_subtract_kernel = clCreateKernel(amdDevice.Program, "kernel_channel_subtract_float", &err);;
-    exp_kernel = clCreateKernel(amdDevice.Program, "kernel_exp_float", &err);;
-    channel_sum_kernel = clCreateKernel(amdDevice.Program, "kernel_channel_sum_float", &err);;
-    channel_div_kernel = clCreateKernel(amdDevice.Program, "kernel_channel_div_float", &err);;
-    channel_dot_kernel = clCreateKernel(amdDevice.Program, "kernel_channel_dot_float", &err);;
-}
 
 template <typename Dtype>
 SoftmaxLayer<Dtype>::~SoftmaxLayer(){
-  clReleaseKernel(channel_max_kernel);
-  clReleaseKernel(channel_subtract_kernel);
-  clReleaseKernel(exp_kernel);
-  clReleaseKernel(channel_sum_kernel);
-  clReleaseKernel(channel_div_kernel);
-  clReleaseKernel(channel_dot_kernel);
 }
 
 template <typename Dtype>
@@ -122,22 +106,22 @@ void SoftmaxLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
   // compute max
   // NOLINT_NEXT_LINE(whitespace/operators)
  
-  kernel_channel_max<Dtype>(channel_max_kernel, outer_num_, channels, inner_num_, top_data,
+  kernel_channel_max<Dtype>(outer_num_, channels, inner_num_, top_data,
       scale_data);
   // subtract
   // NOLINT_NEXT_LINE(whitespace/operators)
-  kernel_channel_subtract<Dtype>(channel_subtract_kernel, count, outer_num_, channels, inner_num_,
+  kernel_channel_subtract<Dtype>(count, outer_num_, channels, inner_num_,
       scale_data, top_data);
   // exponentiate
   // NOLINT_NEXT_LINE(whitespace/operators)
-  kernel_exp<Dtype>(exp_kernel, count, top_data, top_data);
+  kernel_exp<Dtype>(count, top_data, top_data);
   // sum after exp
   // NOLINT_NEXT_LINE(whitespace/operators)
-  kernel_channel_sum<Dtype>(channel_sum_kernel, outer_num_, channels, inner_num_, top_data,
+  kernel_channel_sum<Dtype>(outer_num_, channels, inner_num_, top_data,
       scale_data);
   // divide
   // NOLINT_NEXT_LINE(whitespace/operators)
-  kernel_channel_div<Dtype>(channel_div_kernel, count, outer_num_, channels, inner_num_,
+  kernel_channel_div<Dtype>(count, outer_num_, channels, inner_num_,
       scale_data, top_data);
 }
 
@@ -154,10 +138,10 @@ void SoftmaxLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
   // Compute inner1d(top_diff, top_data) and subtract them from the bottom diff.
   // NOLINT_NEXT_LINE(whitespace/operators)
  
-  kernel_channel_dot<Dtype>(channel_dot_kernel, outer_num_, channels, inner_num_,
+  kernel_channel_dot<Dtype>(outer_num_, channels, inner_num_,
       top_diff, top_data, scale_data);
   // NOLINT_NEXT_LINE(whitespace/operators)
-  kernel_channel_subtract<Dtype>(channel_subtract_kernel, count, outer_num_, channels, inner_num_,
+  kernel_channel_subtract<Dtype>(count, outer_num_, channels, inner_num_,
       scale_data, bottom_diff);
   // elementwise multiplication
   caffe_gpu_mul<Dtype>(top[0]->count(), bottom_diff, top_data, bottom_diff);

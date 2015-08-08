@@ -34,22 +34,12 @@ void SoftmaxWithLossLayer<Dtype>::LayerSetUp(
 
 template <typename Dtype>
 void SoftmaxWithLossLayer<Dtype>::ocl_setup(){
-   cl_int err=0;
-   scal_kernel = clCreateKernel(amdDevice.Program, "scal_float", &err);
-   diff_kernel = clCreateKernel(amdDevice.Program, "diff_float", &err);
-   softmax_kernel = clCreateKernel(amdDevice.Program, "softmax_float", &err);
    d_loss = clCreateBuffer(amdDevice.Context, CL_MEM_ALLOC_HOST_PTR, sizeof(Dtype), NULL, NULL);
 
-   softmax_loss_fp_kernel = clCreateKernel(amdDevice.Program, "softmax_loss_fp_float", &err);
-   softmax_loss_bp_kernel = clCreateKernel(amdDevice.Program, "softmax_loss_bp_float", &err);
 }
 
 template <typename Dtype>
 SoftmaxWithLossLayer<Dtype>::~SoftmaxWithLossLayer(){
-  clReleaseKernel(diff_kernel);
-  clReleaseKernel(scal_kernel);
-  clReleaseKernel(softmax_loss_fp_kernel);
-  clReleaseKernel(softmax_loss_bp_kernel);
 }
 
 template <typename Dtype>
@@ -158,7 +148,7 @@ void SoftmaxWithLossLayer<Dtype>::Forward_gpu(
   // to avoid having to allocate additional GPU memory.
   Dtype* counts = prob_.mutable_gpu_diff();
   // NOLINT_NEXT_LINE(whitespace/operators)
-  SoftmaxLossForwardGPU<Dtype>(softmax_loss_fp_kernel, nthreads, prob_data, label, loss_data,
+  SoftmaxLossForwardGPU<Dtype>( nthreads, prob_data, label, loss_data,
        outer_num_, dim, inner_num_, has_ignore_label_, ignore_label_, counts);
   Dtype loss;
   caffe_gpu_asum(nthreads, loss_data, &loss);
@@ -195,7 +185,7 @@ void SoftmaxWithLossLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
     // we use to to avoid allocating new GPU memory.
     Dtype* counts = prob_.mutable_gpu_diff();
     // NOLINT_NEXT_LINE(whitespace/operators)
-    SoftmaxLossBackwardGPU<Dtype>(softmax_loss_bp_kernel, nthreads, top_data, label, bottom_diff,
+    SoftmaxLossBackwardGPU<Dtype>(nthreads, top_data, label, bottom_diff,
            outer_num_, dim, inner_num_, has_ignore_label_, ignore_label_, counts);
     const Dtype loss_weight = top[0]->cpu_diff()[0];
     if (normalize_) {

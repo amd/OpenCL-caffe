@@ -33,8 +33,8 @@ __kernel void MaxPoolForward(const int nthreads, __global T* bottom_data, const 
     }
   }
 }
-template __attribute__((mangled_name(MaxPoolForwardfloat))) __kernel void MaxPoolForward(const int nthreads, __global float* bottom_data, const int num, const int channels, const int height, const int width, const int pooled_height, const int pooled_width,const int kernel_h, const int kernel_w, const int stride_h, const int stride_w, const int pad_h, const int pad_w, __global float* top_data, __global int* mask, __global float* top_mask);
-template __attribute__((mangled_name(MaxPoolForwarddouble))) __kernel void MaxPoolForward(const int nthreads, __global double* bottom_data, const int num, const int channels, const int height, const int width, const int pooled_height, const int pooled_width, const int kernel_h, const int kernel_w,  const int stride_h, const int stride_w, const int pad_h, const int pad_w, __global double* top_data, __global int* mask, __global double* top_mask);
+template __attribute__((mangled_name(MaxPoolForward_float))) __kernel void MaxPoolForward(const int nthreads, __global float* bottom_data, const int num, const int channels, const int height, const int width, const int pooled_height, const int pooled_width,const int kernel_h, const int kernel_w, const int stride_h, const int stride_w, const int pad_h, const int pad_w, __global float* top_data, __global int* mask, __global float* top_mask);
+template __attribute__((mangled_name(MaxPoolForward_double))) __kernel void MaxPoolForward(const int nthreads, __global double* bottom_data, const int num, const int channels, const int height, const int width, const int pooled_height, const int pooled_width, const int kernel_h, const int kernel_w,  const int stride_h, const int stride_w, const int pad_h, const int pad_w, __global double* top_data, __global int* mask, __global double* top_mask);
 
 template <class T>
 __kernel void AvePoolForward(const int nthreads, __global T* bottom_data, const int num, const int channels, const int height, const int width, const int pooled_height, const int pooled_width, const int kernel_h, const int kernel_w, const int stride_h, const int stride_w, const int pad_h, const int pad_w,__global T* top_data){
@@ -103,8 +103,8 @@ __kernel void StoPoolForwardTrain(const int nthreads, __global T* bottom_data, c
     }
     }
 }
-template __attribute__((mangled_name(StoPoolForwardTrainfloat))) __kernel void StoPoolForwardTrain(const int nthreads, __global float* bottom_data, const int num, const int channels, const int height, const int width, const int pooled_height, const int pooled_width, const int kernel_h, const int kernel_w, const int stride_h, const int stride_w, __global float* idx_data, __global float* top_data);
-template __attribute__((mangled_name(StoPoolForwardTrainDouble))) __kernel void StoPoolForwardTrain(const int nthreads, __global double* bottom_data, const int num, const int channels, const int height, const int width, const int pooled_height, const int pooled_width, const int kernel_h, const int kernel_w, const int stride_h, const int stride_w, __global double* idx_data, __global double* top_data);
+template __attribute__((mangled_name(StoPoolForwardTrain_float))) __kernel void StoPoolForwardTrain(const int nthreads, __global float* bottom_data, const int num, const int channels, const int height, const int width, const int pooled_height, const int pooled_width, const int kernel_h, const int kernel_w, const int stride_h, const int stride_w, __global float* idx_data, __global float* top_data);
+template __attribute__((mangled_name(StoPoolForwardTrain_double))) __kernel void StoPoolForwardTrain(const int nthreads, __global double* bottom_data, const int num, const int channels, const int height, const int width, const int pooled_height, const int pooled_width, const int kernel_h, const int kernel_w, const int stride_h, const int stride_w, __global double* idx_data, __global double* top_data);
 
 template <class T>
 __kernel void StoPoolForwardTest(const int count, __global T* bottom_data, const int clnum, const int channels, const int height, const int width, const int pooled_height, const int pooled_width,  const int kernel_h, const int kernel_w, const int stride_h, const int stride_w, __global T* top_data){
@@ -132,8 +132,8 @@ __kernel void StoPoolForwardTest(const int count, __global T* bottom_data, const
     }
     top_data[index] = cumvalues / cumsum;  }
 }
-template __attribute__((mangled_name(StoPoolForwardTestfloat))) __kernel void StoPoolForwardTest(const int nthreads, __global float* bottom_data, const int num, const int channels, const int height, const int width, const int pooled_height, const int pooled_width, const int kernel_h, const int kernel_w, const int stride_h, const int stride_w,__global float* top_data);
-template __attribute__((mangled_name(StoPoolForwardTestdouble))) __kernel void StoPoolForwardTest(const int nthreads, __global double* bottom_data, const int num, const int channels, const int height, const int width, const int pooled_height, const int pooled_width, const int kernel_h, const int kernel_w, const int stride_h, const int stride_w, __global double* top_data);
+template __attribute__((mangled_name(StoPoolForwardTest_float))) __kernel void StoPoolForwardTest(const int nthreads, __global float* bottom_data, const int num, const int channels, const int height, const int width, const int pooled_height, const int pooled_width, const int kernel_h, const int kernel_w, const int stride_h, const int stride_w,__global float* top_data);
+template __attribute__((mangled_name(StoPoolForwardTest_double))) __kernel void StoPoolForwardTest(const int nthreads, __global double* bottom_data, const int num, const int channels, const int height, const int width, const int pooled_height, const int pooled_width, const int kernel_h, const int kernel_w, const int stride_h, const int stride_w, __global double* top_data);
 
 template <class T>
 __kernel void MaxPoolBackward(const int nthreads, __global T* top_diff,
@@ -182,8 +182,8 @@ __kernel void MaxPoolBackward(const int nthreads, __global T* top_diff,
     bottom_diff[index] = gradient;
   }
 }
-template __attribute__((mangled_name(MaxPoolBackwardfloat))) __kernel void MaxPoolBackward(const int nthreads, __global float* const top_diff, __global int* const mask, __global float* const top_mask, const int num, const int channels, const int height, const int width, const int pooled_height, const int pooled_width, const int kernel_h, const int kernel_w, const int stride_h, const int stride_w, const int pad_h, const int pad_w, __global float* bottom_diff);
-template __attribute__((mangled_name(MaxPoolBackwarddouble))) __kernel void MaxPoolBackward(const int nthreads, __global double* top_diff, __global int* const mask, __global double* const top_mask, const int num, const int channels, const int height, const int width, const int pooled_height, const int pooled_width, const int kernel_h, const int kernel_w, const int stride_h, const int stride_w, const int pad_h, const int pad_w, __global double* bottom_diff);
+template __attribute__((mangled_name(MaxPoolBackward_float))) __kernel void MaxPoolBackward(const int nthreads, __global float* const top_diff, __global int* const mask, __global float* const top_mask, const int num, const int channels, const int height, const int width, const int pooled_height, const int pooled_width, const int kernel_h, const int kernel_w, const int stride_h, const int stride_w, const int pad_h, const int pad_w, __global float* bottom_diff);
+template __attribute__((mangled_name(MaxPoolBackward_double))) __kernel void MaxPoolBackward(const int nthreads, __global double* top_diff, __global int* const mask, __global double* const top_mask, const int num, const int channels, const int height, const int width, const int pooled_height, const int pooled_width, const int kernel_h, const int kernel_w, const int stride_h, const int stride_w, const int pad_h, const int pad_w, __global double* bottom_diff);
 
 template <class T>
 __kernel void AvePoolBackward(const int nthreads, __global T* top_diff, const int num, const int channels, const int height, const int width, const int pooled_height, const int pooled_width, const int kernel_h, const int kernel_w, const int stride_h, const int stride_w, const int pad_h, const int pad_w, __global T* const bottom_diff){
@@ -215,8 +215,8 @@ __kernel void AvePoolBackward(const int nthreads, __global T* top_diff, const in
    }
 }
 
-template __attribute__((mangled_name(AvePoolBackwardfloat))) __kernel void AvePoolBackward(const int nthreads, __global float* top_diff, const int num, const int channels, const int height, const int width, const int pooled_height, const int pooled_width, const int kernel_h, const int kernel_w, const int stride_h, const int stride_w, const int pad_h, const int pad_w, __global float* bottom_diff);
-template __attribute__((mangled_name(AvePoolBackwarddouble))) __kernel void AvePoolBackward(const int nthreads, __global double* top_diff, const int num, const int channels, const int height, const int width, const int pooled_height, const int pooled_width, const int kernel_h, const int kernel_w, const int stride_h, const int stride_w, const int pad_h, const int pad_w, __global double* bottom_diff);
+template __attribute__((mangled_name(AvePoolBackward_float))) __kernel void AvePoolBackward(const int nthreads, __global float* top_diff, const int num, const int channels, const int height, const int width, const int pooled_height, const int pooled_width, const int kernel_h, const int kernel_w, const int stride_h, const int stride_w, const int pad_h, const int pad_w, __global float* bottom_diff);
+template __attribute__((mangled_name(AvePoolBackward_double))) __kernel void AvePoolBackward(const int nthreads, __global double* top_diff, const int num, const int channels, const int height, const int width, const int pooled_height, const int pooled_width, const int kernel_h, const int kernel_w, const int stride_h, const int stride_w, const int pad_h, const int pad_w, __global double* bottom_diff);
 
 template <class Dtype>
 void StoPoolBackward(const int nthreads,
@@ -253,13 +253,13 @@ void StoPoolBackward(const int nthreads,
 
 	  }
 }
-template __attribute__ ((mangled_name(StoPoolBackwardfloat))) __kernel  void StoPoolBackward<float>(const int nthreads,
+template __attribute__ ((mangled_name(StoPoolBackward_float))) __kernel  void StoPoolBackward<float>(const int nthreads,
     __global float* rand_idx, __global float* top_diff,
     const int num, const int channels, const int height,
     const int width, const int pooled_height, const int pooled_width,
     const int kernel_h, const int kernel_w, const int stride_h,
     const int stride_w, __global float* bottom_diff);
-template __attribute__ ((mangled_name(StoPoolBackwarddouble))) __kernel void StoPoolBackward<double>(const int nthreads,
+template __attribute__ ((mangled_name(StoPoolBackward_double))) __kernel void StoPoolBackward<double>(const int nthreads,
     __global double* rand_idx, __global double* top_diff,
     const int num, const int channels, const int height,
     const int width, const int pooled_height, const int pooled_width,

@@ -112,10 +112,6 @@ Caffe::Caffe()
    if(err != CL_SUCCESS){
        LOG(ERROR) << "clBLAS setup failed "<<err;
    }
-   else
-   {
-      printf("clBLAS setup succeed!\n");
-   }
 }
 
 Caffe::~Caffe() {

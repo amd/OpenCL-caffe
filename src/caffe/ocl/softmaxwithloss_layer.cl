@@ -20,12 +20,12 @@ __kernel void SoftmaxLossForwardGPU(const int nthreads,
   }
 }
 
-template __attribute__ ((mangled_name(softmax_loss_fp_float))) __kernel void SoftmaxLossForwardGPU(int nthreads,
+template __attribute__ ((mangled_name(SoftmaxLossForwardGPU_float))) __kernel void SoftmaxLossForwardGPU(int nthreads,
           __global float* prob_data, __global float* label,__global float* loss,
           int num, int dim, int spatial_dim,
           bool has_ignore_label_, int ignore_label_,
           __global float* counts);
-template __attribute__ ((mangled_name(softmax_loss_fp_double))) __kernel void SoftmaxLossForwardGPU(int nthreads,
+template __attribute__ ((mangled_name(SoftmaxLossForwardGPU_double))) __kernel void SoftmaxLossForwardGPU(int nthreads,
           __global double* prob_data, __global double* label,__global double* loss,
           int num, int dim, int spatial_dim,
           bool has_ignore_label_, int ignore_label_,
@@ -54,12 +54,12 @@ __kernel void SoftmaxLossBackwardGPU(int nthreads, __global T* top,
     }
   }
 }
-template __attribute__ ((mangled_name(softmax_loss_bp_float))) __kernel void SoftmaxLossBackwardGPU(int nthreads, __global float* top,
+template __attribute__ ((mangled_name(SoftmaxLossBackwardGPU_float))) __kernel void SoftmaxLossBackwardGPU(int nthreads, __global float* top,
           __global float* label,__global float* bottom_diff, int num, int dim,
           int spatial_dim, bool has_ignore_label_,
           int ignore_label_, float* counts);
 
-template __attribute__ ((mangled_name(softmax_loss_bp_double)))  __kernel void SoftmaxLossBackwardGPU(int nthreads, __global double* top,
+template __attribute__ ((mangled_name(SoftmaxLossBackward_double)))  __kernel void SoftmaxLossBackwardGPU(int nthreads, __global double* top,
           __global double* label,__global double* bottom_diff, int num, int dim,
           int spatial_dim, bool has_ignore_label_,
           int ignore_label_, double* counts);
