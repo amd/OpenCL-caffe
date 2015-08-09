@@ -697,6 +697,63 @@ void ave_pool_bp_gpu(cl_kernel Kernel, const int count, const Dtype* top_diff, c
 template void ave_pool_bp_gpu<float>(cl_kernel Kernel, const int count, const float* top_diff, const int clnum, const int channels_, const int intheight_, const int width_, const int pooled_height_, const int pooled_width_, const int kernel_size_, const int stride_, const int pad_, float* bottom_diff);
 template void ave_pool_bp_gpu<double>(cl_kernel Kernel, const int count, const double* top_diff, const int clnum, const int channels_, const int intheight_, const int width_, const int pooled_height_, const int pooled_width_, const int kernel_size_, const int stride_, const int pad_, double* bottom_diff);
 
+
+template <typename Dtype> 
+void PReLUForward(const int count, const int channels, const int dim, const Dtype* bottom_data, Dtype* top_data, const Dtype* slope_data, const int div_factor){
+    std::string kernel_name = "PReLUForward" + get_dtype_suffix<Dtype>();
+    cl_kernel Kernel = amdDevice.GetKernel(kernel_name);
+    cl_int ret;
+    ret  = clSetKernelArg(Kernel, 0, sizeof(cl_int), (void*)&count);
+    ret |= clSetKernelArg(Kernel, 1, sizeof(cl_int), (void*)&channels);
+    ret |= clSetKernelArg(Kernel, 2, sizeof(cl_int), (void*)&dim);
+    ret |= clSetKernelArg(Kernel, 3, sizeof(cl_mem), (void*)&bottom_data);
+    ret |= clSetKernelArg(Kernel, 4, sizeof(cl_mem), (void*)&top_data);
+    ret |= clSetKernelArg(Kernel, 5, sizeof(cl_mem), (void*)&slope_data);
+    ret |= clSetKernelArg(Kernel, 6, sizeof(cl_int), (void*)&div_factor);
+    size_t Global_Work_Size[] = {count * 1};
+    size_t Local_Work_Size[] = {256};
+    OCL_CHECK(clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, Global_Work_Size, Local_Work_Size, 0, NULL, NULL));
+}
+template void PReLUForward<float>(const int count, const int channels, const int dim,const float* bottom_data, float* top_data, const float* slope_data, const int div_factor);
+template void PReLUForward<double>(const int count, const int channels, const int dim,const double* bottom_data, double* top_data, const double* slope_data, const int div_factor);
+
+template <typename Dtype> 
+void PReLUBackward(const int count, const int channels, const int dim, const Dtype* top_diff, const Dtype* bottom_data, Dtype* bottom_diff, const Dtype* slope_data, const int div_factor){
+    std::string kernel_name = "PReLUBackward" + get_dtype_suffix<Dtype>();
+    cl_kernel Kernel = amdDevice.GetKernel(kernel_name);
+    cl_int ret;
+    ret  = clSetKernelArg(Kernel, 0, sizeof(cl_int), (void*)&count);
+    ret |= clSetKernelArg(Kernel, 1, sizeof(cl_int), (void*)&channels);
+    ret |= clSetKernelArg(Kernel, 2, sizeof(cl_int), (void*)&dim);
+    ret |= clSetKernelArg(Kernel, 3, sizeof(cl_mem), (void*)&top_diff);
+    ret |= clSetKernelArg(Kernel, 4, sizeof(cl_mem), (void*)&bottom_data);
+    ret |= clSetKernelArg(Kernel, 5, sizeof(cl_mem), (void*)&bottom_diff);
+    ret |= clSetKernelArg(Kernel, 6, sizeof(cl_mem), (void*)&slope_data);
+    ret |= clSetKernelArg(Kernel, 7, sizeof(cl_int), (void*)&div_factor);
+    size_t Global_Work_Size[] = {count * 1};
+    size_t Local_Work_Size[] = {256};
+    OCL_CHECK(clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, Global_Work_Size, Local_Work_Size, 0, NULL, NULL));
+}
+template void PReLUBackward<float>(const int count, const int channels, const int dim, const float* top_diff, const float* bottom_data, float* bottom_diff, const float* slope_data, const int div_factor);
+template void PReLUBackward<double>(const int count, const int channels, const int dim, const double* top_diff, const double* bottom_data, double* bottom_diff, const double* slope_data, const int div_factor);
+
+template <typename Dtype> 
+void PReLUParamBackward(const int count, const Dtype* top_diff, const Dtype* bottom_data, Dtype* bottom_diff){
+    std::string kernel_name = "PReLUParamBackward" + get_dtype_suffix<Dtype>();
+    cl_kernel Kernel = amdDevice.GetKernel(kernel_name);
+    cl_int ret;
+    ret  = clSetKernelArg(Kernel, 0, sizeof(cl_int), (void*)&count);
+    ret |= clSetKernelArg(Kernel, 1, sizeof(cl_mem), (void*)&top_diff);
+    ret |= clSetKernelArg(Kernel, 2, sizeof(cl_mem), (void*)&bottom_data);
+    ret |= clSetKernelArg(Kernel, 3, sizeof(cl_mem), (void*)&bottom_diff);
+    size_t Global_Work_Size[] = {count * 1};
+    size_t Local_Work_Size[] = {256};
+    OCL_CHECK(clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, Global_Work_Size, Local_Work_Size, 0, NULL, NULL));
+}
+template void PReLUParamBackward<float>(const int count, const float* top_diff, const float* bottom_data, float* bottom_diff);
+template void PReLUParamBackward<double>(const int count, const double* top_diff, const double* bottom_data, double* bottom_diff);
+
+
 template <typename Dtype> 
 void ReLUForward(const int count, const Dtype* bottom_data, Dtype* top_data, Dtype negative_slope){
     std::string kernel_name = "ReLUForward" + get_dtype_suffix<Dtype>();

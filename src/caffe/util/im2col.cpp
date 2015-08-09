@@ -258,43 +258,6 @@ template void im2col_gpu<double>(cl_kernel Kernel, const double* data_im, const 
     const int stride, double* data_col, const int col_offset);
 
 template <typename Dtype>
-void im2col_16_gpu(cl_kernel Kernel, const Dtype* data_im, const int img_offset, const int channels,
-    const int height, const int width, const int ksize, const int pad,
-    const int stride, Dtype* data_col, const int col_offset) {
-
-    int height_col = (height + 2 * pad - ksize) / stride + 1;
-    int width_col = (width + 2 * pad - ksize) / stride + 1;
-    int num_kernels = 16 * channels * height_col * width_col;
-
-    cl_int ret;
-    ret=clSetKernelArg(Kernel,0,sizeof(cl_int),(void*)&num_kernels);
-    ret|=clSetKernelArg(Kernel,1,sizeof(cl_mem),(void*)&data_im);
-    ret|=clSetKernelArg(Kernel,2,sizeof(cl_int),(void*)&channels);
-    ret|=clSetKernelArg(Kernel,3,sizeof(cl_int),(void*)&img_offset);
-    ret|=clSetKernelArg(Kernel,4,sizeof(cl_int),(void*)&height);
-    ret|=clSetKernelArg(Kernel,5,sizeof(cl_int),(void*)&width);
-    ret|=clSetKernelArg(Kernel,6,sizeof(cl_int),(void*)&ksize);
-    ret|=clSetKernelArg(Kernel,7,sizeof(cl_int),(void*)&pad);
-    ret|=clSetKernelArg(Kernel,8,sizeof(cl_int),(void*)&stride);
-    ret|=clSetKernelArg(Kernel,9,sizeof(cl_int),(void*)&height_col);
-    ret|=clSetKernelArg(Kernel,10,sizeof(cl_int),(void*)&width_col);
-    ret|=clSetKernelArg(Kernel,11,sizeof(cl_mem),(void*)&data_col);
-    ret|=clSetKernelArg(Kernel,12,sizeof(cl_int),(void*)&col_offset);
-    OCL_CHECK(ret);
-
-    size_t uiGlobal_Work_Size[] = {num_kernels};
-    size_t uiLocal_Work_Size[] = {256 - 256 % width_col};
-    OCL_CHECK( clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, uiGlobal_Work_Size, uiLocal_Work_Size, 0, NULL, NULL) );
-}
-
-template void im2col_16_gpu<float>(cl_kernel Kernel, const float* data_im, const int img_offset, const int channels,
-    const int height, const int width, const int ksize, const int pad,
-    const int stride, float* data_col, const int col_offset);
-template void im2col_16_gpu<double>(cl_kernel Kernel, const double* data_im, const int img_offset, const int channels,
-    const int height, const int width, const int ksize, const int pad,
-    const int stride, double* data_col, const int col_offset);
-
-template <typename Dtype>
 void im2col_gpu_opt(const Dtype* data_im, const int img_offset, const int channels,
     const int height, const int width, const int ksize, const int pad,
     const int stride, Dtype* data_col, const int col_offset, int optnum) {
@@ -339,7 +302,7 @@ template <typename Dtype>
 void col2im_gpu(const Dtype* data_col, const int col_offset, const int channels,
     const int height, const int width, const int ksize, const int pad,
     const int stride, Dtype* data_im, const int img_offset) {
-    std::string kernel_name = "col2im_opt" + get_dtype_suffix<Dtype>();
+    std::string kernel_name = "col2im_gpu_kernel" + get_dtype_suffix<Dtype>();
     cl_kernel Kernel = amdDevice.GetKernel(kernel_name);
 
     int height_col = (height + 2 * pad - ksize) / stride + 1;
@@ -378,89 +341,5 @@ template void col2im_gpu<double>(const double* data_col, const int col_offset, c
     const int height, const int width, const int psize, const int pad,
     const int stride, double* data_im, const int img_offset);
 
-template <typename Dtype>
-void im2col_gpu_ocl(cl_mem data_im, const int channels,
-    const int height, const int width, const int ksize, const int pad,
-    const int stride, Dtype* data_col, cl_kernel Kernel) {
-
-    int height_col = (height + 2 * pad - ksize) / stride + 1;
-    int width_col = (width + 2 * pad - ksize) / stride + 1;
-    int num_kernels = channels * height_col * width_col;
-
-    cl_int ret;
-    ret=clSetKernelArg(Kernel,0,sizeof(cl_int),(void*)&num_kernels);
-    ret|=clSetKernelArg(Kernel,1,sizeof(cl_mem),(void*)&data_im);
-    ret|=clSetKernelArg(Kernel,2,sizeof(cl_int),(void*)&height);
-    ret|=clSetKernelArg(Kernel,3,sizeof(cl_int),(void*)&width);
-    ret|=clSetKernelArg(Kernel,4,sizeof(cl_int),(void*)&ksize);
-    ret|=clSetKernelArg(Kernel,5,sizeof(cl_int),(void*)&pad);
-    ret|=clSetKernelArg(Kernel,6,sizeof(cl_int),(void*)&stride);
-    ret|=clSetKernelArg(Kernel,7,sizeof(cl_int),(void*)&height_col);
-    ret|=clSetKernelArg(Kernel,8,sizeof(cl_int),(void*)&width_col);
-    OCL_CHECK( clSetKernelArg(Kernel,9,sizeof(cl_mem),(void*)&data_col) );
-
-    if(ret!=CL_SUCCESS){
-        fprintf(stderr,"Failed to Set Args\n");
-    }
-
-    size_t uiGlobal_Work_Size[] = {num_kernels};
-    size_t uiLocal_Work_Size[] = {64};
-    cl_int iStatus = clEnqueueNDRangeKernel(amdDevice.CommandQueue,Kernel,1,NULL,uiGlobal_Work_Size,uiLocal_Work_Size,0,NULL,NULL);
-    if(CL_SUCCESS!=iStatus){
-        fprintf(stderr,"Failed to enqueue kernel\n");
-    }
-}
-
-template void im2col_gpu_ocl<float>(cl_mem data_im, const int channels,
-    const int height, const int width, const int ksize, const int pad,
-    const int stride, float* data_col, cl_kernel Kernel);
-template void im2col_gpu_ocl<double>(cl_mem data_im, const int channels,
-    const int height, const int width, const int ksize, const int pad,
-    const int stride, double* data_col, cl_kernel Kernel);
-
-template <typename Dtype>
-void col2im_gpu_ocl(cl_mem data_col, const int channels,
-    const int height, const int width, const int ksize, const int pad,
-    const int stride, Dtype* data_im, cl_kernel Kernel) {
-
-    int height_col = (height + 2 * pad - ksize) / stride + 1;
-    int width_col = (width + 2 * pad - ksize) / stride + 1;
-    int num_kernels = channels * height * width;
-  // To avoid involving atomic operations, we will launch one kernel per
-  // bottom dimension, and then in the kernel add up the top dimensions.
-  // NOLINT_NEXT_LINE(whitespace/operatiors)
-
-    cl_int ret;
-    ret=clSetKernelArg(Kernel,0,sizeof(cl_int),(void*)&num_kernels);
-    ret|=clSetKernelArg(Kernel,2,sizeof(cl_mem),(void*)&data_col);
-    ret|=clSetKernelArg(Kernel,2,sizeof(cl_int),(void*)&height);
-    ret|=clSetKernelArg(Kernel,3,sizeof(cl_int),(void*)&width);
-    ret|=clSetKernelArg(Kernel,4,sizeof(cl_int),(void*)&channels);
-    ret|=clSetKernelArg(Kernel,5,sizeof(cl_int),(void*)&ksize);
-    ret|=clSetKernelArg(Kernel,6,sizeof(cl_int),(void*)&pad);
-    ret|=clSetKernelArg(Kernel,7,sizeof(cl_int),(void*)&stride);
-    ret|=clSetKernelArg(Kernel,8,sizeof(cl_int),(void*)&height_col);
-    ret|=clSetKernelArg(Kernel,9,sizeof(cl_int),(void*)&width_col);
-    ret|=clSetKernelArg(Kernel,10,sizeof(cl_mem),(void*)&data_im);
-
-    if(ret!=CL_SUCCESS){
-        fprintf(stderr,"Failed to Set Args\n");
-    }
-
-    size_t uiGlobal_Work_Size[] = {num_kernels};
-    size_t uiLocal_Work_Size[] = {64};
-    cl_int iStatus = clEnqueueNDRangeKernel(amdDevice.CommandQueue,Kernel,1,NULL,uiGlobal_Work_Size,uiLocal_Work_Size,0,NULL,NULL);
-    if(CL_SUCCESS!=iStatus){
-        fprintf(stderr,"Failed to enqueue kernel\n");
-    }
-}
-
-
-template void col2im_gpu_ocl<float>(cl_mem data_col, const int channels,
-    const int height, const int width, const int psize, const int pad,
-    const int stride, float* data_im, cl_kernel Kernel);
-template void col2im_gpu_ocl<double>(cl_mem data_col, const int channels,
-    const int height, const int width, const int psize, const int pad,
-    const int stride, double* data_im, cl_kernel Kernel);
 
 }  // namespace caffe

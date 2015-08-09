@@ -1,0 +1,136 @@
+#pragma OPENCL EXTENSION cl_amd_printf : enable
+
+template <class T>
+__kernel void OCL_memset(__global T* buffer, const T value, const int size){
+	int gdx = get_global_id(0);
+	if(gdx < size){
+		buffer[gdx] = value;	
+	}
+}
+
+template __attribute__((mangled_name(oclmem_float))) __kernel void OCL_memset(__global float* buffer, const float value, const int size);
+template __attribute__((mangled_name(oclmem_double))) __kernel void OCL_memset(__global double* buffer, const double value, const int size);
+
+__kernel void OCL_memset2(__global int* buffer, const int value, const int size){
+        int gdx = get_global_id(0);
+        if(gdx < size){
+                buffer[gdx] = value;    
+        }
+}
+
+template <class T>
+__kernel void caffe_gpu_sign(const int N, __global T* X, __global T* Y){
+     int gdx = get_global_id(0);
+     if(gdx < N){
+          Y[gdx] =((0.0<X[gdx])-(X[gdx]<0.0));
+     }
+}
+
+template __attribute__((mangled_name(caffe_gpu_sign_float))) __kernel void caffe_gpu_sign(const int N, __global float* X, __global float* Y);
+template __attribute__((mangled_name(caffe_gpu_sign_double))) __kernel void caffe_gpu_sign(const int N, __global double* X, __global double* Y);
+
+
+template <class T>
+__kernel void get_max(const int num, const int dim, __global T* data, __global T* out){
+     int index = get_global_id(0);
+     if (index < num) {
+	T maxval = -FLT_MAX;
+        for (int i = 0; i <  dim; i++)
+	maxval = max( data[index*dim + i], maxval );
+        out[index] = maxval;
+      }
+}
+
+template __attribute__ ((mangled_name(get_max_float))) __kernel void get_max(const int num, const int dim, __global float* data, __global float* out);
+template __attribute__ ((mangled_name(get_max_double))) __kernel void get_max(const int num, const int dim, __global double* data, __global double* out);
+
+template <class T>
+__kernel void exp (const int num, __global T* data, __global T* out){
+        int index = get_global_id(0);
+        if (index < num) 
+        out[index] = exp(data[index]);
+}
+
+template __attribute__ ((mangled_name(exp_float))) __kernel void exp (const int num, __global float* data, __global float* out);
+template __attribute__ ((mangled_name(exp_double))) __kernel void exp (const int num, __global double* data, __global double* out);
+
+
+template <class T>
+__kernel void kernel_exp(const int count, __global const T* data, __global T* out) {
+ int index = get_global_id(0);
+   if(index < count) {
+    out[index] = exp(data[index]);
+  }
+}
+
+template __attribute__ ((mangled_name(kernel_exp_float))) __kernel void kernel_exp(const int count, __global const float* data, __global float* out);
+template __attribute__ ((mangled_name(kernel_exp_double))) __kernel void kernel_exp(const int count, __global const double* data, __global double* out);
+
+
+template <class T>
+__kernel void diff (const int num, const int dim, __global T* data, __global T* label){
+        int index = get_global_id(0);
+        int total = get_global_size(0);
+        int offset;
+	for(index; index < num; index +=  total){
+  	offset = (int) label[index];
+        data[index * dim + offset] -= 1;
+        }
+}
+
+template __attribute__ ((mangled_name(diff_float))) __kernel void diff (const int num, const int dim, __global float* data, __global float* label);
+template __attribute__ ((mangled_name(diff_double))) __kernel void diff (const int num, const int dim, __global double* data, __global double* label);
+
+
+template <class T>
+__kernel void div (const int n, __global const T* a, __global const T* b, __global T* y){
+	int index = get_global_id(0);
+        if (index < n)
+        y[index] = a[index] / b[index];
+}
+
+template __attribute__ ((mangled_name(div_float))) __kernel void div (const int n, __global const float* a, __global const float* b, __global float* y);
+//template __attribute__ ((mangled_name(div_double))) __kernel void div (const int n, __global const double* a, __global const double* b, __global double* y);
+
+template <class T>
+__kernel void add_scalar (const int n, const T alpha, __global T* y){
+        int index = get_global_id(0);
+        if (index < n)
+        y[index] += alpha;
+}
+
+template __attribute__ ((mangled_name(add_scalar_float))) __kernel void add_scalar (const int n, const float alpha, __global float* y);
+template __attribute__ ((mangled_name(add_scalar_double))) __kernel void add_scalar (const int n, const double alpha, __global double* y);
+
+template <typename Dtype>
+__kernel void caffe_gpu_add(const int n, const Dtype* in1, const Dtype* in2, Dtype* y){
+        int index = get_global_id(0);
+        if (index < n)
+        y[index] = in1[index] + in2[index] ;
+}
+template __attribute__ ((mangled_name(caffe_gpu_add_float))) __kernel void caffe_gpu_add(const int n, const float* in1, const float* in2, float* y);
+template __attribute__ ((mangled_name(caffe_gpu_add_double))) __kernel void caffe_gpu_add(const int n, const double* in1, const double* in2, double* y);
+
+template <class T>
+__kernel void element_mul (const int n, __global const T* a, __global const T* b, __global T* y){
+        int index = get_global_id(0);
+       if (index < n)
+        y[index] = a[index] * b[index];
+}
+
+template __attribute__ ((mangled_name(element_mul_float))) __kernel void element_mul (const int n, __global const float* a, __global const float* b, __global float* y);
+template __attribute__ ((mangled_name(element_mul_double))) __kernel void element_mul (const int n,__global const double* a, __global const double* b, __global double* y);
+
+
+template <class T>
+__kernel void powx (const int n, __global const T* a, const T alpha, __global T* y){
+        int index = get_global_id(0);
+        if (index < n)
+//           y[index] = a[index] + alpha;
+           y[index] = pow(a[index], alpha);
+}
+
+template __attribute__ ((mangled_name(powx_float))) __kernel void powx (const int n, __global const float* a, const float alpha, __global float* y); 
+template __attribute__ ((mangled_name(powx_double))) __kernel void powx (const int n, __global const double* a, const double alpha, __global double* y); 
+
+

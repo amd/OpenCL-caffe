@@ -59,7 +59,19 @@ template __attribute__ ((mangled_name(SoftmaxLossBackwardGPU_float))) __kernel v
           int spatial_dim, bool has_ignore_label_,
           int ignore_label_, float* counts);
 
-template __attribute__ ((mangled_name(SoftmaxLossBackward_double)))  __kernel void SoftmaxLossBackwardGPU(int nthreads, __global double* top,
+template __attribute__ ((mangled_name(SoftmaxLossBackwardGPU_double)))  __kernel void SoftmaxLossBackwardGPU(int nthreads, __global double* top,
           __global double* label,__global double* bottom_diff, int num, int dim,
           int spatial_dim, bool has_ignore_label_,
           int ignore_label_, double* counts);
+
+template <class T>
+__kernel void scal (const int num, const T alpha, __global T* data){
+        int index = get_global_id(0);
+        int total = get_global_size(0);
+        for(index; index < num; index +=  total){
+        data[index] = data[index] * alpha;
+        }
+}
+
+template __attribute__ ((mangled_name(scal_float))) __kernel void scal (const int num, const float alpha,  __global float* data);
+template __attribute__ ((mangled_name(scal_double))) __kernel void scal (const int num, const double alpha,  __global double* data);

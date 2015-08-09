@@ -67,6 +67,16 @@ void max_pool_bp_gpu(cl_kernel Kernel, const int count, const Dtype* bottom_data
 template <typename Dtype>
 void ave_pool_bp_gpu(cl_kernel Kernel, const int count, const Dtype* top_diff, const int clnum, const int channels_, const int intheight_, const int width_, const int pooled_height_, const int pooled_width_, const int kernel_size_, const int stride_, const int pad_, Dtype* bottom_diff);
 
+
+template <typename Dtype>
+void PReLUForward(const int count, const int channels, const int dim, const Dtype* bottom_data, Dtype* top_data, const Dtype* slope_data, const int div_factor);
+
+template <typename Dtype> 
+void PReLUBackward(const int count, const int channels, const int dim, const Dtype* top_diff, const Dtype* bottom_data, Dtype* bottom_diff, const Dtype* slope_data, const int div_factor);
+
+template <typename Dtype> 
+void PReLUParamBackward(const int count, const Dtype* top_diff, const Dtype* bottom_data, Dtype* bottom_diff);
+
 template <typename Dtype>
 void ReLUForward(const int count, const Dtype* bottom_data, Dtype* top_data, Dtype negative_slope);
 
