@@ -33,7 +33,7 @@ void Alloc_public_tmp_mem(size_t subtop_size, size_t trans_size)
 
 template <typename Dtype>
 void BaseConvolutionLayer<Dtype>::ocl_setup() {
-  im2col_gpu_kernel = clCreateKernel(amdDevice.Program,"im2col_gpu_float_kernel", NULL);
+/*  im2col_gpu_kernel = clCreateKernel(amdDevice.Program,"im2col_gpu_float_kernel", NULL);
   col2im_gpu_kernel = clCreateKernel(amdDevice.Program,"col2im_gpu_float_kernel", NULL);
   oclmem_kernel = clCreateKernel(amdDevice.Program, "oclmemfloat", NULL);
   im2col_opt_kernel = clCreateKernel(amdDevice.Program, "im2col_optfloat", NULL);
@@ -41,7 +41,7 @@ void BaseConvolutionLayer<Dtype>::ocl_setup() {
   opttrans_kernel = clCreateKernel(amdDevice.Program, "opttransfloat", NULL);
   ocl_Kernel_transpose = clCreateKernel(amdDevice.Program,"transposefloat",NULL);
   ocl_Kernel_transform = clCreateKernel(amdDevice.Program,"transformfloat",NULL);
-
+*/
   M_ = conv_out_channels_ / group_;
   K_ = kernel_dim_ / group_;
   N_ =  conv_out_spatial_dim_;
@@ -56,6 +56,7 @@ void BaseConvolutionLayer<Dtype>::ocl_setup() {
 
 template <typename Dtype>
  BaseConvolutionLayer<Dtype>::~BaseConvolutionLayer(){
+ /*
   OCL_CHECK( clReleaseKernel(im2col_gpu_kernel) );
   OCL_CHECK( clReleaseKernel(col2im_gpu_kernel) );
   OCL_CHECK( clReleaseKernel(oclmem_kernel) );
@@ -63,6 +64,7 @@ template <typename Dtype>
   OCL_CHECK( clReleaseKernel(ocl_Kernel_transform) );
   OCL_CHECK( clReleaseKernel(im2col_opt_kernel) );
   OCL_CHECK( clReleaseKernel(col2im_opt_kernel) );
+*/
 }
 
 
@@ -495,7 +497,7 @@ void BaseConvolutionLayer<Dtype>::forward_gpu_opt(const vector<Blob<Dtype>*>& bo
     col_offset = K_ * N_ * opt_num2;
     //step1: packed im2col, col_size = (K_ * group_ ) * N_
     //this should be opt_num2 images packing together.
-    im2col_gpu_opt(im2col_opt_kernel, bottom_data, bottom[i]->offset(n), channels_, height_,
+    im2col_gpu_opt(bottom_data, bottom[i]->offset(n), channels_, height_,
                        width_, kernel_w_, pad_w_, stride_w_, (Dtype*)transMem, 0, opt_num2);
 
     //step 2: sgemm: Top (subTopMem) = weight * col_data
@@ -520,7 +522,7 @@ void BaseConvolutionLayer<Dtype>::forward_gpu_opt(const vector<Blob<Dtype>*>& bo
        }
 #endif
     //step 3: tranform
-    transform_gpu(ocl_Kernel_transform, (Dtype*)subTopMem, top_data, top[i]->offset(n), N_, M_org, opt_num2);
+    transform_gpu((Dtype*)subTopMem, top_data, top[i]->offset(n), N_, M_org, opt_num2);
     //step 4: add bias
     /*note: this sgemm has to use num_output_ instead of M, because M = M /group, in setup*/
 
@@ -578,13 +580,13 @@ void BaseConvolutionLayer<Dtype>::backward_gpu_opt(const vector<Blob<Dtype>*>& t
     col_offset = K_ * (N_ * opt_num2);
     //step1: packed im2col, col_size = (K_ * group_ ) * N_
     //this should be opt_num2 images packing together.
-    im2col_gpu_opt(im2col_opt_kernel, bottom_data, bottom[i]->offset(n), channels_, height_,
+    im2col_gpu_opt(bottom_data, bottom[i]->offset(n), channels_, height_,
                        width_, kernel_w_, pad_w_, stride_w_, (Dtype*)transMem, 0, opt_num2);
 
     //step 2: transform top[n] into shoulder by shoulder, right now i cheated by just copying the data over. without re-organize
     int height_top = M_ * group_, width_top = N_;
     //if (opt_num2 >1)
-    opttrans(opttrans_kernel, top_diff, top[i]->offset(n), 1, height_top, width_top, (Dtype*)subTopMem, 0, opt_num2);
+    opttrans(top_diff, top[i]->offset(n), 1, height_top, width_top, (Dtype*)subTopMem, 0, opt_num2);
 
     //step 3: sgemm: Top (subTopMem) = weight * col_data
     for(g = 0; g < group_; ++g) {
@@ -624,7 +626,7 @@ void BaseConvolutionLayer<Dtype>::backward_gpu_opt(const vector<Blob<Dtype>*>& t
 #endif
 
     //step5: col2im
-       col2im_gpu_opt(col2im_opt_kernel, (Dtype*)transMem, 0, channels_, height_, width_, kernel_w_, pad_w_,
+       col2im_gpu_opt((Dtype*)transMem, 0, channels_, height_, width_, kernel_w_, pad_w_,
                   stride_w_, bottom_diff, bottom[i]->offset(n), opt_num2);
 #ifdef Track_layer
     LOG(WARNING) << "conv bp done";

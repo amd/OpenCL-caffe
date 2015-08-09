@@ -182,9 +182,13 @@ void Device::BuildProgram(std::string kernel_dir)
     while((dirp = readdir(ocl_dir)) != NULL)
     {  
         //Ignore hidden files
-        if(dirp->d_name[0] == '.')
-            continue;
-        std::string ocl_kernel_full_path=kernel_dir+std::string(dirp->d_name);
+        if(dirp->d_name[0] == '.') continue;
+        std::string file_name = std::string(dirp->d_name);
+        //Skip non *.cl files
+        size_t last_dot_pos = file_name.find_last_of(".");
+        if(file_name.substr(last_dot_pos+1) != "cl") continue;
+
+        std::string ocl_kernel_full_path=kernel_dir+file_name;
         std::string tmpSource = "";
         ConvertToString(ocl_kernel_full_path.c_str(), tmpSource);
         strSource += tmpSource;

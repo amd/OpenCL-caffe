@@ -981,8 +981,8 @@ __kernel void transpose(__global const T *src, __global T* dst, int width, int h
      if( gidx < width && gidyy < height * optnum )
          dst[offset + height * gidx + gidy] = src[offset + width * gidy + gidx];
 }
-template __attribute__((mangled_name(transposefloat))) __kernel void transpose(__global const float* src, __global float* dst, const int width, const int height, int optnum); 
-template __attribute__((mangled_name(transposedouble))) __kernel void transpose(__global const double* src, __global double* dst, const int width, const int heighti, int optnum);
+template __attribute__((mangled_name(transpose_float))) __kernel void transpose(__global const float* src, __global float* dst, const int width, const int height, int optnum); 
+template __attribute__((mangled_name(transpose_double))) __kernel void transpose(__global const double* src, __global double* dst, const int width, const int heighti, int optnum);
 
 template <class T>
 __kernel void transform(__global const T *src, __global T* dst, int top_offset, int width, int height, int optnum){
@@ -995,5 +995,5 @@ __kernel void transform(__global const T *src, __global T* dst, int top_offset, 
      for(i = 0 ; i < width; i++)
          dst[(index * height + offset)* width + i] = src[gidx * width + i];
 }
-template __attribute__((mangled_name(transformfloat))) __kernel void transform(__global const float* src, __global float* dst, int top_offset, const int width, const int height, const int optnum); 
-template __attribute__((mangled_name(transformdouble))) __kernel void transform(__global const double* src, __global double* dst, int top_offset, const int width, const int height, const int optnum); 
+template __attribute__((mangled_name(transform_float))) __kernel void transform(__global const float* src, __global float* dst, int top_offset, const int width, const int height, const int optnum); 
+template __attribute__((mangled_name(transform_double))) __kernel void transform(__global const double* src, __global double* dst, int top_offset, const int width, const int height, const int optnum); 

@@ -98,26 +98,26 @@ class BaseConvolutionLayer : public Layer<Dtype> {
   }
 #ifndef CPU_ONLY
   inline void conv_im2col_gpu(const Dtype* data, Dtype* col_buff) {
-     im2col_gpu(im2col_gpu_kernel, data, bottom_offset_, conv_in_channels_, conv_in_height_, conv_in_width_,
+     im2col_gpu(data, bottom_offset_, conv_in_channels_, conv_in_height_, conv_in_width_,
            kernel_h_, kernel_w_, pad_h_, pad_w_, stride_h_, stride_w_, col_buff, 0);
   }
   inline void conv_col2im_gpu(const Dtype* col_buff, Dtype* data) {
-    col2im_gpu(col2im_gpu_kernel, col_buff, 0,  conv_in_channels_, conv_in_height_, conv_in_width_,
+    col2im_gpu(col_buff, 0,  conv_in_channels_, conv_in_height_, conv_in_width_,
         kernel_h_, kernel_w_, pad_h_, pad_w_, stride_h_, stride_w_, data, bottom_offset_);
   }
   inline void conv_im2col_gpu_opt(const Dtype* data) {
-     im2col_gpu_opt(im2col_opt_kernel, data, bottom_offset_, conv_in_channels_, conv_in_height_, conv_in_width_,
+     im2col_gpu_opt(data, bottom_offset_, conv_in_channels_, conv_in_height_, conv_in_width_,
            kernel_w_, pad_w_, stride_h_,(Dtype*)transMem, 0, opt_num2);
   }
   inline void conv_col2im_gpu_opt( Dtype* data) {
-    col2im_gpu_opt(col2im_opt_kernel, (Dtype*)transMem, 0,  conv_in_channels_, conv_in_height_, conv_in_width_,
+    col2im_gpu_opt((Dtype*)transMem, 0,  conv_in_channels_, conv_in_height_, conv_in_width_,
         kernel_h_, pad_h_, stride_w_, data, bottom_offset_, opt_num2);
 }
   inline void conv_transform_gpu(const Dtype* temp_buffer, Dtype* top_data) {
-    transform_gpu(ocl_Kernel_transform, (Dtype*)temp_buffer, top_data, top_offset_n, N_, M_*opt_num2, opt_num2);
+    transform_gpu((Dtype*)temp_buffer, top_data, top_offset_n, N_, M_*opt_num2, opt_num2);
 }
  inline void conv_transpose_gpu(const Dtype* data){
-    opttrans(opttrans_kernel, data, top_offset_n, 1, M_ * group_, N_, (Dtype*)subTopMem, 0, opt_num2);
+    opttrans(data, top_offset_n, 1, M_ * group_, N_, (Dtype*)subTopMem, 0, opt_num2);
 }
 protected:
   inline void gpu_memset(Dtype* data, Dtype value, int count) {
@@ -142,10 +142,6 @@ protected:
       const vector<Blob<Dtype>*>& top,  bool skip_im2col = false) ;
   void backward_gpu_opt(const vector<Blob<Dtype>*>& top,
       const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
-  cl_kernel im2col_gpu_kernel, col2im_gpu_kernel;
-  cl_kernel im2col_opt_kernel, col2im_opt_kernel, opttrans_kernel;
-  cl_kernel oclmem_kernel;
-  cl_kernel ocl_Kernel_transpose, ocl_Kernel_transform;
   int opt_num2;
   int M_, N_, K_;
   int weight_offset_;

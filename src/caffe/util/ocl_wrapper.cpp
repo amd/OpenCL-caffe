@@ -29,7 +29,7 @@ template <typename dtype> std::string get_dtype_suffix()
 template <typename Dtype>
 void caffe_gpu_bernoulli(int* a, const unsigned int n, Dtype inf, Dtype sup, Dtype threshold)
 {
-        std::string kernel_name = std::string("RNGBernoulli") + get_dtype_suffix<Dtype>();
+        std::string kernel_name = "RNGBernoulli" + get_dtype_suffix<Dtype>();
         cl_kernel ker_rand = amdDevice.GetKernel(kernel_name);
 
         static unsigned c = 0;
@@ -57,7 +57,10 @@ template void caffe_gpu_bernoulli<double>(int* a, const unsigned int n, double i
 
 
 template <typename Dtype>
-void transform_gpu(cl_kernel Kernel, Dtype* src, Dtype* dst, const int top_offset, const int N_, const int M_, const int packing_num){
+void transform_gpu(Dtype* src, Dtype* dst, const int top_offset, const int N_, const int M_, const int packing_num){
+    std::string kernel_name = "transform" + get_dtype_suffix<Dtype>();
+    cl_kernel Kernel = amdDevice.GetKernel(kernel_name);
+
     cl_int ret;
     ret= clSetKernelArg(Kernel,0,sizeof(cl_mem),(void*)&src);
     OCL_CHECK(ret);
@@ -77,8 +80,8 @@ void transform_gpu(cl_kernel Kernel, Dtype* src, Dtype* dst, const int top_offse
     OCL_CHECK( clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, uiGlobal_Work_Size2, uiLocal_Work_Size2, 0, NULL, NULL) );
 }
 
-template void transform_gpu<float>(cl_kernel Kernel, float* src, float* dst, const int top_offset, const int N_, const int M_, const int packing_num);
-template void transform_gpu<double>(cl_kernel Kernel, double* src, double* dst, const int top_offset, const int N_, const int M_, const int packing_num);
+template void transform_gpu<float>(float* src, float* dst, const int top_offset, const int N_, const int M_, const int packing_num);
+template void transform_gpu<double>(double* src, double* dst, const int top_offset, const int N_, const int M_, const int packing_num);
 
 template <typename Dtype>
 void get_max_gpu(cl_kernel Kernel, const int num, const int dim, const Dtype* bottom_data, Dtype* scale_data){
@@ -156,7 +159,7 @@ template <typename Dtype>
 void kernel_channel_max(const int num, const int channels,
     const int spatial_dim, const Dtype* data, Dtype* out)
 {
-    std::string kernel_name = std::string("kernel_channel_max") + get_dtype_suffix<Dtype>();
+    std::string kernel_name = "kernel_channel_max" + get_dtype_suffix<Dtype>();
     cl_kernel Kernel = amdDevice.GetKernel(kernel_name);
 
     OCL_CHECK( clSetKernelArg(Kernel, 0, sizeof(cl_int), (void*)&num) );
@@ -180,7 +183,7 @@ void kernel_channel_subtract( const int count,
     const int num, const int channels,
     const int spatial_dim, const Dtype* channel_max, Dtype* data)
 {
-    std::string kernel_name = std::string("kernel_channel_subtract") + get_dtype_suffix<Dtype>();
+    std::string kernel_name = "kernel_channel_subtract" + get_dtype_suffix<Dtype>();
     cl_kernel Kernel = amdDevice.GetKernel(kernel_name);
 
     OCL_CHECK( clSetKernelArg(Kernel, 0, sizeof(cl_int), (void*)&count) );
@@ -205,7 +208,7 @@ template void kernel_channel_subtract<double>( const int count,
 template <typename Dtype>
 void kernel_exp(const int count, const Dtype* data, Dtype* out)
 {
-    std::string kernel_name = std::string("kernel_exp") + get_dtype_suffix<Dtype>();
+    std::string kernel_name = "kernel_exp" + get_dtype_suffix<Dtype>();
     cl_kernel Kernel = amdDevice.GetKernel(kernel_name);
 
     OCL_CHECK( clSetKernelArg(Kernel, 0, sizeof(cl_int), (void*)&count) );
@@ -224,7 +227,7 @@ template <typename Dtype>
 void kernel_channel_sum(const int num, const int channels,
     const int spatial_dim, const Dtype* data, Dtype* channel_sum)
 {
-    std::string kernel_name = std::string("kernel_channel_sum") + get_dtype_suffix<Dtype>();
+    std::string kernel_name = "kernel_channel_sum" + get_dtype_suffix<Dtype>();
     cl_kernel Kernel = amdDevice.GetKernel(kernel_name);
 
     OCL_CHECK( clSetKernelArg(Kernel, 0, sizeof(cl_int), (void*)&num) );
@@ -245,7 +248,7 @@ template <typename Dtype>
 void kernel_channel_div(const int count, const int num, const int channels,
     const int spatial_dim, const Dtype* channel_sum, Dtype* data)
 {
-    std::string kernel_name = std::string("kernel_channel_div") + get_dtype_suffix<Dtype>();
+    std::string kernel_name = "kernel_channel_div" + get_dtype_suffix<Dtype>();
     cl_kernel Kernel = amdDevice.GetKernel(kernel_name);
 
     OCL_CHECK( clSetKernelArg(Kernel, 0, sizeof(cl_int), (void*)&count) );
@@ -270,7 +273,7 @@ void kernel_channel_dot(const int num, const int channels,
     const int spatial_dim, const Dtype* data_1, const Dtype* data_2,
     Dtype* channel_dot)
 {
-    std::string kernel_name = std::string("kernel_channel_dot") + get_dtype_suffix<Dtype>();
+    std::string kernel_name = "kernel_channel_dot" + get_dtype_suffix<Dtype>();
     cl_kernel Kernel = amdDevice.GetKernel(kernel_name);
 
     OCL_CHECK( clSetKernelArg(Kernel, 0, sizeof(cl_int), (void*)&num) );
@@ -298,7 +301,7 @@ void SoftmaxLossForwardGPU(const int nthreads,
           const bool has_ignore_label_, const int ignore_label_,
           Dtype* counts)
 {
-    std::string kernel_name = std::string("SoftmaxLossForwardGPU") + get_dtype_suffix<Dtype>();
+    std::string kernel_name = "SoftmaxLossForwardGPU" + get_dtype_suffix<Dtype>();
     cl_kernel Kernel = amdDevice.GetKernel(kernel_name);
 
     OCL_CHECK(clSetKernelArg(Kernel, 0, sizeof(cl_int),  (void*)&nthreads));
@@ -328,7 +331,7 @@ void SoftmaxLossBackwardGPU(const int nthreads, const Dtype* top,
           const int spatial_dim, const bool has_ignore_label_,
           const int ignore_label_, Dtype* counts)
 {
-    std::string kernel_name = std::string("SoftmaxLossBackwardGPU") + get_dtype_suffix<Dtype>();
+    std::string kernel_name = "SoftmaxLossBackwardGPU" + get_dtype_suffix<Dtype>();
     cl_kernel Kernel = amdDevice.GetKernel(kernel_name);
 
     OCL_CHECK(clSetKernelArg(Kernel, 0, sizeof(cl_int),  (void*)&nthreads));
@@ -409,7 +412,7 @@ template  void max_pool_fp_gpu<double>(cl_kernel Kernel, const int count, const 
 
 template <typename Dtype>
 void MaxPoolForward(const int count, const Dtype* bottom_data, const int clnum, const int channels_, const int height_, const int width_, const int pooled_height_, const int pooled_width_, const int kernel_h_, const int kernel_w_, const int stride_h_, const int stride_w_, const int pad_h_, const int pad_w_, Dtype* top_data, int* mask, Dtype* top_mask){
-     std::string kernel_name = std::string("MaxPoolForward") + get_dtype_suffix<Dtype>();
+     std::string kernel_name = "MaxPoolForward" + get_dtype_suffix<Dtype>();
     cl_kernel Kernel = amdDevice.GetKernel(kernel_name);
    
      cl_int ret;
@@ -443,7 +446,7 @@ template void MaxPoolForward<double>(const int count, const double* bottom_data,
 template <typename Dtype>
 void StoPoolForwardTrain(const int count, const Dtype* bottom_data, const int clnum, const int channels_, const int height_, const int width_, const int pooled_height_, const int pooled_width_,  const int kernel_h_, const int kernel_w_, const int stride_h_, const int stride_w_, Dtype* idx_data, Dtype* top_data)
 {
-    std::string kernel_name = std::string("StoPoolForwardTrain") + get_dtype_suffix<Dtype>();
+    std::string kernel_name = "StoPoolForwardTrain" + get_dtype_suffix<Dtype>();
     cl_kernel Kernel = amdDevice.GetKernel(kernel_name);
     cl_int ret;
     ret  = clSetKernelArg(Kernel, 0, sizeof(cl_int), (void*)&count);
@@ -471,7 +474,7 @@ template void StoPoolForwardTrain<double>(const int count, const double* bottom_
 
 template <typename Dtype>
 void StoPoolForwardTest(const int count, const Dtype* bottom_data, const int clnum, const int channels_, const int height_, const int width_, const int pooled_height_, const int pooled_width_,  const int kernel_h_, const int kernel_w_, const int stride_h_, const int stride_w_, Dtype* top_data){
-    std::string kernel_name = std::string("StoPoolForwardTest") + get_dtype_suffix<Dtype>();
+    std::string kernel_name = "StoPoolForwardTest" + get_dtype_suffix<Dtype>();
     cl_kernel Kernel = amdDevice.GetKernel(kernel_name);
 
     cl_int ret;
@@ -500,7 +503,7 @@ template void StoPoolForwardTest<double>(const int count, const double* bottom_d
 
 template <typename Dtype>
 void AvePoolForward(const int count, const Dtype* bottom_data, const int clnum, const int channels_, const int height_, const int width_, const int pooled_height_, const int pooled_width_,  const int kernel_h_, const int kernel_w_, const int stride_h_, const int stride_w_, const int pad_h_, const int pad_w_, Dtype* top_data){
-        std::string kernel_name = std::string("AvePoolForward") + get_dtype_suffix<Dtype>();
+        std::string kernel_name = "AvePoolForward" + get_dtype_suffix<Dtype>();
     cl_kernel Kernel = amdDevice.GetKernel(kernel_name);
     cl_int ret;
     ret  = clSetKernelArg(Kernel, 0, sizeof(cl_int), (void*)&count);
@@ -580,7 +583,7 @@ template void max_pool_bp_gpu<double>(cl_kernel Kernel, const int count, const d
 
 template <typename Dtype>
 void MaxPoolBackward(const int nthreads, const Dtype* const top_diff, const int* const mask, const Dtype* const top_mask, const int num, const int channels, const int height, const int width, const int pooled_height, const int pooled_width, const int kernel_h, const int kernel_w, const int stride_h, const int stride_w, const int pad_h, const int pad_w, Dtype* const bottom_diff){
-        std::string kernel_name = std::string("MaxPoolBackward") + get_dtype_suffix<Dtype>();
+        std::string kernel_name = "MaxPoolBackward" + get_dtype_suffix<Dtype>();
     cl_kernel Kernel = amdDevice.GetKernel(kernel_name);
     cl_int ret;
     ret  = clSetKernelArg(Kernel, 0, sizeof(cl_int), (void*)&nthreads);
@@ -613,7 +616,7 @@ template void MaxPoolBackward<double>(const int nthreads, const double* const to
 template <typename Dtype>
 void AvePoolBackward(const int nthreads, const Dtype* const top_diff, const int num, const int channels, const int height, const int width, const int pooled_height, const int pooled_width, const int kernel_h, const int kernel_w, const int stride_h, const int stride_w, const int pad_h, const int pad_w, Dtype* const bottom_diff)
 {
-    std::string kernel_name = std::string("AvePoolBackward") + get_dtype_suffix<Dtype>();
+    std::string kernel_name = "AvePoolBackward" + get_dtype_suffix<Dtype>();
     cl_kernel Kernel = amdDevice.GetKernel(kernel_name);
 
     cl_int ret;
@@ -643,7 +646,7 @@ template void AvePoolBackward<double>(const int nthreads, const double* const to
 
 template <typename Dtype>
 void StoPoolBackward(const int nthreads, const Dtype* const rand_idx, const Dtype* const top_diff, const int num, const int channels, const int height, const int width, const int pooled_height, const int pooled_width, const int kernel_h, const int kernel_w, const int stride_h, const int stride_w, Dtype* const bottom_diff){
-        std::string kernel_name = std::string("StoPoolBackward") + get_dtype_suffix<Dtype>();
+        std::string kernel_name = "StoPoolBackward" + get_dtype_suffix<Dtype>();
     cl_kernel Kernel = amdDevice.GetKernel(kernel_name);
     cl_int ret;
     ret  = clSetKernelArg(Kernel, 0, sizeof(cl_int), (void*)&nthreads);
@@ -696,7 +699,7 @@ template void ave_pool_bp_gpu<double>(cl_kernel Kernel, const int count, const d
 
 template <typename Dtype> 
 void ReLUForward(const int count, const Dtype* bottom_data, Dtype* top_data, Dtype negative_slope){
-    std::string kernel_name = std::string("ReLUForward") + get_dtype_suffix<Dtype>();
+    std::string kernel_name = "ReLUForward" + get_dtype_suffix<Dtype>();
     cl_kernel Kernel = amdDevice.GetKernel(kernel_name);
     cl_int ret;
     ret  = clSetKernelArg(Kernel, 0, sizeof(cl_int), (void*)&count);
@@ -714,7 +717,7 @@ template void ReLUForward<double>(const int count, const double* bottom_data, do
 
 template <typename Dtype> 
 void ReLUBackward(const int count, const Dtype* top_diff, const Dtype* bottom_data, Dtype* bottom_diff, Dtype negative_slope){
-    std::string kernel_name = std::string("ReLUBackward") + get_dtype_suffix<Dtype>();
+    std::string kernel_name = "ReLUBackward" + get_dtype_suffix<Dtype>();
     cl_kernel Kernel = amdDevice.GetKernel(kernel_name);
   
     cl_int ret;
@@ -731,9 +734,12 @@ void ReLUBackward(const int count, const Dtype* top_diff, const Dtype* bottom_da
 }
 template void ReLUBackward<float>(const int count, const float* top_diff, const float* bottom_data, float* bottom_diff, float negative_slope);
 template void ReLUBackward<double>(const int count, const double* top_diff, const double* bottom_data, double* bottom_diff, double negative_slope);
+
 template <typename Dtype>
-void opttrans(cl_kernel Kernel, const Dtype* data_im, const int im_offset, const int channels,
+void opttrans(const Dtype* data_im, const int im_offset, const int channels,
     const int height, const int width, Dtype* data_opt, const int opt_offset, const int optnum) {
+    std::string kernel_name = "opttrans" + get_dtype_suffix<Dtype>();
+    cl_kernel Kernel = amdDevice.GetKernel(kernel_name);
 
     int num_kernels = channels * height * width * optnum;
   // To avoid involving atomic operations, we will launch one kernel per
@@ -757,9 +763,9 @@ void opttrans(cl_kernel Kernel, const Dtype* data_im, const int im_offset, const
     OCL_CHECK( clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, uiGlobal_Work_Size, uiLocal_Work_Size, 0, NULL, NULL) );
 }
 
-template void opttrans<float>(cl_kernel Kernel, const float* data_im, const int im_offset, const int channels,
+template void opttrans<float>(const float* data_im, const int im_offset, const int channels,
     const int height, const int width, float* data_opt, const int opt_offset, const int optnum);
-template void opttrans<double>(cl_kernel Kernel, const double* data_im, const int im_offset, const int channels,
+template void opttrans<double>(const double* data_im, const int im_offset, const int channels,
     const int height, const int width, double* data_opt, const int opt_offset, const int optnum);
 
 template <typename Dtype>
@@ -883,7 +889,7 @@ template void caffe_gpu_sign<double>(cl_kernel Kernel,const int N,  const double
 
 template <typename Dtype>
 void caffe_gpu_div (const int n, const Dtype* a, const Dtype* b, Dtype* y){
-    std::string kernel_name = std::string("div") + get_dtype_suffix<Dtype>();
+    std::string kernel_name = "div" + get_dtype_suffix<Dtype>();
     cl_kernel Kernel = amdDevice.GetKernel(kernel_name);
     cl_int ret;
     ret  = clSetKernelArg(Kernel, 0, sizeof(cl_int), (void*)&n);
@@ -901,7 +907,7 @@ template void caffe_gpu_div<double> (const int n, const double* a, const double*
 
 template <typename Dtype>
 void caffe_gpu_add_scalar(const int n, const Dtype alpha, Dtype* top_data){
-     std::string kernel_name = std::string("add_scalar") + get_dtype_suffix<Dtype>();
+     std::string kernel_name = "add_scalar" + get_dtype_suffix<Dtype>();
     cl_kernel Kernel = amdDevice.GetKernel(kernel_name);
     cl_int ret;
     ret  = clSetKernelArg(Kernel, 0, sizeof(cl_int), (void*)&n);
@@ -918,7 +924,7 @@ template void caffe_gpu_add_scalar<double> (const int n, const double alpha, dou
 
 template <typename Dtype>
 void caffe_gpu_mul (const int n, const Dtype* a, const Dtype* b, Dtype* y){
-        std::string kernel_name = std::string("element_mul") + get_dtype_suffix<Dtype>();
+        std::string kernel_name = "element_mul" + get_dtype_suffix<Dtype>();
     cl_kernel Kernel = amdDevice.GetKernel(kernel_name);
 
     cl_int ret;
@@ -937,7 +943,7 @@ template void caffe_gpu_mul<double> (const int n, const double* a, const double*
 
 template <typename Dtype>
 void caffe_gpu_powx (const int n, const Dtype* a, const Dtype alpha, Dtype* y){
-       std::string kernel_name = std::string("powx") + get_dtype_suffix<Dtype>();
+       std::string kernel_name = "powx" + get_dtype_suffix<Dtype>();
     cl_kernel Kernel = amdDevice.GetKernel(kernel_name);
     cl_int ret;
     ret  = clSetKernelArg(Kernel, 0, sizeof(cl_int), (void*)&n);
@@ -956,7 +962,7 @@ template void caffe_gpu_powx<double> (const int n, const double* a, const double
 template <typename Dtype>
 void DropoutForward(const int count, const Dtype* bottom_data, const int* MaskMem, const Dtype scale_, Dtype* top_data)
 {
-    std::string kernel_name = std::string("DropoutForward") + get_dtype_suffix<Dtype>();
+    std::string kernel_name = "DropoutForward" + get_dtype_suffix<Dtype>();
     cl_kernel kernel = amdDevice.GetKernel(kernel_name);
 
     cl_int ret;
@@ -978,7 +984,7 @@ template void DropoutForward<double>(const int count, const double* bottom_data,
 template <typename Dtype>
 void DropoutBackward(const int count, const Dtype* top_diff, const int* MaskMem, const float threshold_, const Dtype scale_, Dtype* bottom_diff)
 {
-    std::string kernel_name = std::string("DropoutBackward") + get_dtype_suffix<Dtype>();
+    std::string kernel_name = "DropoutBackward" + get_dtype_suffix<Dtype>();
     cl_kernel kernel = amdDevice.GetKernel(kernel_name);
 
     cl_int ret;
