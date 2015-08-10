@@ -80,6 +80,7 @@ void ConvolutionLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
    Forward_gpu_opt(bottom, top);
   else
    Forward_gpu_org(bottom, top);
+ CHECK_BLOB_DATA(top[0],20, "top[0]");
 }
 
 template <typename Dtype>
