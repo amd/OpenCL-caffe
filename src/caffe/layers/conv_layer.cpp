@@ -33,7 +33,7 @@ void ConvolutionLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
     }
   }
 
-  CHECK_BLOB_DATA(top[0],20, "top[0]");
+//  CHECK_BLOB_DATA(top[0],20, "top[0]");
 }
 
 template <typename Dtype>
@@ -67,9 +67,9 @@ void ConvolutionLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
       }
     }
   }
-  CHECK_CPU_MEM_DATA(weight_diff, this->blobs_[0]->count(), 20, "weight_diff");
-  CHECK_CPU_MEM_DATA(bottom[0]->mutable_cpu_diff(), bottom[0]->count(), 20, "bottom_diff");
-  CHECK_CPU_MEM_DATA(top[0]->cpu_diff(), top[0]->count(), 20, "top_diff");
+  //CHECK_CPU_MEM_DATA(weight_diff, this->blobs_[0]->count(), 20, "weight_diff");
+  //CHECK_CPU_MEM_DATA(bottom[0]->mutable_cpu_diff(), bottom[0]->count(), 20, "bottom_diff");
+  //CHECK_CPU_MEM_DATA(top[0]->cpu_diff(), top[0]->count(), 20, "top_diff");
 
 }
 
@@ -80,7 +80,7 @@ void ConvolutionLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
    Forward_gpu_opt(bottom, top);
   else
    Forward_gpu_org(bottom, top);
- CHECK_BLOB_DATA(top[0],20, "top[0]");
+// CHECK_BLOB_DATA(top[0],20, "top[0]");
 }
 
 template <typename Dtype>
@@ -160,7 +160,7 @@ void ConvolutionLayer<Dtype>::Forward_gpu_org(const vector<Blob<Dtype>*>& bottom
   }
 
   // CHECK_BLOB_DATA(this->blobs_[0],20, "weights");
-  CHECK_BLOB_DATA(top[0],20, "top[0]");
+ // CHECK_BLOB_DATA(top[0],20, "top[0]");
 }
 
 template <typename Dtype>
@@ -256,10 +256,10 @@ void ConvolutionLayer<Dtype>::Backward_gpu_org(const vector<Blob<Dtype>*>& top,
     }
   }
   
-  CHECK_GLOBAL_MEM_DATA(weight_diff, this->blobs_[0]->count(), 20, "weight_diff");  
-  CHECK_GLOBAL_MEM_DATA(bottom[0]->mutable_gpu_diff(), bottom[0]->count(), 20, "bottom_diff");
-  CHECK_GLOBAL_MEM_DATA(top[0]->gpu_diff(), top[0]->count(), 20, "top_diff");
-  CHECK_BLOB_DATA(bottom[0], 20, "bottom[0]");
+//  CHECK_GLOBAL_MEM_DATA(weight_diff, this->blobs_[0]->count(), 20, "weight_diff");  
+//  CHECK_GLOBAL_MEM_DATA(bottom[0]->mutable_gpu_diff(), bottom[0]->count(), 20, "bottom_diff");
+//  CHECK_GLOBAL_MEM_DATA(top[0]->gpu_diff(), top[0]->count(), 20, "top_diff");
+ // CHECK_BLOB_DATA(bottom[0], 20, "bottom[0]");
 }
 
 #ifdef CPU_ONLY

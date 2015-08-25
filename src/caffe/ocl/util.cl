@@ -34,6 +34,7 @@ __kernel void OCL_memset(__global T* buffer, const T value, const int size){
 	}
 }
 
+template __attribute__((mangled_name(oclmem_int))) __kernel void OCL_memset(__global int* buffer, const int value, const int size);
 template __attribute__((mangled_name(oclmem_float))) __kernel void OCL_memset(__global float* buffer, const float value, const int size);
 template __attribute__((mangled_name(oclmem_double))) __kernel void OCL_memset(__global double* buffer, const double value, const int size);
 

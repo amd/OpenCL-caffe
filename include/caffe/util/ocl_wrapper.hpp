@@ -33,6 +33,20 @@ typedef unsigned int uint32_t;
 //template <typename Dtype>
 //void caffe_gpu_bernoulli(int* a, const unsigned int n, Dtype inf, Dtype sup, Dtype threshold);
 
+template <typename dtype> inline std::string get_dtype_suffix()
+{
+    dtype x;
+    const char type = typeid(x).name()[0];
+    std::string suffix;
+    switch(type){
+        case 'i': suffix = "_int"; break;
+        case 'd': suffix = "_double"; break;
+        case 'f':
+        default: suffix = "_float";
+    }
+    return suffix;
+}
+
 template <typename Dtype>
 void transform_gpu(Dtype* src, Dtype* dst, const int top_offset, const int N_, const int M_, const int packing_num);
 

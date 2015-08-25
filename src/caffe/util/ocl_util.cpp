@@ -51,6 +51,7 @@ void ocl_memset(Dtype* buffer, const Dtype value, const int count){
 }
 
 // Explicit instantiation
+template void ocl_memset<int>(int* buffer, const int value, const int count);
 template void ocl_memset<float>(float* buffer, const float value, const int count);
 template void ocl_memset<double>(double* buffer, const double value, const int count);
 

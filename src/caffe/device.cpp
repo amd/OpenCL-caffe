@@ -44,7 +44,8 @@ std::string oclKernelPath="./src/caffe/ocl/";
 
 Device::~Device(){
     //clAmdBlasTeardown(); 
-     free((void*)platformIDs);
+    ReleaseKernels(); 
+    free((void*)platformIDs);
      free(DeviceIDs);
      clReleaseProgram(Program);
      clReleaseCommandQueue(CommandQueue);
@@ -74,7 +75,7 @@ cl_int Device::Init(){
     GetDeviceInfo();
     cl_uint uiNumDevices;
     cl_bool unified_memory = false;
-    switch(Caffe::mode()) {
+/*    switch(Caffe::mode()) {
     case Caffe::GPU:
          //choose_gpu();
       clGetDeviceIDs(PlatformIDs[0], CL_DEVICE_TYPE_GPU, 0, NULL, &numDevices);
@@ -107,7 +108,8 @@ cl_int Device::Init(){
          OCL_CHECK( clGetDeviceIDs(PlatformIDs[0], CL_DEVICE_TYPE_CPU, 1, pDevices, NULL) );
          LOG(INFO) << "picked device type: CPU";
          break;
-    case Caffe::APU:
+*/  
+//  case Caffe::APU:
         clGetDeviceIDs(PlatformIDs[0], CL_DEVICE_TYPE_GPU, 0, NULL, &numDevices);
         uiNumDevices = numDevices;
         if(0 == uiNumDevices){
@@ -126,10 +128,10 @@ cl_int Device::Init(){
          }
        }
          LOG(INFO) << "picked device type: APU";
-         break;
-    default:
-         LOG(FATAL) << "Unknown caffe mode: " << Caffe::mode();
-    }
+  //       break;
+  //  default:
+  //       LOG(FATAL) << "Unknown caffe mode: " << Caffe::mode();
+  //  }
 
     //Create Context
     Context = clCreateContext(NULL, 1, pDevices, NULL, NULL, NULL);
@@ -315,6 +317,15 @@ cl_kernel Device::GetKernel(std::string kernel_name)
     return Kernels[kernel_name];
 }
 
+void Device::ReleaseKernels()
+{
+    std::map<std::string, cl_kernel>::iterator it;
+    for(it = Kernels.begin(); it != Kernels.end(); it++)
+    {
+        clReleaseKernel(it->second);
+    }
+}
+
 void Device::DisplayPlatformInfo(){
    cl_int err;
    size_t size;
@@ -411,6 +422,26 @@ void Device::GetDeviceInfo(){
     }
     
     
+}
+
+void Device::DeviceQuery()
+{
+    //Get Platform Infomation
+    DisplayPlatformInfo();
+
+    clGetPlatformIDs(0, NULL, &numPlatforms);
+    cl_platform_id PlatformIDs[numPlatforms];
+    clGetPlatformIDs(numPlatforms, PlatformIDs, NULL);
+
+    size_t nameLen;
+    cl_int res = clGetPlatformInfo(PlatformIDs[0], CL_PLATFORM_NAME, 64, platformName, &nameLen);
+    if(res != CL_SUCCESS){
+        fprintf(stderr, "Err: Failed to Get Platform Info\n", res);
+        return;
+    }
+    platformName[nameLen] = 0;
+
+    GetDeviceInfo();
 }
 
 template <typename T>

@@ -84,7 +84,7 @@ private:\
 #define use_packing_scheme 1
 /* global_packing_N defines packing number of the use_packing scheme
   for intial design, we use the same packing number for all conv layers*/
-#define global_packing_N 16
+#define global_packing_N 32
 /*ifdef: use multi-command queues for groups in conv layer;
  ifndef: use single commane queue for groups*/
 //#define multiQ
@@ -231,7 +231,10 @@ class Caffe {
   // into the program since that may cause allocation of pinned memory being
   // freed in a non-pinned way, which may cause problems - I haven't verified
   // it personally but better to note it here in the header file.
-  inline static void set_mode(Brew mode) { Get().mode_ = mode; }
+  inline static void set_mode(Brew mode) { 
+    Get().mode_ = mode;
+    amdDevice.Init();
+  }
   // Sets the random seed of both boost and curand
   static void set_random_seed(const unsigned int seed);
   // Sets the device. Since we have cublas and curand stuff, set device also

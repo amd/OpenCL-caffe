@@ -2,6 +2,7 @@
 // to allow a main function to be compiled into the binary.
 
 #include "caffe/caffe.hpp"
+#include "caffe/common.hpp"
 #include "caffe/test/test_caffe_main.hpp"
 
 namespace caffe {
@@ -12,6 +13,7 @@ namespace caffe {
 
 #ifndef CPU_ONLY
 using caffe::CAFFE_TEST_CUDA_PROP;
+
 #endif
 
 int main(int argc, char** argv) {
@@ -19,8 +21,8 @@ int main(int argc, char** argv) {
   caffe::GlobalInit(&argc, &argv);
 #ifndef CPU_ONLY
   // Before starting testing, let's first print out a few cuda defice info.
-  int device;
-  cudaGetDeviceCount(&device);
+  int device = 0;
+//  cudaGetDeviceCount(&device);
   cout << "Cuda number of devices: " << device << endl;
   if (argc > 1) {
     // Use the given device
@@ -31,9 +33,11 @@ int main(int argc, char** argv) {
     // Use the device assigned in build configuration; but with a lower priority
     device = CUDA_TEST_DEVICE;
   }
-  cudaGetDevice(&device);
+//  cudaGetDevice(&device);
   cout << "Current device id: " << device << endl;
-  cudaGetDeviceProperties(&CAFFE_TEST_CUDA_PROP, device);
+ // cudaGetDeviceProperties(&CAFFE_TEST_CUDA_PROP, device);
+//  caffe::set_mode(caffe::GPU);
+  caffe::amdDevice.Init();
 #endif
   // invoke the test.
   return RUN_ALL_TESTS();

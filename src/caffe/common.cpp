@@ -197,6 +197,7 @@ void Caffe::DeviceQuery() {
       << (prop.kernelExecTimeoutEnabled ? "Yes" : "No");
   return;
 */
+  amdDevice.DeviceQuery();
 }
 
 

@@ -511,21 +511,17 @@ Dtype Net<Dtype>::ForwardFromTo(int start, int end) {
   forward_timer.Start();
 
   for (int i = start; i <= end; ++i) {
-   //double begin_time = GettickCount();
     layer_timer.Start();
-   //printf("Forwarding %s\n",layer_names_[i].c_str());
     Dtype layer_loss = layers_[i]->Forward(bottom_vecs_[i], top_vecs_[i]);
     loss += layer_loss;
     if (debug_info_) { ForwardDebugInfo(i); }
     clFinish(amdDevice.CommandQueue);
-    //double end_time = GettickCount();
     layer_timer.Stop();
-    //printf("Forwarding %s,\ttime %f ms\n", layer_names_[i].c_str(), end_time-begin_time);
     printf("Forwarding %s,\ttime %f ms\n", layer_names_[i].c_str(), layer_timer.MilliSeconds());
   }
 
   forward_timer.Stop();
-  printf("Forward time: %f\n\n", forward_timer.MilliSeconds());
+  printf("Total Forward time: %f\n\n", forward_timer.MilliSeconds());
 
   return loss;
 }
@@ -587,22 +583,23 @@ void Net<Dtype>::BackwardFromTo(int start, int end) {
   CHECK_LT(start, layers_.size());
   
   CPUTimer backward_timer;
+  CPUTimer layer_timer;
   backward_timer.Start();
 
   for (int i = start; i >= end; --i) {
+    layer_timer.Start();
     if (layer_need_backward_[i]) {
-//Yibing add for porting
-      printf("Backwarding %s\n",layer_names_[i].c_str());
       layers_[i]->Backward(
           top_vecs_[i], bottom_need_backward_[i], bottom_vecs_[i]);
       if (debug_info_) { BackwardDebugInfo(i); }
-//Yibing add for porting
     clFinish(amdDevice.CommandQueue);
+    layer_timer.Start();
+    printf("Backwarding %s,\ttime %f ms\n", layer_names_[i].c_str(), layer_timer.MilliSeconds());
     }
   }
 
   backward_timer.Stop();
-  printf("Backward time: %f\n\n", backward_timer.MilliSeconds());
+  printf("Total Backward time: %f\n\n", backward_timer.MilliSeconds());
 }
 
 template <typename Dtype>

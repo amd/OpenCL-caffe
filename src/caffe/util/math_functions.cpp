@@ -214,6 +214,26 @@ void caffe_gpu_axpy<double>(const int N, const double alpha, const double* X,
     CLBLAS_CHECK( clblasDaxpy(N, alpha, (cl_mem)X, 0, 1, (cl_mem)Y, 0, 1, 1, &(amdDevice.CommandQueue),0, NULL, NULL) );
 }
 
+template<>
+void caffe_gpu_sgnbit<float>(const int n, const float* x, float* y)
+{
+}
+
+template<>
+void caffe_gpu_sgnbit<double>(const int n, const double* x, double* y)
+{
+}
+
+template<>
+void caffe_gpu_abs<float>(const int n, const float* x, float* y)
+{
+}
+
+template<>
+void caffe_gpu_abs<double>(const int n, const double* x, double* y)
+{
+}
+
 template <>
 void caffe_set(const int N, const float alpha, float* Y) {
   if (alpha == 0) {
@@ -258,6 +278,12 @@ void caffe_copy<float>(const int N, const float* X, float* Y) {
 template <>
 void caffe_copy<double>(const int N, const double* X, double* Y) {
   cblas_dcopy(N, X, 1, Y, 1);
+}
+
+void caffe_gpu_memcpy(const size_t N, const void *X, void *Y)
+{
+   OCL_CHECK(clEnqueueCopyBuffer(amdDevice.CommandQueue, (cl_mem)X, (cl_mem)Y, 0, 0, N, 0, NULL, NULL));
+   clFinish(amdDevice.CommandQueue);
 }
 
 template <>

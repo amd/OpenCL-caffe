@@ -90,8 +90,8 @@ __kernel void AvePoolForward(const int nthreads, __global T* bottom_data, const 
           }
 
 }
-template __attribute__((mangled_name(AvePoolForwardfloat))) __kernel void AvePoolForward(const int nthreads, __global float* bottom_data, const int num, const int channels, const int height, const int width, const int pooled_height, const int pooled_width, const int kernel_h, const int kernel_w, const int stride_h, const int stride_w, const int pad_h, const int pad_w,__global float* top_data);
-template __attribute__((mangled_name(AvePoolForwarddouble))) __kernel void AvePoolForward(const int nthreads, __global double* bottom_data, const int num, const int channels, const int height, const int width, const int pooled_height, const int pooled_width, const int kernel_h, const int kernel_w, const int stride_h, const int stride_w, const int pad_h, const int pad_w,__global double* top_data);
+template __attribute__((mangled_name(AvePoolForward_float))) __kernel void AvePoolForward(const int nthreads, __global float* bottom_data, const int num, const int channels, const int height, const int width, const int pooled_height, const int pooled_width, const int kernel_h, const int kernel_w, const int stride_h, const int stride_w, const int pad_h, const int pad_w,__global float* top_data);
+template __attribute__((mangled_name(AvePoolForward_double))) __kernel void AvePoolForward(const int nthreads, __global double* bottom_data, const int num, const int channels, const int height, const int width, const int pooled_height, const int pooled_width, const int kernel_h, const int kernel_w, const int stride_h, const int stride_w, const int pad_h, const int pad_w,__global double* top_data);
 
 template <class T>
 __kernel void StoPoolForwardTrain(const int nthreads, __global T* bottom_data, const int clnum, const int channels, const int height, const int width, const int pooled_height, const int pooled_width,  const int kernel_h, const int kernel_w, const int stride_h, const int stride_w, __global T* rand_idx, __global T* top_data){
