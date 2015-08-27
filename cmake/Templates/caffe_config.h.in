@@ -14,6 +14,10 @@
 /* NVIDA cuDNN */
 #cmakedefine CPU_ONLY
 
+/* OpenCL & clBLAS*/
+#cmakedefine OCL_FOUND
+#cmakedefine CLBLAS_FOUND
+
 /* Test device */
 #define CUDA_TEST_DEVICE ${CUDA_TEST_DEVICE}
 
