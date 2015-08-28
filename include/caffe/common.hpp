@@ -218,10 +218,10 @@ class Caffe {
     return *(Get().random_generator_);
   }
 #ifndef CPU_ONLY
-  inline static cublasHandle_t cublas_handle() { return Get().cublas_handle_; }
-  inline static curandGenerator_t curand_generator() {
-    return Get().curand_generator_;
-  }
+  //inline static cublasHandle_t cublas_handle() { return Get().cublas_handle_; }
+  //inline static curandGenerator_t curand_generator() {
+  //  return Get().curand_generator_;
+  //}
 #endif
 
   // Returns the mode: running on CPU or GPU.
@@ -245,8 +245,8 @@ class Caffe {
 
  protected:
 #ifndef CPU_ONLY
-  cublasHandle_t cublas_handle_;
-  curandGenerator_t curand_generator_;
+  //cublasHandle_t cublas_handle_;
+  //curandGenerator_t curand_generator_;
 #endif
   shared_ptr<RNG> random_generator_;
 

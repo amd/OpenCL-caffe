@@ -223,7 +223,7 @@ void* Caffe::RNG::generator() {
   return static_cast<void*>(generator_->rng());
 }
 
-const char* cublasGetErrorString(cublasStatus_t error) {
+//const char* cublasGetErrorString(cublasStatus_t error) {
  /* switch (error) {
   case CUBLAS_STATUS_SUCCESS:
     return "CUBLAS_STATUS_SUCCESS";
@@ -251,10 +251,10 @@ const char* cublasGetErrorString(cublasStatus_t error) {
 #endif
   }
 */
-  return "Unknown cublas status";
-}
+//  return "Unknown cublas status";
+//}
 
-const char* curandGetErrorString(curandStatus_t error) {
+//const char* curandGetErrorString(curandStatus_t error) {
   /*switch (error) {
   case CURAND_STATUS_SUCCESS:
     return "CURAND_STATUS_SUCCESS";
@@ -284,8 +284,8 @@ const char* curandGetErrorString(curandStatus_t error) {
     return "CURAND_STATUS_INTERNAL_ERROR";
   }
 */
-  return "Unknown curand status";
-}
+ // return "Unknown curand status";
+//}
 
 #endif  // CPU_ONLY
 
