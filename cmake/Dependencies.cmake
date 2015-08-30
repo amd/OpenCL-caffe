@@ -57,9 +57,14 @@ list(APPEND Caffe_LINKER_LIBS ${Snappy_LIBRARIES})
 #endif()
 
 # ---[ OpenCL
-include(cmake/OpenCL.cmake)
-include_directories(SYSTEM ${OCL_INCLUDE_DIR} ${CLBLAS_INCLUDE_DIR})
-list(APPEND Caffe_LINKER_LIBS ${OCL_LIBRARIES} ${CLBLAS_LIBRARIES})
+find_package(OpenCL REQUIRED)
+include_directories(SYSTEM ${OPENCL_INCLUDE_DIRS})
+list(APPEND Caffe_LINKER_LIBS ${OPENCL_LIBRARIES})
+
+# ---[ clBLAS
+find_package(clBLAS REQUIRED)
+include_directories(SYSTEM ${CLBLAS_INCLUDE_DIRS})
+list(APPEND Caffe_LINKER_LIBS ${CLBLAS_LIBRARIES})
 
 # ---[ OpenCV
 find_package(OpenCV QUIET COMPONENTS core highgui imgproc imgcodecs)

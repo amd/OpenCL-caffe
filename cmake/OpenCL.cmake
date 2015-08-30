@@ -17,8 +17,8 @@ endif()
 #    set(CLBLAS_FOUND  TRUE PARENT_SCOPE)
 #endif()
 
-set(OCL_INCLUDE_DIR /opt/AMDAPPSDK-2.9-1/include)
-set(OCL_LIBRARIES /opt/AMDAPPSDK-2.9-1/lib/x86_64/libOpenCL.so)
+#set(OCL_INCLUDE_DIR /opt/AMDAPPSDK-2.9-1/include)
+#set(OCL_LIBRARIES /opt/AMDAPPSDK-2.9-1/lib/x86_64/libOpenCL.so)
 set(CLBLAS_INCLUDE_DIR /opt/clBLAS-2.1/include)
 set(CLBLAS_LIBRARIES /opt/clBLAS-2.1/lib64/libclBLAS.so)
 
