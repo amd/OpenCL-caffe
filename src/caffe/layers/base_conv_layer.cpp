@@ -295,9 +295,9 @@ void BaseConvolutionLayer<Dtype>::forward_gpu_gemm_opt (const Dtype* input,
   cl_event prof_event;
   if (!is_1x1_) {
     if (!skip_im2col) {
-      //conv_im2col_gpu_opt(input);
-      im2col_gpu_opt(input, bottom_offset_, channels_, height_, width_, kernel_w_, pad_w_, stride_w_,
-                 (Dtype*)transMem, 0, opt_num2);
+      conv_im2col_gpu_opt(input);
+     // im2col_gpu_opt(input, bottom_offset_, channels_, height_, width_, kernel_w_, pad_w_, stride_w_,
+        //         (Dtype*)transMem, 0, opt_num2);
     }   
   }
 #ifdef multiQ
@@ -390,9 +390,9 @@ void BaseConvolutionLayer<Dtype>::backward_gpu_gemm_opt(const Dtype* output,
 #endif
 
   if (!is_1x1_) {
-      //conv_col2im_gpu_opt(input);
-      col2im_gpu_opt((Dtype*)transMem, 0, channels_, height_, width_, kernel_w_, pad_w_,
-                  stride_w_, input, bottom_offset_, opt_num2);
+      conv_col2im_gpu_opt(input);
+     // col2im_gpu_opt((Dtype*)transMem, 0, channels_, height_, width_, kernel_w_, pad_w_,
+       //           stride_w_, input, bottom_offset_, opt_num2);
    }
 }
 
@@ -414,12 +414,11 @@ void BaseConvolutionLayer<Dtype>::weight_gpu_gemm(const Dtype* input,
 template <typename Dtype>
 void BaseConvolutionLayer<Dtype>::weight_gpu_gemm_opt(const Dtype* input,
     const Dtype* output, Dtype* weights) {
-  const Dtype* col_buff = input;
   cl_command_queue Queue;
   if (!is_1x1_) {
-    //conv_im2col_gpu_opt(input);
-   im2col_gpu_opt(input, bottom_offset_, channels_, height_,
-                       width_, kernel_w_, pad_w_, stride_w_, (Dtype*)transMem, 0, opt_num2);
+    conv_im2col_gpu_opt(input);
+   //im2col_gpu_opt(input, bottom_offset_, channels_, height_,
+     //                  width_, kernel_w_, pad_w_, stride_w_, (Dtype*)transMem, 0, opt_num2);
   }
     //conv_transpose_gpu(output);
     int height_top = M_ * group_, width_top = N_;
@@ -462,8 +461,6 @@ void BaseConvolutionLayer<Dtype>::forward_gpu_opt(const vector<Blob<Dtype>*>& bo
   for (int i = 0; i < bottom.size(); ++i) {
     const Dtype* bottom_data = bottom[i]->gpu_data();
     Dtype* top_data = top[i]->mutable_gpu_data();
-
-  Dtype* col_data = col_buffer_.mutable_gpu_data();
   int M_org = M_ * group_;
   int col_offset = K_ * N_;
   int top_offset = M_ * N_;
@@ -535,8 +532,6 @@ void BaseConvolutionLayer<Dtype>::backward_gpu_opt(const vector<Blob<Dtype>*>& t
  if (this->param_propagate_down_[0] || propagate_down[i]) {
   const Dtype* bottom_data = bottom[i]->gpu_data();
   Dtype* bottom_diff = bottom[i]->mutable_gpu_diff();
-  Dtype* col_data = col_buffer_.mutable_gpu_data();
-  Dtype* col_diff = col_buffer_.mutable_gpu_diff();
   int col_offset = K_ * N_;
   int top_offset = M_ * N_;
   int weight_offset = M_ * K_;
