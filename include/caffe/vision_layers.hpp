@@ -105,6 +105,7 @@ class BaseConvolutionLayer : public Layer<Dtype> {
     col2im_gpu(col_buff, 0,  conv_in_channels_, conv_in_height_, conv_in_width_,
         kernel_h_, kernel_w_, pad_h_, pad_w_, stride_h_, stride_w_, data, bottom_offset_);
   }
+ protected:
   inline void conv_im2col_gpu_opt(const Dtype* data) {
      im2col_gpu_opt(data, bottom_offset_, conv_in_channels_, conv_in_height_, conv_in_width_,
            kernel_w_, pad_w_, stride_h_,(Dtype*)transMem, 0, opt_num2);
@@ -113,11 +114,12 @@ class BaseConvolutionLayer : public Layer<Dtype> {
     col2im_gpu_opt((Dtype*)transMem, 0,  conv_in_channels_, conv_in_height_, conv_in_width_,
         kernel_h_, pad_h_, stride_w_, data, bottom_offset_, opt_num2);
 }
+ private:
   inline void conv_transform_gpu(const Dtype* temp_buffer, Dtype* top_data) {
-    transform_gpu((Dtype*)temp_buffer, top_data, top_offset_n, N_, M_*opt_num2, opt_num2);
+    transform_gpu((Dtype*)temp_buffer, top_data, top_offset_, N_, M_*opt_num2, opt_num2);
 }
  inline void conv_transpose_gpu(const Dtype* data){
-    opttrans(data, top_offset_n, 1, M_ * group_, N_, (Dtype*)subTopMem, 0, opt_num2);
+    opttrans(data, top_offset_, 1, M_ * group_, N_, (Dtype*)subTopMem, 0, opt_num2);
 }
 protected:
   inline void gpu_memset(Dtype* data, Dtype value, int count) {
@@ -147,7 +149,7 @@ protected:
   int weight_offset_;
   int col_offset_;
   int output_offset_;
-  int top_offset_, top_offset_n, bottom_offset_;
+  int top_offset_, top_offset_opt, bottom_offset_;
 public:
   static cl_mem subTopMem, transMem;
   static size_t subtop_mem_size, trans_mem_size;
