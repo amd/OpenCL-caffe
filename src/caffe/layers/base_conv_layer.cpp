@@ -296,8 +296,6 @@ void BaseConvolutionLayer<Dtype>::forward_gpu_gemm_opt (const Dtype* input,
   if (!is_1x1_) {
     if (!skip_im2col) {
       conv_im2col_gpu_opt(input);
-     // im2col_gpu_opt(input, bottom_offset_, channels_, height_, width_, kernel_w_, pad_w_, stride_w_,
-        //         (Dtype*)transMem, 0, opt_num2);
     }   
   }
 #ifdef multiQ
@@ -391,8 +389,6 @@ void BaseConvolutionLayer<Dtype>::backward_gpu_gemm_opt(const Dtype* output,
 
   if (!is_1x1_) {
       conv_col2im_gpu_opt(input);
-     // col2im_gpu_opt((Dtype*)transMem, 0, channels_, height_, width_, kernel_w_, pad_w_,
-       //           stride_w_, input, bottom_offset_, opt_num2);
    }
 }
 
@@ -417,8 +413,6 @@ void BaseConvolutionLayer<Dtype>::weight_gpu_gemm_opt(const Dtype* input,
   cl_command_queue Queue;
   if (!is_1x1_) {
     conv_im2col_gpu_opt(input);
-   //im2col_gpu_opt(input, bottom_offset_, channels_, height_,
-     //                  width_, kernel_w_, pad_w_, stride_w_, (Dtype*)transMem, 0, opt_num2);
   }
     //conv_transpose_gpu(output);
     int height_top = M_ * group_, width_top = N_;
