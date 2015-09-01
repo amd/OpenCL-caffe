@@ -93,13 +93,6 @@ void ConvolutionLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
 }
 
 template <typename Dtype>
-void ConvolutionLayer<Dtype>::Forward_gpu_opt(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top) {
-  const Dtype* weight = this->blobs_[0]->gpu_data();
-  this->forward_gpu_opt(bottom, weight, top);
-}
-
-template <typename Dtype>
 void ConvolutionLayer<Dtype>::Forward_gpu_opt2(const vector<Blob<Dtype>*>& bottom,
       const vector<Blob<Dtype>*>& top) {
   const Dtype* weight = this->blobs_[0]->gpu_data();
@@ -149,12 +142,6 @@ void ConvolutionLayer<Dtype>::Forward_gpu_org(const vector<Blob<Dtype>*>& bottom
       }
     }
   }
-
-template <typename Dtype>
-void ConvolutionLayer<Dtype>::Backward_gpu_opt(const vector<Blob<Dtype>*>& top,
-      const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
-      this->backward_gpu_opt(top, propagate_down, bottom);
-}
 
 template <typename Dtype>
 void ConvolutionLayer<Dtype>::Backward_gpu_opt2(const vector<Blob<Dtype>*>& top,

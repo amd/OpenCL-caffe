@@ -140,10 +140,6 @@ private:
 
 //opencl related data structures
 protected:
-  void forward_gpu_opt(const vector<Blob<Dtype>*>& bottom, const Dtype* weight, 
-      const vector<Blob<Dtype>*>& top,  bool skip_im2col = false) ;
-  void backward_gpu_opt(const vector<Blob<Dtype>*>& top,
-      const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
   int opt_num2;
   int M_, N_, K_;
   int weight_offset_;
@@ -223,12 +219,8 @@ protected:
       const vector<Blob<Dtype>*>& top);
   virtual void Backward_gpu_org(const vector<Blob<Dtype>*>& top,
       const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
-  virtual void Forward_gpu_opt(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top);
   virtual void Forward_gpu_opt2(const vector<Blob<Dtype>*>& bottom,
       const vector<Blob<Dtype>*>& top);
-  virtual void Backward_gpu_opt(const vector<Blob<Dtype>*>& top,
-      const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
   virtual void Backward_gpu_opt2(const vector<Blob<Dtype>*>& top,
       const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
 };
