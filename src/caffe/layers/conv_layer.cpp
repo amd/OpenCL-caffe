@@ -81,7 +81,7 @@ template <typename Dtype>
 void ConvolutionLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
        const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
     if (use_packing_scheme && global_packing_N >1)
-      Backward_gpu_opt(top, propagate_down, bottom);
+      Backward_gpu_opt2(top, propagate_down, bottom);
     else
       Backward_gpu_org(top, propagate_down, bottom);
 //  CHECK_GLOBAL_MEM_DATA(weight_diff, this->blobs_[0]->count(), 20, "weight_diff");
@@ -189,9 +189,6 @@ void ConvolutionLayer<Dtype>::Backward_gpu_opt2(const vector<Blob<Dtype>*>& top,
           this->weight_gpu_gemm_opt(bottom_data,
               top_diff, weight_diff);
         }
-        this->bottom_offset_ = bottom[i]->offset(n);
-        this->col_offset_ = this->K_ * (this->N_ * this->opt_num2);
-        this->top_offset_opt = this->M_ * (this->N_ * this->opt_num2);
         // gradient w.r.t. bottom data, if necessary.
         if (propagate_down[i]) {
           this->backward_gpu_gemm_opt(top_diff, weight,
