@@ -75,9 +75,7 @@ cl_int Device::Init(){
     GetDeviceInfo();
     cl_uint uiNumDevices;
     cl_bool unified_memory = false;
-/*    switch(Caffe::mode()) {
-    case Caffe::GPU:
-         //choose_gpu();
+
       clGetDeviceIDs(PlatformIDs[0], CL_DEVICE_TYPE_GPU, 0, NULL, &numDevices);
       uiNumDevices = numDevices;
       if(0 == uiNumDevices){
@@ -95,44 +93,6 @@ cl_int Device::Init(){
             }
          }
        }
-         LOG(INFO) << "picked device type: GPU";
-         break;
-    case Caffe::CPU:
-         //choose_cpu();
-         clGetDeviceIDs(PlatformIDs[0], CL_DEVICE_TYPE_CPU, 0, NULL, &numDevices);
-         uiNumDevices = numDevices;
-        if(0 == uiNumDevices){
-          LOG(FATAL) << "Err: No CPU devices";
-          }
-         pDevices = (cl_device_id *)malloc(uiNumDevices * sizeof(cl_device_id));
-         OCL_CHECK( clGetDeviceIDs(PlatformIDs[0], CL_DEVICE_TYPE_CPU, 1, pDevices, NULL) );
-         LOG(INFO) << "picked device type: CPU";
-         break;
-*/  
-//  case Caffe::APU:
-        clGetDeviceIDs(PlatformIDs[0], CL_DEVICE_TYPE_GPU, 0, NULL, &numDevices);
-        uiNumDevices = numDevices;
-        if(0 == uiNumDevices){
-          LOG(FATAL) << "Err: No GPU devices";
-         }
-         else{
-          pDevices = (cl_device_id *)malloc(uiNumDevices * sizeof(cl_device_id));
-          OCL_CHECK(clGetDeviceIDs(PlatformIDs[0], CL_DEVICE_TYPE_GPU, uiNumDevices, pDevices, &uiNumDevices));
-          for (int i = 0; i < (int)uiNumDevices; i++){
-            clGetDeviceInfo(pDevices[i], CL_DEVICE_HOST_UNIFIED_MEMORY, sizeof(cl_bool), &unified_memory, NULL);
-             if(unified_memory) //we pick the first GPU we found
-              pDevices[0] = pDevices[i];
-             else {//skip dGPU
-               continue;
-               }
-         }
-       }
-         LOG(INFO) << "picked device type: APU";
-  //       break;
-  //  default:
-  //       LOG(FATAL) << "Unknown caffe mode: " << Caffe::mode();
-  //  }
-
     //Create Context
     Context = clCreateContext(NULL, 1, pDevices, NULL, NULL, NULL);
     if(NULL == Context){
