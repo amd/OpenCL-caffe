@@ -233,7 +233,6 @@ class Caffe {
   // it personally but better to note it here in the header file.
   inline static void set_mode(Brew mode) { 
     Get().mode_ = mode;
-    amdDevice.Init();
   }
   // Sets the random seed of both boost and curand
   static void set_random_seed(const unsigned int seed);

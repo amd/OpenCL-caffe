@@ -37,25 +37,25 @@ namespace caffe {
 cl_mem test_alloc_mem[10];
 extern long long unsigned device_mem_consumption;
 
-Device amdDevice;
 char* buildOption = "-x clc++ ";
 //char* buildOption = "-x clc++, -hsail-reg-slots=8-Wb, -hsail-reg32-pressure-limit=64-Wb, -hsail-reg64-pressure-limit=64";
-std::string oclKernelPath="./src/caffe/ocl/";
+std::string oclKernelPath = "./src/caffe/ocl/";
+Device amdDevice;
 
 Device::~Device(){
     //clAmdBlasTeardown(); 
     ReleaseKernels(); 
     free((void*)platformIDs);
-     free(DeviceIDs);
-     clReleaseProgram(Program);
-     clReleaseCommandQueue(CommandQueue);
-     clReleaseCommandQueue(CommandQueue_helper);
-     clReleaseContext(Context);
-     LOG(INFO) << "device destructor";
+    free(DeviceIDs);
+    clReleaseProgram(Program);
+    clReleaseCommandQueue(CommandQueue);
+    clReleaseCommandQueue(CommandQueue_helper);
+    clReleaseContext(Context);
+    LOG(INFO) << "device destructor";
 }
 
 
-cl_int Device::Init(){
+cl_int Device::Init(int deviceId){
 
     //Get Platform Infomation
     DisplayPlatformInfo();
@@ -75,63 +75,36 @@ cl_int Device::Init(){
     GetDeviceInfo();
     cl_uint uiNumDevices;
     cl_bool unified_memory = false;
-/*    switch(Caffe::mode()) {
-    case Caffe::GPU:
-         //choose_gpu();
-      clGetDeviceIDs(PlatformIDs[0], CL_DEVICE_TYPE_GPU, 0, NULL, &numDevices);
-      uiNumDevices = numDevices;
-      if(0 == uiNumDevices){
+    clGetDeviceIDs(PlatformIDs[0], CL_DEVICE_TYPE_GPU, 0, NULL, &numDevices);
+    uiNumDevices = numDevices;
+    if(0 == uiNumDevices){
         LOG(FATAL) << "Err: No GPU devices";
-       }
-       else{
+    } else {
         pDevices = (cl_device_id *)malloc(uiNumDevices * sizeof(cl_device_id));
         OCL_CHECK(clGetDeviceIDs(PlatformIDs[0], CL_DEVICE_TYPE_GPU, uiNumDevices, pDevices, &uiNumDevices));
-        for (int i = 0; i < (int)uiNumDevices; i++){
-          clGetDeviceInfo(pDevices[i], CL_DEVICE_HOST_UNIFIED_MEMORY, sizeof(cl_bool), &unified_memory, NULL);
-          if(unified_memory) //skip iGPU
-            continue;
-          else {//we pick the first GPU we found
-           pDevices[0] = pDevices[i];
+        if (deviceId == -1) { 
+            int i;
+	    for (i = 0; i < (int)uiNumDevices; i++){
+                clGetDeviceInfo(pDevices[i], CL_DEVICE_HOST_UNIFIED_MEMORY, sizeof(cl_bool), &unified_memory, NULL);
+                if(!unified_memory) { //skip iGPU
+                    //we pick the first dGPU we found
+                    pDevices[0] = pDevices[i];
+                    device_id = i;
+                    LOG(INFO) << "Picked default device type : dGPU "<<device_id;
+                    break;
+                }
             }
-         }
-       }
-         LOG(INFO) << "picked device type: GPU";
-         break;
-    case Caffe::CPU:
-         //choose_cpu();
-         clGetDeviceIDs(PlatformIDs[0], CL_DEVICE_TYPE_CPU, 0, NULL, &numDevices);
-         uiNumDevices = numDevices;
-        if(0 == uiNumDevices){
-          LOG(FATAL) << "Err: No CPU devices";
-          }
-         pDevices = (cl_device_id *)malloc(uiNumDevices * sizeof(cl_device_id));
-         OCL_CHECK( clGetDeviceIDs(PlatformIDs[0], CL_DEVICE_TYPE_CPU, 1, pDevices, NULL) );
-         LOG(INFO) << "picked device type: CPU";
-         break;
-*/  
-//  case Caffe::APU:
-        clGetDeviceIDs(PlatformIDs[0], CL_DEVICE_TYPE_GPU, 0, NULL, &numDevices);
-        uiNumDevices = numDevices;
-        if(0 == uiNumDevices){
-          LOG(FATAL) << "Err: No GPU devices";
-         }
-         else{
-          pDevices = (cl_device_id *)malloc(uiNumDevices * sizeof(cl_device_id));
-          OCL_CHECK(clGetDeviceIDs(PlatformIDs[0], CL_DEVICE_TYPE_GPU, uiNumDevices, pDevices, &uiNumDevices));
-          for (int i = 0; i < (int)uiNumDevices; i++){
-            clGetDeviceInfo(pDevices[i], CL_DEVICE_HOST_UNIFIED_MEMORY, sizeof(cl_bool), &unified_memory, NULL);
-             if(unified_memory) //we pick the first GPU we found
-              pDevices[0] = pDevices[i];
-             else {//skip dGPU
-               continue;
-               }
-         }
-       }
-         LOG(INFO) << "picked device type: APU";
-  //       break;
-  //  default:
-  //       LOG(FATAL) << "Unknown caffe mode: " << Caffe::mode();
-  //  }
+	    if (i == uiNumDevices) {
+                LOG(FATAL) << "Cannot find any dGPU! ";
+            }
+        } else if (deviceId >=0 && deviceId < uiNumDevices){
+            pDevices[0] = pDevices[deviceId];
+            device_id = deviceId;
+            LOG(INFO) << "Picked device type : GPU "<<device_id;
+        } else {
+            LOG(FATAL) << "  Invalid GPU deviceId! ";
+        }
+   }
 
     //Create Context
     Context = clCreateContext(NULL, 1, pDevices, NULL, NULL, NULL);
@@ -139,7 +112,6 @@ cl_int Device::Init(){
         fprintf(stderr,"Err: Failed to Create Context\n");
         return 0;
     }
-
     //Create CommandQueue
     CommandQueue = clCreateCommandQueue(Context, pDevices[0], CL_QUEUE_PROFILING_ENABLE, NULL);
     CommandQueue_helper = clCreateCommandQueue(Context, pDevices[0], CL_QUEUE_PROFILING_ENABLE, NULL);
@@ -147,58 +119,15 @@ cl_int Device::Init(){
         fprintf(stderr,"Err: Failed to Create Commandqueue\n");
         return 0;
     }
-   
-  
     //BuildProgram from OpenCL kernel files
     BuildProgram(oclKernelPath);
-
     row = clblasRowMajor;
     col = clblasColumnMajor;
-	/* 
-	//delete after test the large buffer allocation, Yibing	
-	long long global_mem_size_limit = 1024*1024; //4*1024*1024*1024;
-	global_mem_size_limit *= (long long)(0.0*1024.0);
-	//global_mem_size_limit = 16834887680/2;
-	long long available_global_mem_size = 1024*1024;
-        available_global_mem_size *= 20*1024; 
-	
-	long long global_mem_malloc_size_limit = 1024*1024;
-	while(available_global_mem_size > global_mem_size_limit){
-		long long size_;
-		if((available_global_mem_size - global_mem_size_limit) >= global_mem_malloc_size_limit){
-			size_ = global_mem_malloc_size_limit;
-		}else{
-			size_ = available_global_mem_size - global_mem_size_limit;
-		}
-		available_global_mem_size = available_global_mem_size - size_;
-		int *tmpData = (int *)malloc(size_);
-		cl_int err;
-                int i = 0;
-		test_alloc_mem[i] = clCreateBuffer(Context, CL_MEM_READ_WRITE, size_, NULL, &err);
-        	err = clEnqueueWriteBuffer(CommandQueue, test_alloc_mem[i], CL_TRUE, 0, size_, tmpData, 0, NULL, NULL);
-		i++;
-                device_mem_consumption += size_;
-                //printf("self alloc, device_mem_consumption = %lu\n", device_mem_consumption);
-		if(err != CL_SUCCESS) {
-                	printf("Large Buffer Allocation  failed! error_code = %d\n", err);
-                	printf("self alloc, device_mem_consumption = %llu\n", device_mem_consumption);
-                	exit(1);
-        	}
-                
-		cl_ulong free_mem_size, mem_size;
-                cl_int err1 = clGetDeviceInfo(pDevices[0],CL_DEVICE_GLOBAL_FREE_MEMORY_AMD,sizeof(cl_ulong),&free_mem_size,NULL);
-                cl_int err2 = clGetDeviceInfo(pDevices[0],CL_DEVICE_GLOBAL_MEM_SIZE,sizeof(cl_ulong),&mem_size,NULL);
-                //std::cout<<"free memory size after allocation = "<<free_mem_size<<",err_code ="<<err1<<std::endl;
-                //std::cout<<"global memory size = "<<mem_size<<",err_code ="<<err2<<std::endl;
-        	
-		free(tmpData);
-	}*/
-
     return 0;
 }
 
 void Device::BuildProgram(std::string kernel_dir)
-{  
+{ 
   //Access opencl kernel files
     std::string strSource = "";
     DIR *ocl_dir;
@@ -221,7 +150,6 @@ void Device::BuildProgram(std::string kernel_dir)
         ConvertToString(ocl_kernel_full_path.c_str(), tmpSource);
         strSource += tmpSource;
     }
-
     const char *pSource;
     pSource = strSource.c_str();
     size_t uiArrSourceSize[] = {0};
@@ -231,7 +159,6 @@ void Device::BuildProgram(std::string kernel_dir)
     if(NULL == Program){
         fprintf(stderr,"Err: Failed to create program\n");
     }
-
     //Build Program
     cl_int iStatus = clBuildProgram(Program, 1, pDevices, buildOption, NULL, NULL);
     LOG(INFO) << "Build Program";
@@ -274,40 +201,10 @@ cl_int Device::ConvertToString(std::string pFileName,std::string &Str){
     return -1;
 }
 
-/*
-cl_program Device::BuildProgram(std::string pFileName)
-{
-      //Read our own kernel file
-    const char *pSource;
-    std::string strSource = "";
-    ConvertToString(pFileName, strSource);
-    pSource = strSource.c_str();
-    size_t uiArrSourceSize[] = {0};
-    uiArrSourceSize[0] = strlen(pSource);
-    cl_program program = NULL;
-    program = clCreateProgramWithSource(Context, 1, &pSource, uiArrSourceSize, NULL);
-    if(NULL == program){
-        fprintf(stderr,"Err: Failed to create program\n");
-    }
-
-    //Build Program
-    cl_int iStatus = clBuildProgram(program, 1, pDevices, buildOption, NULL, NULL);
-    LOG(INFO) << "Build Program";
-    if(CL_SUCCESS != iStatus){
-        fprintf(stderr,"Err: Failed to build program\n");
-        char szBuildLog[16384];
-        clGetProgramBuildInfo(program, *pDevices, CL_PROGRAM_BUILD_LOG, sizeof(szBuildLog), szBuildLog, NULL);
-        std::cout << szBuildLog;
-        clReleaseProgram(program);
-        return NULL;
-    }
-  return program;
-}
-*/
 cl_kernel Device::GetKernel(std::string kernel_name)
 {
     std::map<std::string, cl_kernel>::iterator it = Kernels.find(kernel_name);
-    if(it == Kernels.end())
+    if (it == Kernels.end())
     {
         cl_int _err=0;
         cl_kernel kernel = clCreateKernel(Program,kernel_name.c_str(),&_err);
@@ -320,7 +217,7 @@ cl_kernel Device::GetKernel(std::string kernel_name)
 void Device::ReleaseKernels()
 {
     std::map<std::string, cl_kernel>::iterator it;
-    for(it = Kernels.begin(); it != Kernels.end(); it++)
+    for (it = Kernels.begin(); it != Kernels.end(); it++)
     {
         clReleaseKernel(it->second);
     }
@@ -331,7 +228,7 @@ void Device::DisplayPlatformInfo(){
    size_t size;
 
    err = clGetPlatformIDs (0, NULL, &numPlatforms);
-   if(err != CL_SUCCESS || numPlatforms <=0)
+   if (err != CL_SUCCESS || numPlatforms <=0)
    {
       LOG(ERROR) << "Failed to find any OpenCL platform.";
       return;
@@ -349,11 +246,11 @@ void Device::DisplayPlatformInfo(){
 
   //iterate through the list of platforms displaying platform information
   for (cl_uint i = 0; i < numPlatforms; i++ ){
-  DisplayInfo(platformIDs[i], CL_PLATFORM_NAME, "CL_PLATFORM_NAME");
-  DisplayInfo(platformIDs[i], CL_PLATFORM_PROFILE, "CL_PLATFORM_PROFILE");
-  DisplayInfo(platformIDs[i], CL_PLATFORM_VERSION, "CL_PLATFORM_VERSION");
-  DisplayInfo(platformIDs[i], CL_PLATFORM_VENDOR, "CL_PLATFORM_VENDOR");
-  DisplayInfo(platformIDs[i], CL_PLATFORM_EXTENSIONS, "CL_PLATFORM_EXTENSIONS");
+      DisplayInfo(platformIDs[i], CL_PLATFORM_NAME, "CL_PLATFORM_NAME");
+      DisplayInfo(platformIDs[i], CL_PLATFORM_PROFILE, "CL_PLATFORM_PROFILE");
+      DisplayInfo(platformIDs[i], CL_PLATFORM_VERSION, "CL_PLATFORM_VERSION");
+      DisplayInfo(platformIDs[i], CL_PLATFORM_VENDOR, "CL_PLATFORM_VENDOR");
+      DisplayInfo(platformIDs[i], CL_PLATFORM_EXTENSIONS, "CL_PLATFORM_EXTENSIONS");
   }
    
 }
@@ -388,37 +285,37 @@ void Device::GetDeviceInfo(){
     // we allow program run if no GPU is found. Just return. No error reported.
     if (numDevices < 1)
     {
-      LOG(INFO) << "No GPU Devices found for platform" << platformIDs[0];
-      LOG(WARNING) << "No GPU Devices found for platform" << platformIDs[0];
-      return;
+        LOG(INFO) << "No GPU Devices found for platform" << platformIDs[0];
+        LOG(WARNING) << "No GPU Devices found for platform" << platformIDs[0];
+        return;
     }
     
     DeviceIDs = (cl_device_id *) malloc (sizeof(cl_device_id) * numDevices);
     err = clGetDeviceIDs(platformIDs[0], CL_DEVICE_TYPE_GPU, numDevices, DeviceIDs, NULL);
-    if(err != CL_SUCCESS)
+    if (err != CL_SUCCESS)
     {
-      LOG(INFO) << "Failed to find any GPU devices.";
-      return;
+        LOG(INFO) << "Failed to find any GPU devices.";
+        return;
     }
 
     LOG(INFO) << "Number of devices found:" << numDevices;
-    for(cl_uint i = 0; i < numDevices; i++){
-    LOG(INFO) << "\t" << "DeviceID" << ":\t" <<DeviceIDs[i];
-    DisplayDeviceInfo<cl_device_type>(DeviceIDs[i], CL_DEVICE_TYPE, "Device Type");
-    DisplayDeviceInfo<cl_bool>(DeviceIDs[i], CL_DEVICE_HOST_UNIFIED_MEMORY, "Is it integrated GPU?");
-    DisplayDeviceInfo<cl_uint>(DeviceIDs[i], CL_DEVICE_MAX_CLOCK_FREQUENCY, "Max clock frequency MHz");
-    DisplayDeviceInfo<cl_bool>(DeviceIDs[i], CL_DEVICE_HOST_UNIFIED_MEMORY, "Host-Device unified mem");
-    DisplayDeviceInfo<cl_bool>(DeviceIDs[i], CL_DEVICE_ERROR_CORRECTION_SUPPORT, "ECC support");
-    DisplayDeviceInfo<cl_bool>(DeviceIDs[i], CL_DEVICE_ENDIAN_LITTLE, "Endian little");
-    DisplayDeviceInfo<cl_uint>(DeviceIDs[i], CL_DEVICE_MAX_COMPUTE_UNITS, "Max compute units");
-    DisplayDeviceInfo<size_t>(DeviceIDs[i], CL_DEVICE_MAX_WORK_GROUP_SIZE, "Max work group size");
-    DisplayDeviceInfo<cl_uint>(DeviceIDs[i], CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS, "Max work item dimensions");
-    DisplayDeviceInfo<size_t *>(DeviceIDs[i], CL_DEVICE_MAX_WORK_ITEM_SIZES, "Max work item sizes");
-    DisplayDeviceInfo<cl_command_queue_properties>(DeviceIDs[i], CL_DEVICE_QUEUE_PROPERTIES, "CL_DEVICE_QUEUE_PROPERTIES");
-    DisplayDeviceInfo<cl_device_exec_capabilities>(DeviceIDs[i], CL_DEVICE_EXECUTION_CAPABILITIES, "CL_DEVICE_EXECUTION_CAPABILITIES");
-    DisplayDeviceInfo<cl_ulong>(DeviceIDs[i], CL_DEVICE_MAX_MEM_ALLOC_SIZE, "Max mem alloc size");
-    DisplayDeviceInfo<cl_ulong>(DeviceIDs[i], CL_DEVICE_GLOBAL_MEM_SIZE, "Global mem size");
-    DisplayDeviceInfo<cl_ulong>(DeviceIDs[i], CL_DEVICE_LOCAL_MEM_SIZE, "Local mem size");
+    for (cl_uint i = 0; i < numDevices; i++) {
+        LOG(INFO) << "\t" << "DeviceID" << ":\t" <<DeviceIDs[i];
+        DisplayDeviceInfo<cl_device_type>(DeviceIDs[i], CL_DEVICE_TYPE, "Device Type");
+        DisplayDeviceInfo<cl_bool>(DeviceIDs[i], CL_DEVICE_HOST_UNIFIED_MEMORY, "Is it integrated GPU?");
+        DisplayDeviceInfo<cl_uint>(DeviceIDs[i], CL_DEVICE_MAX_CLOCK_FREQUENCY, "Max clock frequency MHz");
+        DisplayDeviceInfo<cl_bool>(DeviceIDs[i], CL_DEVICE_HOST_UNIFIED_MEMORY, "Host-Device unified mem");
+        DisplayDeviceInfo<cl_bool>(DeviceIDs[i], CL_DEVICE_ERROR_CORRECTION_SUPPORT, "ECC support");
+        DisplayDeviceInfo<cl_bool>(DeviceIDs[i], CL_DEVICE_ENDIAN_LITTLE, "Endian little");
+        DisplayDeviceInfo<cl_uint>(DeviceIDs[i], CL_DEVICE_MAX_COMPUTE_UNITS, "Max compute units");
+        DisplayDeviceInfo<size_t>(DeviceIDs[i], CL_DEVICE_MAX_WORK_GROUP_SIZE, "Max work group size");
+        DisplayDeviceInfo<cl_uint>(DeviceIDs[i], CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS, "Max work item dimensions");
+        DisplayDeviceInfo<size_t *>(DeviceIDs[i], CL_DEVICE_MAX_WORK_ITEM_SIZES, "Max work item sizes");
+        DisplayDeviceInfo<cl_command_queue_properties>(DeviceIDs[i], CL_DEVICE_QUEUE_PROPERTIES, "CL_DEVICE_QUEUE_PROPERTIES");
+        DisplayDeviceInfo<cl_device_exec_capabilities>(DeviceIDs[i], CL_DEVICE_EXECUTION_CAPABILITIES, "CL_DEVICE_EXECUTION_CAPABILITIES");
+        DisplayDeviceInfo<cl_ulong>(DeviceIDs[i], CL_DEVICE_MAX_MEM_ALLOC_SIZE, "Max mem alloc size");
+        DisplayDeviceInfo<cl_ulong>(DeviceIDs[i], CL_DEVICE_GLOBAL_MEM_SIZE, "Global mem size");
+        DisplayDeviceInfo<cl_ulong>(DeviceIDs[i], CL_DEVICE_LOCAL_MEM_SIZE, "Local mem size");
     }
     
     
@@ -435,7 +332,7 @@ void Device::DeviceQuery()
 
     size_t nameLen;
     cl_int res = clGetPlatformInfo(PlatformIDs[0], CL_PLATFORM_NAME, 64, platformName, &nameLen);
-    if(res != CL_SUCCESS){
+    if (res != CL_SUCCESS) {
         fprintf(stderr, "Err: Failed to Get Platform Info\n", res);
         return;
     }
@@ -466,8 +363,7 @@ void Device::DisplayDeviceInfo(cl_device_id id, cl_device_info name, std::string
    }
 
 
-   switch(name)
-{
+   switch(name){
     case CL_DEVICE_TYPE:
     {
         std::string deviceType;

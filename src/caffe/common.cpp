@@ -108,10 +108,12 @@ Caffe::Caffe()
     LOG(ERROR) << "Cannot create Curand generator. Curand won't be available.";
   }
 */
+#ifndef CPU_ONLY
    cl_int err =  clblasSetup();
    if(err != CL_SUCCESS){
        LOG(ERROR) << "clBLAS setup failed "<<err;
    }
+#endif
 }
 
 Caffe::~Caffe() {
@@ -120,7 +122,9 @@ Caffe::~Caffe() {
     CURAND_CHECK(curandDestroyGenerator(curand_generator_));
   }
 */
+#ifndef CPU_ONLY
    clblasTeardown();
+#endif
 }
 
 void Caffe::set_random_seed(const unsigned int seed) {
@@ -143,60 +147,13 @@ void Caffe::set_random_seed(const unsigned int seed) {
 }
 
 void Caffe::SetDevice(const int device_id) {
- /* int current_device;
-  CUDA_CHECK(cudaGetDevice(&current_device));
-  if (current_device == device_id) {
+  if (amdDevice.GetDevice() == device_id) {
     return;
   }
-  // The call to cudaSetDevice must come before any calls to Get, which
-  // may perform initialization using the GPU.
-  CUDA_CHECK(cudaSetDevice(device_id));
-  if (Get().cublas_handle_) CUBLAS_CHECK(cublasDestroy(Get().cublas_handle_));
-  if (Get().curand_generator_) {
-    CURAND_CHECK(curandDestroyGenerator(Get().curand_generator_));
-  }
-  CUBLAS_CHECK(cublasCreate(&Get().cublas_handle_));
-  CURAND_CHECK(curandCreateGenerator(&Get().curand_generator_,
-      CURAND_RNG_PSEUDO_DEFAULT));
-  CURAND_CHECK(curandSetPseudoRandomGeneratorSeed(Get().curand_generator_,
-      cluster_seedgen()));
-*/
+  amdDevice.Init(device_id);
 }
 
 void Caffe::DeviceQuery() {
-  /*cudaDeviceProp prop;
-  int device;
-  if (cudaSuccess != cudaGetDevice(&device)) {
-    printf("No cuda device present.\n");
-    return;
-  }
-  CUDA_CHECK(cudaGetDeviceProperties(&prop, device));
-  LOG(INFO) << "Device id:                     " << device;
-  LOG(INFO) << "Major revision number:         " << prop.major;
-  LOG(INFO) << "Minor revision number:         " << prop.minor;
-  LOG(INFO) << "Name:                          " << prop.name;
-  LOG(INFO) << "Total global memory:           " << prop.totalGlobalMem;
-  LOG(INFO) << "Total shared memory per block: " << prop.sharedMemPerBlock;
-  LOG(INFO) << "Total registers per block:     " << prop.regsPerBlock;
-  LOG(INFO) << "Warp size:                     " << prop.warpSize;
-  LOG(INFO) << "Maximum memory pitch:          " << prop.memPitch;
-  LOG(INFO) << "Maximum threads per block:     " << prop.maxThreadsPerBlock;
-  LOG(INFO) << "Maximum dimension of block:    "
-      << prop.maxThreadsDim[0] << ", " << prop.maxThreadsDim[1] << ", "
-      << prop.maxThreadsDim[2];
-  LOG(INFO) << "Maximum dimension of grid:     "
-      << prop.maxGridSize[0] << ", " << prop.maxGridSize[1] << ", "
-      << prop.maxGridSize[2];
-  LOG(INFO) << "Clock rate:                    " << prop.clockRate;
-  LOG(INFO) << "Total constant memory:         " << prop.totalConstMem;
-  LOG(INFO) << "Texture alignment:             " << prop.textureAlignment;
-  LOG(INFO) << "Concurrent copy and execution: "
-      << (prop.deviceOverlap ? "Yes" : "No");
-  LOG(INFO) << "Number of multiprocessors:     " << prop.multiProcessorCount;
-  LOG(INFO) << "Kernel execution timeout:      "
-      << (prop.kernelExecTimeoutEnabled ? "Yes" : "No");
-  return;
-*/
   amdDevice.DeviceQuery();
 }
 
@@ -222,70 +179,6 @@ Caffe::RNG& Caffe::RNG::operator=(const RNG& other) {
 void* Caffe::RNG::generator() {
   return static_cast<void*>(generator_->rng());
 }
-
-//const char* cublasGetErrorString(cublasStatus_t error) {
- /* switch (error) {
-  case CUBLAS_STATUS_SUCCESS:
-    return "CUBLAS_STATUS_SUCCESS";
-  case CUBLAS_STATUS_NOT_INITIALIZED:
-    return "CUBLAS_STATUS_NOT_INITIALIZED";
-  case CUBLAS_STATUS_ALLOC_FAILED:
-    return "CUBLAS_STATUS_ALLOC_FAILED";
-  case CUBLAS_STATUS_INVALID_VALUE:
-    return "CUBLAS_STATUS_INVALID_VALUE";
-  case CUBLAS_STATUS_ARCH_MISMATCH:
-    return "CUBLAS_STATUS_ARCH_MISMATCH";
-  case CUBLAS_STATUS_MAPPING_ERROR:
-    return "CUBLAS_STATUS_MAPPING_ERROR";
-  case CUBLAS_STATUS_EXECUTION_FAILED:
-    return "CUBLAS_STATUS_EXECUTION_FAILED";
-  case CUBLAS_STATUS_INTERNAL_ERROR:
-    return "CUBLAS_STATUS_INTERNAL_ERROR";
-#if CUDA_VERSION >= 6000
-  case CUBLAS_STATUS_NOT_SUPPORTED:
-    return "CUBLAS_STATUS_NOT_SUPPORTED";
-#endif
-#if CUDA_VERSION >= 6050
-  case CUBLAS_STATUS_LICENSE_ERROR:
-    return "CUBLAS_STATUS_LICENSE_ERROR";
-#endif
-  }
-*/
-//  return "Unknown cublas status";
-//}
-
-//const char* curandGetErrorString(curandStatus_t error) {
-  /*switch (error) {
-  case CURAND_STATUS_SUCCESS:
-    return "CURAND_STATUS_SUCCESS";
-  case CURAND_STATUS_VERSION_MISMATCH:
-    return "CURAND_STATUS_VERSION_MISMATCH";
-  case CURAND_STATUS_NOT_INITIALIZED:
-    return "CURAND_STATUS_NOT_INITIALIZED";
-  case CURAND_STATUS_ALLOCATION_FAILED:
-    return "CURAND_STATUS_ALLOCATION_FAILED";
-  case CURAND_STATUS_TYPE_ERROR:
-    return "CURAND_STATUS_TYPE_ERROR";
-  case CURAND_STATUS_OUT_OF_RANGE:
-    return "CURAND_STATUS_OUT_OF_RANGE";
-  case CURAND_STATUS_LENGTH_NOT_MULTIPLE:
-    return "CURAND_STATUS_LENGTH_NOT_MULTIPLE";
-  case CURAND_STATUS_DOUBLE_PRECISION_REQUIRED:
-    return "CURAND_STATUS_DOUBLE_PRECISION_REQUIRED";
-  case CURAND_STATUS_LAUNCH_FAILURE:
-    return "CURAND_STATUS_LAUNCH_FAILURE";
-  case CURAND_STATUS_PREEXISTING_FAILURE:
-    return "CURAND_STATUS_PREEXISTING_FAILURE";
-  case CURAND_STATUS_INITIALIZATION_FAILED:
-    return "CURAND_STATUS_INITIALIZATION_FAILED";
-  case CURAND_STATUS_ARCH_MISMATCH:
-    return "CURAND_STATUS_ARCH_MISMATCH";
-  case CURAND_STATUS_INTERNAL_ERROR:
-    return "CURAND_STATUS_INTERNAL_ERROR";
-  }
-*/
- // return "Unknown curand status";
-//}
 
 #endif  // CPU_ONLY
 
