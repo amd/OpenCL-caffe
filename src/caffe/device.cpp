@@ -34,7 +34,6 @@
 
 namespace caffe {
 char* buildOption = "-x clc++ ";
-//char* buildOption = "-x clc++, -hsail-reg-slots=8-Wb, -hsail-reg32-pressure-limit=64-Wb, -hsail-reg64-pressure-limit=64";
 std::string oclKernelPath = "./src/caffe/ocl/";
 Device amdDevice;
 
