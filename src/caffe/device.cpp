@@ -33,17 +33,12 @@
 #include <dirent.h>
 
 namespace caffe {
-//delete it after test, Yibing
-cl_mem test_alloc_mem[10];
-extern long long unsigned device_mem_consumption;
-
 char* buildOption = "-x clc++ ";
 //char* buildOption = "-x clc++, -hsail-reg-slots=8-Wb, -hsail-reg32-pressure-limit=64-Wb, -hsail-reg64-pressure-limit=64";
 std::string oclKernelPath = "./src/caffe/ocl/";
 Device amdDevice;
 
 Device::~Device(){
-    //clAmdBlasTeardown(); 
     ReleaseKernels(); 
     free((void*)platformIDs);
     free(DeviceIDs);
@@ -57,7 +52,6 @@ Device::~Device(){
 
 cl_int Device::Init(int deviceId){
 
-    //Get Platform Infomation
     DisplayPlatformInfo();
   
     clGetPlatformIDs(0, NULL, &numPlatforms);
@@ -67,7 +61,7 @@ cl_int Device::Init(int deviceId){
     size_t nameLen;
     cl_int res = clGetPlatformInfo(PlatformIDs[0], CL_PLATFORM_NAME, 64, platformName, &nameLen);
     if(res != CL_SUCCESS){
-        fprintf(stderr, "Err: Failed to Get Platform Info\n", res);
+        fprintf(stderr, "Err: Failed to Get Platform Info\n");
         return 0;
     }
     platformName[nameLen] = 0;
@@ -106,20 +100,17 @@ cl_int Device::Init(int deviceId){
         }
    }
 
-    //Create Context
     Context = clCreateContext(NULL, 1, pDevices, NULL, NULL, NULL);
     if(NULL == Context){
         fprintf(stderr,"Err: Failed to Create Context\n");
         return 0;
     }
-    //Create CommandQueue
     CommandQueue = clCreateCommandQueue(Context, pDevices[0], CL_QUEUE_PROFILING_ENABLE, NULL);
     CommandQueue_helper = clCreateCommandQueue(Context, pDevices[0], CL_QUEUE_PROFILING_ENABLE, NULL);
     if(NULL == CommandQueue || NULL == CommandQueue_helper){
         fprintf(stderr,"Err: Failed to Create Commandqueue\n");
         return 0;
     }
-    //BuildProgram from OpenCL kernel files
     BuildProgram(oclKernelPath);
     row = clblasRowMajor;
     col = clblasColumnMajor;
@@ -128,7 +119,6 @@ cl_int Device::Init(int deviceId){
 
 void Device::BuildProgram(std::string kernel_dir)
 { 
-  //Access opencl kernel files
     std::string strSource = "";
     DIR *ocl_dir;
     struct dirent *dirp;
@@ -159,7 +149,6 @@ void Device::BuildProgram(std::string kernel_dir)
     if(NULL == Program){
         fprintf(stderr,"Err: Failed to create program\n");
     }
-    //Build Program
     cl_int iStatus = clBuildProgram(Program, 1, pDevices, buildOption, NULL, NULL);
     LOG(INFO) << "Build Program";
     if(CL_SUCCESS != iStatus){
@@ -169,8 +158,6 @@ void Device::BuildProgram(std::string kernel_dir)
         std::cout << szBuildLog;
         clReleaseProgram(Program);
     }
-
-  // return Program;
 }
 
 //Use to read OpenCL source code
@@ -225,7 +212,6 @@ void Device::ReleaseKernels()
 
 void Device::DisplayPlatformInfo(){
    cl_int err;
-   size_t size;
 
    err = clGetPlatformIDs (0, NULL, &numPlatforms);
    if (err != CL_SUCCESS || numPlatforms <=0)
@@ -323,7 +309,6 @@ void Device::GetDeviceInfo(){
 
 void Device::DeviceQuery()
 {
-    //Get Platform Infomation
     DisplayPlatformInfo();
 
     clGetPlatformIDs(0, NULL, &numPlatforms);
@@ -333,7 +318,7 @@ void Device::DeviceQuery()
     size_t nameLen;
     cl_int res = clGetPlatformInfo(PlatformIDs[0], CL_PLATFORM_NAME, 64, platformName, &nameLen);
     if (res != CL_SUCCESS) {
-        fprintf(stderr, "Err: Failed to Get Platform Info\n", res);
+        fprintf(stderr, "Err: Failed to Get Platform Info\n");
         return;
     }
     platformName[nameLen] = 0;

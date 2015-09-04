@@ -292,7 +292,6 @@ template <typename Dtype>
 void BaseConvolutionLayer<Dtype>::forward_gpu_gemm_opt (const Dtype* input,
     const Dtype* weight, Dtype* output, bool skip_im2col) {
   cl_command_queue Queue;
-  cl_event prof_event;
   if (!is_1x1_) {
     if (!skip_im2col) {
       conv_im2col_gpu_opt(input);
@@ -302,7 +301,7 @@ void BaseConvolutionLayer<Dtype>::forward_gpu_gemm_opt (const Dtype* input,
     for (int g = 0; g < group_; ++g) {
        if(g == 0) Queue = amdDevice.CommandQueue;
        else Queue =  amdDevice.CommandQueue_helper;
-       prof_event = caffe_gpu_gemm<Dtype>(&(Queue), CblasNoTrans, CblasNoTrans, M_, N_ * opt_num2, K_,
+       caffe_gpu_gemm<Dtype>(&(Queue), CblasNoTrans, CblasNoTrans, M_, N_ * opt_num2, K_,
           (Dtype)1., weight, weight_offset_ * g, (Dtype*)transMem, col_offset_ * g,
           (Dtype)0., (Dtype*)subTopMem, top_offset_opt * g);
        }
@@ -313,12 +312,11 @@ void BaseConvolutionLayer<Dtype>::forward_gpu_gemm_opt (const Dtype* input,
 #else
     Queue = amdDevice.CommandQueue;
     for (int g = 0; g < group_; ++g) {
-       prof_event = caffe_gpu_gemm<Dtype>(&(Queue), CblasNoTrans, CblasNoTrans, M_, N_ * opt_num2, K_,
+       caffe_gpu_gemm<Dtype>(&(Queue), CblasNoTrans, CblasNoTrans, M_, N_ * opt_num2, K_,
           (Dtype)1., weight, weight_offset_ * g, (Dtype*)transMem, col_offset_ * g,
           (Dtype)0., (Dtype*)subTopMem, top_offset_opt * g);
        }
 #endif
-   //conv_transform_gpu((Dtype*)subTopMem, output);
    transform_gpu((Dtype*)subTopMem, output, top_offset_, N_, M_*group_, opt_num2);
 }
 
@@ -414,9 +412,7 @@ void BaseConvolutionLayer<Dtype>::weight_gpu_gemm_opt(const Dtype* input,
   if (!is_1x1_) {
     conv_im2col_gpu_opt(input);
   }
-    //conv_transpose_gpu(output);
-    int height_top = M_ * group_, width_top = N_;
-    opttrans(output, top_offset_, 1, height_top, width_top, (Dtype*)subTopMem, 0, opt_num2);
+    opttrans(output, top_offset_, 1, M_ * group_, N_, (Dtype*)subTopMem, 0, opt_num2);
 
 
   for (int g = 0; g < group_; ++g) {

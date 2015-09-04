@@ -63,7 +63,6 @@ void im2col_cpu(const Dtype* data_im, const int channels,
   }
 }
 
-// Explicit instantiation
 template void im2col_cpu<float>(const float* data_im, const int channels,
     const int height, const int width, const int kernel_h, const int kernel_w,
     const int pad_h, const int pad_w, const int stride_h,
@@ -99,7 +98,6 @@ void col2im_cpu(const Dtype* data_col, const int channels,
   }
 }
 
-// Explicit instantiation
 template void col2im_cpu<float>(const float* data_col, const int channels,
     const int height, const int width, const int patch_h, const int patch_w,
     const int pad_h, const int pad_w, const int stride_h,
@@ -137,7 +135,7 @@ void col2im_gpu_opt(const Dtype* data_col, const int col_offset, const int chann
     ret|=clSetKernelArg(Kernel,13,sizeof(cl_int),(void*)&optnum);
     OCL_CHECK(ret);
 
-    size_t uiGlobal_Work_Size[] = {num_kernels};
+    size_t uiGlobal_Work_Size[] = {(size_t)num_kernels};
     size_t uiLocal_Work_Size[] = {256};
     OCL_CHECK( clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, uiGlobal_Work_Size, uiLocal_Work_Size, 0, NULL, NULL) );
 }
@@ -149,7 +147,6 @@ template void col2im_gpu_opt<double>(const double* data_col, const int col_offse
     const int height, const int width, const int ksize, const int pad,
     const int stride, double* data_im, const int img_offset, int optnum);
 
-//cannot use now, need to modify kernel.
 template <typename Dtype>
 void im2col_gpu(const Dtype* data_im, const int img_offset, const int channels, 
     const int height, const int width, const int kernel_h, const int kernel_w,
@@ -182,10 +179,9 @@ void im2col_gpu(const Dtype* data_im, const int img_offset, const int channels,
     ret|=clSetKernelArg(Kernel,13,sizeof(cl_mem),(void*)&data_col);
     ret|=clSetKernelArg(Kernel,14,sizeof(cl_int),(void*)&col_offset);
 
-    size_t uiGlobal_Work_Size[] = {num_kernels};
+    size_t uiGlobal_Work_Size[] = {(size_t)num_kernels};
     size_t uiLocal_Work_Size[] = {256};
     OCL_CHECK( clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, uiGlobal_Work_Size, uiLocal_Work_Size, 0, NULL, NULL) );
-    clFinish(amdDevice.CommandQueue);
 
 }
 
@@ -198,7 +194,6 @@ template void im2col_gpu<double>(const double* data_im, const int img_offset, co
     				const int pad_h, const int pad_w, const int stride_h, const int stride_w,
     				double* data_col, const int col_offset);
 
-//cannot use now, need to modify kernel
 template <typename Dtype>
 void col2im_gpu(const Dtype* data_col, const int col_offset,
     const int height, const int width, const int channels,
@@ -232,7 +227,7 @@ void col2im_gpu(const Dtype* data_col, const int col_offset,
     ret|=clSetKernelArg(Kernel,14,sizeof(cl_mem),(void*)&data_im);
     ret|=clSetKernelArg(Kernel,15,sizeof(cl_int),(void*)&img_offset);
 
-    size_t uiGlobal_Work_Size[] = {num_kernels};
+    size_t uiGlobal_Work_Size[] = {(size_t)num_kernels};
     size_t uiLocal_Work_Size[] = {256};
     OCL_CHECK( clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, uiGlobal_Work_Size, uiLocal_Work_Size, 0, NULL, NULL) );
 }
@@ -270,7 +265,7 @@ void im2col_gpu(cl_kernel Kernel, const Dtype* data_im, const int img_offset, co
     ret|=clSetKernelArg(Kernel,10,sizeof(cl_mem),(void*)&data_col);
     ret|=clSetKernelArg(Kernel,11,sizeof(cl_int),(void*)&col_offset);
 
-    size_t uiGlobal_Work_Size[] = {num_kernels};
+    size_t uiGlobal_Work_Size[] = {(size_t)num_kernels};
     size_t uiLocal_Work_Size[] = {256};
     OCL_CHECK( clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, uiGlobal_Work_Size, uiLocal_Work_Size, 0, NULL, NULL) );
     clFinish(amdDevice.CommandQueue);
@@ -312,8 +307,8 @@ void im2col_gpu_opt(const Dtype* data_im, const int img_offset, const int channe
     ret|=clSetKernelArg(Kernel,13,sizeof(cl_int),(void*)&optnum);
     OCL_CHECK(ret);
 
-    size_t uiGlobal_Work_Size[] = {num_kernels};
-    size_t uiLocal_Work_Size[] = {256 - 256 % width_col};
+    size_t uiGlobal_Work_Size[] = {(size_t)num_kernels};
+    size_t uiLocal_Work_Size[] = {(size_t)(256 - 256 % width_col)};
     OCL_CHECK( clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, uiGlobal_Work_Size, uiLocal_Work_Size, 0, NULL, NULL) );
 }
 
@@ -334,9 +329,6 @@ void col2im_gpu(const Dtype* data_col, const int col_offset, const int channels,
     int height_col = (height + 2 * pad - ksize) / stride + 1;
     int width_col = (width + 2 * pad - ksize) / stride + 1;
     int num_kernels = channels * height * width;
-  // To avoid involving atomic operations, we will launch one kernel per
-  // bottom dimension, and then in the kernel add up the top dimensions.
-  // NOLINT_NEXT_LINE(whitespace/operatiors)
 
     cl_int ret;
     ret=clSetKernelArg(Kernel,0,sizeof(cl_int),(void*)&num_kernels);
@@ -354,7 +346,7 @@ void col2im_gpu(const Dtype* data_col, const int col_offset, const int channels,
     ret|=clSetKernelArg(Kernel,12,sizeof(cl_int),(void*)&img_offset);
     OCL_CHECK(ret);
 
-    size_t uiGlobal_Work_Size[] = {num_kernels};
+    size_t uiGlobal_Work_Size[] = {(size_t)num_kernels};
     size_t uiLocal_Work_Size[] = {256};
     OCL_CHECK( clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, uiGlobal_Work_Size, uiLocal_Work_Size, 0, NULL, NULL) );
 }

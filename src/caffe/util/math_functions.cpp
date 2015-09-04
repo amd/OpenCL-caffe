@@ -720,11 +720,13 @@ void popcll_kernel(const int n, const double* a,
 template <>
 uint32_t caffe_gpu_hamming_distance<float>(const int n, const float* x,
                                   const float* y) {
+	return 0;
 }
 
 template <>
 uint32_t caffe_gpu_hamming_distance<double>(const int n, const double* x,
                                    const double* y) {
+	return 0;
 }
 
 void caffe_gpu_rng_uniform(const int n, unsigned int* r) {

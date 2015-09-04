@@ -35,21 +35,6 @@
 namespace caffe {
 typedef unsigned int uint32_t;
 struct array4x32 {  uint32_t v[4]; };
-/*
-template <typename dtype> inline std::string get_dtype_suffix()
-{
-    dtype x;
-    const char type = typeid(x).name()[0];
-    std::string suffix;
-    switch(type){
-        case 'i': suffix = "_int"; break;
-        case 'd': suffix = "_double"; break;
-        case 'f': 
-        default: suffix = "_float";
-    }
-    return suffix;
-}
-*/
 template <typename Dtype>
 void caffe_gpu_bernoulli(int* a, const unsigned int n, Dtype inf, Dtype sup, Dtype threshold)
 {
@@ -87,19 +72,14 @@ void transform_gpu(Dtype* src, Dtype* dst, const int top_offset, const int N_, c
 
     cl_int ret;
     ret= clSetKernelArg(Kernel,0,sizeof(cl_mem),(void*)&src);
-    OCL_CHECK(ret);
     ret|=clSetKernelArg(Kernel,1,sizeof(cl_mem),(void*)&dst);
-    OCL_CHECK(ret);
     ret|=clSetKernelArg(Kernel,2,sizeof(cl_int),(void*)&top_offset);
-    OCL_CHECK(ret);
     ret|=clSetKernelArg(Kernel,3,sizeof(cl_int),(void*)&N_);
-    OCL_CHECK(ret);
     ret|=clSetKernelArg(Kernel,4,sizeof(cl_int),(void*)&M_);
-    OCL_CHECK(ret);
     ret|=clSetKernelArg(Kernel,5,sizeof(cl_int),(void*)&packing_num);
     OCL_CHECK(ret);
 
-    size_t uiGlobal_Work_Size2[]={M_ * packing_num};
+    size_t uiGlobal_Work_Size2[]={(size_t)(M_ * packing_num)};
     size_t uiLocal_Work_Size2[]={256};
     OCL_CHECK( clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, uiGlobal_Work_Size2, uiLocal_Work_Size2, 0, NULL, NULL) );
 }
@@ -114,12 +94,11 @@ void get_max_gpu(cl_kernel Kernel, const int num, const int dim, const Dtype* bo
     OCL_CHECK( clSetKernelArg(Kernel, 2, sizeof(cl_mem), (void*)&bottom_data) );
     OCL_CHECK( clSetKernelArg(Kernel, 3, sizeof(cl_mem), (void*)&scale_data) );
  
-    size_t Global_Work_Size[1] = {num};
+    size_t Global_Work_Size[1] = {(size_t)num};
     size_t Local_Work_Size[1] = {256};
     OCL_CHECK( clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, Global_Work_Size, Local_Work_Size, 0, NULL, NULL) );
 }
 
-// Explicit instantiation
 template void get_max_gpu<float>(cl_kernel Kernel, const int num, const int dim, const float* bottom_data, float* scale_data);
 template void get_max_gpu<double>(cl_kernel Kernel, const int num, const int dim, const double* bottom_data, double* scale_data);
 
@@ -130,12 +109,11 @@ void exp_gpu(cl_kernel Kernel, const int num, const Dtype* data, Dtype* out){
     OCL_CHECK( clSetKernelArg(Kernel, 1, sizeof(cl_mem), (void*)&data) );
     OCL_CHECK( clSetKernelArg(Kernel, 2, sizeof(cl_mem), (void*)&out) );
 
-    size_t Global_Work_Size[1] = {num};
+    size_t Global_Work_Size[1] = {(size_t)num};
     size_t Local_Work_Size[1] = {256};
     OCL_CHECK( clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, Global_Work_Size, Local_Work_Size, 0, NULL, NULL) );
 }
 
-// Explicit instantiation
 template void exp_gpu<float>(cl_kernel Kernel, const int num, const float* data, float* out);
 template void exp_gpu<double>(cl_kernel Kernel, const int num, const double* data, double* out);
 
@@ -146,12 +124,11 @@ void softmax_div_gpu(cl_kernel Kernel, const int num, const int dim, const Dtype
     OCL_CHECK( clSetKernelArg(Kernel, 2, sizeof(cl_mem), (void*)&scale) );
     OCL_CHECK( clSetKernelArg(Kernel, 3, sizeof(cl_mem), (void*)&data) );
 
-    size_t Global_Work_Size[1] = {num*dim};
+    size_t Global_Work_Size[1] = {(size_t) (num * dim)};
     size_t Local_Work_Size[1] = {256};
     OCL_CHECK( clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, Global_Work_Size, Local_Work_Size, 0, NULL, NULL) );
 }
 
-// Explicit instantiation
 template void softmax_div_gpu<float>(cl_kernel Kernel, const int num, const int dim, const float* scale, float* data);
 template void softmax_div_gpu<double>(cl_kernel Kernel, const int num, const int dim, const double* scale, double* data);
 
@@ -175,7 +152,6 @@ Dtype softmax_gpu(cl_kernel Kernel, const int num, const int dim, const Dtype* p
     return loss;
 }
 
-// Explicit instantiation
 template float softmax_gpu<float>(cl_kernel Kernel, const int num, const int dim, const float* prob_data, const float* label, cl_mem d_loss);
 template double softmax_gpu<double>(cl_kernel Kernel, const int num, const int dim, const double* prob_data, const double* label, cl_mem d_loss);
 
@@ -192,7 +168,7 @@ void kernel_channel_max(const int num, const int channels,
     OCL_CHECK( clSetKernelArg(Kernel, 3, sizeof(cl_mem), (void*)&data) );
     OCL_CHECK( clSetKernelArg(Kernel, 4, sizeof(cl_mem), (void*)&out) );
 
-    size_t Global_Work_Size[1] = {num*spatial_dim};
+    size_t Global_Work_Size[1] = {(size_t) (num*spatial_dim)};
     size_t Local_Work_Size[1] = {256};
     OCL_CHECK( clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, Global_Work_Size, Local_Work_Size, 0, NULL, NULL) );
 }
@@ -217,7 +193,7 @@ void kernel_channel_subtract( const int count,
     OCL_CHECK( clSetKernelArg(Kernel, 4, sizeof(cl_mem), (void*)&channel_max) );
     OCL_CHECK( clSetKernelArg(Kernel, 5, sizeof(cl_mem), (void*)&data) );
 
-    size_t Global_Work_Size[1] = {count};
+    size_t Global_Work_Size[1] = {(size_t)count};
     size_t Local_Work_Size[1] = {256};
     OCL_CHECK( clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, Global_Work_Size, Local_Work_Size, 0, NULL, NULL) );
 }
@@ -239,7 +215,7 @@ void kernel_exp(const int count, const Dtype* data, Dtype* out)
     OCL_CHECK( clSetKernelArg(Kernel, 1, sizeof(cl_mem), (void*)&data) );
     OCL_CHECK( clSetKernelArg(Kernel, 2, sizeof(cl_mem), (void*)&out) );
 
-    size_t Global_Work_Size[1] = {count};
+    size_t Global_Work_Size[1] = {(size_t)count};
     size_t Local_Work_Size[1] = {256};
     OCL_CHECK( clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, Global_Work_Size, Local_Work_Size, 0, NULL, NULL) );
 }
@@ -260,7 +236,7 @@ void kernel_channel_sum(const int num, const int channels,
     OCL_CHECK( clSetKernelArg(Kernel, 3, sizeof(cl_mem), (void*)&data) );
     OCL_CHECK( clSetKernelArg(Kernel, 4, sizeof(cl_mem), (void*)&channel_sum) );
 
-    size_t Global_Work_Size[1] = {num*channels};
+    size_t Global_Work_Size[1] = {(size_t)(num*channels)};
     size_t Local_Work_Size[1] = {256};
     OCL_CHECK( clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, Global_Work_Size, Local_Work_Size, 0, NULL, NULL) );
 }
@@ -282,7 +258,7 @@ void kernel_channel_div(const int count, const int num, const int channels,
     OCL_CHECK( clSetKernelArg(Kernel, 4, sizeof(cl_mem), (void*)&channel_sum) );
     OCL_CHECK( clSetKernelArg(Kernel, 5, sizeof(cl_mem), (void*)&data) );
 
-    size_t Global_Work_Size[1] = {count};
+    size_t Global_Work_Size[1] = {(size_t)count};
     size_t Local_Work_Size[1] = {256};
     OCL_CHECK( clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, Global_Work_Size, Local_Work_Size, 0, NULL, NULL) );
 }
@@ -307,7 +283,7 @@ void kernel_channel_dot(const int num, const int channels,
     OCL_CHECK( clSetKernelArg(Kernel, 4, sizeof(cl_mem), (void*)&data_2) );
     OCL_CHECK( clSetKernelArg(Kernel, 5, sizeof(cl_mem), (void*)&channel_dot) );
       
-    size_t Global_Work_Size[1] = {num*spatial_dim};
+    size_t Global_Work_Size[1] = {(size_t)(num*spatial_dim)};
     size_t Local_Work_Size[1] = {256};
     OCL_CHECK( clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, Global_Work_Size, Local_Work_Size, 0, NULL, NULL) );
 }
@@ -339,7 +315,7 @@ void SoftmaxLossForwardGPU(const int nthreads,
     OCL_CHECK(clSetKernelArg(Kernel, 8, sizeof(cl_int),  (void*)&ignore_label_));
     OCL_CHECK(clSetKernelArg(Kernel, 9, sizeof(cl_mem),  (void*)&counts));
     
-   size_t Global_Work_Size[1] = {nthreads};
+   size_t Global_Work_Size[1] = {(size_t)nthreads};
    size_t Local_Work_Size[1] = {256};
    OCL_CHECK( clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, Global_Work_Size, Local_Work_Size, 0, NULL, NULL));
 }
@@ -369,7 +345,7 @@ void SoftmaxLossBackwardGPU(const int nthreads, const Dtype* top,
     OCL_CHECK(clSetKernelArg(Kernel, 8, sizeof(cl_int),  (void*)&ignore_label_));
     OCL_CHECK(clSetKernelArg(Kernel, 9, sizeof(cl_mem),  (void*)&counts));
 
-   size_t Global_Work_Size[1] = {nthreads};
+   size_t Global_Work_Size[1] = {(size_t)nthreads};
    size_t Local_Work_Size[1] = {256};
    OCL_CHECK( clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, Global_Work_Size, Local_Work_Size, 0, NULL, NULL));
 }
@@ -385,12 +361,11 @@ void scal_gpu(cl_kernel Kernel, const int num, const Dtype alpha, Dtype* data){
     OCL_CHECK( clSetKernelArg(Kernel, 1, sizeof(Dtype), (void*)&alpha) );
     OCL_CHECK( clSetKernelArg(Kernel, 2, sizeof(cl_mem), (void*)&data) );
 
-    size_t Global_Work_Size[1] = {num};
+    size_t Global_Work_Size[1] = {(size_t)num};
     size_t Local_Work_Size[1] = {256};
     OCL_CHECK( clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, Global_Work_Size, Local_Work_Size, 0, NULL, NULL) );
 }
 
-// Explicit instantiation
 template void scal_gpu<float>(cl_kernel Kernel, const int num, const float alpha, float* data);
 template void scal_gpu<double>(cl_kernel Kernel, const int num, const double alpha, double* data);
 
@@ -401,12 +376,11 @@ void diff_gpu(cl_kernel Kernel, const int num, int dim, Dtype* data, const Dtype
     OCL_CHECK( clSetKernelArg(Kernel, 2, sizeof(cl_mem), (void*)&data) );
     OCL_CHECK( clSetKernelArg(Kernel, 3, sizeof(cl_mem), (void*)&label) );
 
-    size_t Global_Work_Size[1] = {num};
+    size_t Global_Work_Size[1] = {(size_t)num};
     size_t Local_Work_Size[1] = {256};
     OCL_CHECK( clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, Global_Work_Size, Local_Work_Size, 0, NULL, NULL) );
 }
 
-// Explicit instantiation
 template void diff_gpu<float>(cl_kernel Kernel, const int num, const int dim, float* data, const float* label);
 template void diff_gpu<double>(cl_kernel Kernel, const int num, const int dim, double* data, const double* label);
 
@@ -426,7 +400,7 @@ void max_pool_fp_gpu(cl_kernel Kernel, const int count, const Dtype* bottom_data
     ret |= clSetKernelArg(Kernel,10, sizeof(cl_mem), (void*)&top_data);
     OCL_CHECK(ret);
 
-    size_t Global_Work_Size[] = {count * 1};
+    size_t Global_Work_Size[] = {(size_t)count};
     size_t Local_Work_Size[] = {256};
     OCL_CHECK(clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, Global_Work_Size, Local_Work_Size, 0, NULL, NULL));
 }
@@ -459,7 +433,7 @@ void MaxPoolForward(const int count, const Dtype* bottom_data, const int clnum, 
     ret |= clSetKernelArg(Kernel, 16, sizeof(cl_mem), (void*)&top_mask);
     OCL_CHECK(ret);
 
-    size_t Global_Work_Size[] = {count * 1};
+    size_t Global_Work_Size[] = {(size_t)count};
     size_t Local_Work_Size[] = {256};
     OCL_CHECK(clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, Global_Work_Size, Local_Work_Size, 0, NULL, NULL));
 }
@@ -489,7 +463,7 @@ void StoPoolForwardTrain(const int count, const Dtype* bottom_data, const int cl
     ret |= clSetKernelArg(Kernel, 13, sizeof(cl_mem), (void*)&top_data);
     OCL_CHECK(ret);
 
-    size_t Global_Work_Size[] = {count * 1};
+    size_t Global_Work_Size[] = {(size_t)count};
     size_t Local_Work_Size[] = {256};
     OCL_CHECK(clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, Global_Work_Size, Local_Work_Size, 0, NULL, NULL));
 }
@@ -517,7 +491,7 @@ void StoPoolForwardTest(const int count, const Dtype* bottom_data, const int cln
     ret |= clSetKernelArg(Kernel, 12, sizeof(cl_mem), (void*)&top_data);
     OCL_CHECK(ret);
 
-    size_t Global_Work_Size[] = {count * 1};
+    size_t Global_Work_Size[] = {(size_t)count};
     size_t Local_Work_Size[] = {256};
     OCL_CHECK(clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, Global_Work_Size, Local_Work_Size, 0, NULL, NULL));
 
@@ -547,7 +521,7 @@ void AvePoolForward(const int count, const Dtype* bottom_data, const int clnum, 
     ret |= clSetKernelArg(Kernel, 14, sizeof(cl_mem), (void*)&top_data);
     OCL_CHECK(ret);
 
-    size_t uiGlobal_Work_Size[] = {count * 1};
+    size_t uiGlobal_Work_Size[] = {(size_t)count};
     size_t uiLocal_Work_Size[] = {256};
     OCL_CHECK(clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, uiGlobal_Work_Size, uiLocal_Work_Size, 0, NULL, NULL));
 }
@@ -571,7 +545,7 @@ void ave_pool_fp_gpu(cl_kernel Kernel, const int count, const Dtype* bottom_data
     ret |= clSetKernelArg(Kernel, 11,sizeof(cl_mem), (void*)&top_data);
     OCL_CHECK(ret);
 
-    size_t uiGlobal_Work_Size[] = {count * 1};
+    size_t uiGlobal_Work_Size[] = {(size_t)count};
     size_t uiLocal_Work_Size[] = {256};
     OCL_CHECK(clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, uiGlobal_Work_Size, uiLocal_Work_Size, 0, NULL, NULL));
 }
@@ -597,7 +571,7 @@ void max_pool_bp_gpu(cl_kernel Kernel, const int count, const Dtype* bottom_data
     ret |= clSetKernelArg(Kernel,12, sizeof(cl_mem), (void*)&bottom_diff);
     OCL_CHECK(ret);
 
-    size_t uiGlobal_Work_Size[] = {count};
+    size_t uiGlobal_Work_Size[] = {(size_t)count};
     size_t uiLocal_Work_Size[] = {256};
     OCL_CHECK(clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, uiGlobal_Work_Size, uiLocal_Work_Size, 0, NULL, NULL));
 }
@@ -629,7 +603,7 @@ void MaxPoolBackward(const int nthreads, const Dtype* const top_diff, const int*
     ret |= clSetKernelArg(Kernel,16, sizeof(cl_mem), (void*)&bottom_diff);
     OCL_CHECK(ret);
 
-    size_t uiGlobal_Work_Size[] = {nthreads};
+    size_t uiGlobal_Work_Size[] = {(size_t)nthreads};
     size_t uiLocal_Work_Size[] = {256};
     OCL_CHECK(clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, uiGlobal_Work_Size, uiLocal_Work_Size, 0, NULL, NULL));
 }
@@ -661,7 +635,7 @@ void AvePoolBackward(const int nthreads, const Dtype* const top_diff, const int 
     ret |= clSetKernelArg(Kernel,14, sizeof(cl_mem), (void*)&bottom_diff);
     OCL_CHECK(ret);
 
-    size_t uiGlobal_Work_Size[] = {nthreads};
+    size_t uiGlobal_Work_Size[] = {(size_t)nthreads};
     size_t uiLocal_Work_Size[] = {256};
     OCL_CHECK(clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, uiGlobal_Work_Size, uiLocal_Work_Size, 0, NULL, NULL));
 }
@@ -689,7 +663,7 @@ void StoPoolBackward(const int nthreads, const Dtype* const rand_idx, const Dtyp
     ret |= clSetKernelArg(Kernel,13, sizeof(cl_mem), (void*)&bottom_diff);
     OCL_CHECK(ret);
 
-    size_t uiGlobal_Work_Size[] = {nthreads};
+    size_t uiGlobal_Work_Size[] = {(size_t)nthreads};
     size_t uiLocal_Work_Size[] = {256};
     OCL_CHECK(clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, uiGlobal_Work_Size, uiLocal_Work_Size, 0, NULL, NULL));
 }
@@ -713,7 +687,7 @@ void ave_pool_bp_gpu(cl_kernel Kernel, const int count, const Dtype* top_diff, c
     ret |= clSetKernelArg(Kernel,11, sizeof(cl_mem), (void*)&bottom_diff);
     OCL_CHECK(ret);
 
-    size_t uiGlobal_Work_Size[]={count};
+    size_t uiGlobal_Work_Size[]={(size_t)count};
     size_t uiLocal_Work_Size[]={256};
     OCL_CHECK(clEnqueueNDRangeKernel(amdDevice.CommandQueue,Kernel,1,NULL,uiGlobal_Work_Size,uiLocal_Work_Size,0,NULL,NULL));
 }
@@ -734,7 +708,7 @@ void PReLUForward(const int count, const int channels, const int dim, const Dtyp
     ret |= clSetKernelArg(Kernel, 4, sizeof(cl_mem), (void*)&top_data);
     ret |= clSetKernelArg(Kernel, 5, sizeof(cl_mem), (void*)&slope_data);
     ret |= clSetKernelArg(Kernel, 6, sizeof(cl_int), (void*)&div_factor);
-    size_t Global_Work_Size[] = {count * 1};
+    size_t Global_Work_Size[] = {(size_t)count};
     size_t Local_Work_Size[] = {256};
     OCL_CHECK(clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, Global_Work_Size, Local_Work_Size, 0, NULL, NULL));
 }
@@ -754,7 +728,7 @@ void PReLUBackward(const int count, const int channels, const int dim, const Dty
     ret |= clSetKernelArg(Kernel, 5, sizeof(cl_mem), (void*)&bottom_diff);
     ret |= clSetKernelArg(Kernel, 6, sizeof(cl_mem), (void*)&slope_data);
     ret |= clSetKernelArg(Kernel, 7, sizeof(cl_int), (void*)&div_factor);
-    size_t Global_Work_Size[] = {count * 1};
+    size_t Global_Work_Size[] = {(size_t)count};
     size_t Local_Work_Size[] = {256};
     OCL_CHECK(clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, Global_Work_Size, Local_Work_Size, 0, NULL, NULL));
 }
@@ -770,7 +744,7 @@ void PReLUParamBackward(const int count, const Dtype* top_diff, const Dtype* bot
     ret |= clSetKernelArg(Kernel, 1, sizeof(cl_mem), (void*)&top_diff);
     ret |= clSetKernelArg(Kernel, 2, sizeof(cl_mem), (void*)&bottom_data);
     ret |= clSetKernelArg(Kernel, 3, sizeof(cl_mem), (void*)&bottom_diff);
-    size_t Global_Work_Size[] = {count * 1};
+    size_t Global_Work_Size[] = {(size_t)count};
     size_t Local_Work_Size[] = {256};
     OCL_CHECK(clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, Global_Work_Size, Local_Work_Size, 0, NULL, NULL));
 }
@@ -788,7 +762,7 @@ void ReLUForward(const int count, const Dtype* bottom_data, Dtype* top_data, Dty
     ret |= clSetKernelArg(Kernel, 2, sizeof(cl_mem), (void*)&top_data);
     ret |= clSetKernelArg(Kernel, 3, sizeof(Dtype), (void*)&negative_slope);
     OCL_CHECK(ret);
-    size_t Global_Work_Size[] = {count * 1};
+    size_t Global_Work_Size[] = {(size_t)count};
     size_t Local_Work_Size[] = {256};
     OCL_CHECK(clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, Global_Work_Size, Local_Work_Size, 0, NULL, NULL));
 }
@@ -809,7 +783,7 @@ void ReLUBackward(const int count, const Dtype* top_diff, const Dtype* bottom_da
     ret |= clSetKernelArg(Kernel, 4, sizeof(Dtype), (void*)&negative_slope);
     OCL_CHECK(ret);
 
-    size_t uiGlobal_Work_Size[] = {count};
+    size_t uiGlobal_Work_Size[] = {(size_t)count};
     size_t uiLocal_Work_Size[] = {256};
     OCL_CHECK( clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, uiGlobal_Work_Size, uiLocal_Work_Size, 0, NULL, NULL) );
 }
@@ -823,9 +797,6 @@ void opttrans(const Dtype* data_im, const int im_offset, const int channels,
     cl_kernel Kernel = amdDevice.GetKernel(kernel_name);
 
     int num_kernels = channels * height * width * optnum;
-  // To avoid involving atomic operations, we will launch one kernel per
-  // bottom dimension, and then in the kernel add up the top dimensions.
-  // NOLINT_NEXT_LINE(whitespace/operatiors)
 
     cl_int ret;
     ret=clSetKernelArg(Kernel,0,sizeof(cl_int),(void*)&num_kernels);
@@ -839,7 +810,7 @@ void opttrans(const Dtype* data_im, const int im_offset, const int channels,
     ret|=clSetKernelArg(Kernel,8,sizeof(cl_int),(void*)&optnum);
     OCL_CHECK(ret);
 
-    size_t uiGlobal_Work_Size[] = {num_kernels};
+    size_t uiGlobal_Work_Size[] = {(size_t)num_kernels};
     size_t uiLocal_Work_Size[] = {256};
     OCL_CHECK( clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, uiGlobal_Work_Size, uiLocal_Work_Size, 0, NULL, NULL) );
 }
@@ -866,7 +837,7 @@ void LRNFillScale(cl_kernel LFSkernel, const int nthreads, const Dtype* const in
   ret|=clSetKernelArg(LFSkernel,8,sizeof(cl_float),(void*)&k);
   ret|=clSetKernelArg(LFSkernel,9,sizeof(cl_mem),(void*)&scale);
   OCL_CHECK(ret);
-  size_t uiGlobal_Work_Size[]={nthreads};
+  size_t uiGlobal_Work_Size[]={(size_t)nthreads};
   size_t uiLocal_Work_Size[]={256};
   OCL_CHECK( clEnqueueNDRangeKernel(amdDevice.CommandQueue, LFSkernel, 1, NULL,uiGlobal_Work_Size,uiLocal_Work_Size,0,NULL, NULL) );
 }
@@ -889,7 +860,7 @@ void LRNComputeOutput(cl_kernel LCOkernel, int nthreads, const Dtype* in,
   ret|=clSetKernelArg(LCOkernel,3,sizeof(cl_float),(void*)&negative_beta);
   ret|=clSetKernelArg(LCOkernel,4,sizeof(cl_mem),(void*)&out);
   OCL_CHECK(ret);
-  size_t uiGlobal_Work_Size2[]={nthreads};
+  size_t uiGlobal_Work_Size2[]={(size_t)nthreads};
   size_t uiLocal_Work_Size2[]={256};
   OCL_CHECK( clEnqueueNDRangeKernel(amdDevice.CommandQueue, LCOkernel, 1, NULL,uiGlobal_Work_Size2,uiLocal_Work_Size2,0,NULL,NULL) );
 }
@@ -920,7 +891,7 @@ void LRNComputeDiff(cl_kernel LCDkernel, const int nthreads,
   ret|=clSetKernelArg(LCDkernel,11,sizeof(cl_float),(void*)&cache_ratio);
   ret|=clSetKernelArg(LCDkernel,12,sizeof(cl_mem),(void*)&bottom_diff);
   OCL_CHECK(ret);
-  size_t uiGlobal_Work_Size[]={nthreads};
+  size_t uiGlobal_Work_Size[]={(size_t)nthreads};
   size_t uiLocal_Work_Size[]={256};
   OCL_CHECK( clEnqueueNDRangeKernel(amdDevice.CommandQueue, LCDkernel, 1, NULL,uiGlobal_Work_Size,uiLocal_Work_Size,0,NULL,NULL) );
 }
@@ -945,7 +916,7 @@ void caffe_gpu_add(cl_kernel Kernel, const int n, const Dtype* in1, const Dtype*
     ret |= clSetKernelArg(Kernel, 2, sizeof(cl_mem), (void*)&in2);
     ret |= clSetKernelArg(Kernel, 3, sizeof(cl_mem), (void*)&y);
     OCL_CHECK(ret);
-    size_t Global_Work_Size[] = {n};
+    size_t Global_Work_Size[] = {(size_t)n};
     size_t Local_Work_Size[] = {256};
     OCL_CHECK(clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, Global_Work_Size, Local_Work_Size, 0, NULL, NULL));
 }
@@ -960,7 +931,7 @@ void caffe_gpu_sign(cl_kernel Kernel,const int N,  const Dtype* X, Dtype * Y ){
     ret |= clSetKernelArg(Kernel, 1, sizeof(cl_mem), (void*)&X);
     ret |= clSetKernelArg(Kernel, 2, sizeof(cl_mem), (void*)&Y);
     OCL_CHECK(ret);
-    size_t Global_Work_Size[] = {N};
+    size_t Global_Work_Size[] = {(size_t)N};
     size_t Local_Work_Size[] = {256};
     OCL_CHECK(clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, Global_Work_Size, Local_Work_Size, 0, NULL, NULL));
 }
@@ -978,7 +949,7 @@ void caffe_gpu_div (const int n, const Dtype* a, const Dtype* b, Dtype* y){
     ret |= clSetKernelArg(Kernel, 2, sizeof(cl_mem), (void*)&b);
     ret |= clSetKernelArg(Kernel, 3, sizeof(cl_mem), (void*)&y);
     OCL_CHECK(ret);
-    size_t Global_Work_Size[] = {n};
+    size_t Global_Work_Size[] = {(size_t)n};
     size_t Local_Work_Size[] = {256};
     OCL_CHECK(clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, Global_Work_Size, Local_Work_Size, 0, NULL, NULL));
 }
@@ -995,7 +966,7 @@ void caffe_gpu_add_scalar(const int n, const Dtype alpha, Dtype* top_data){
     ret |= clSetKernelArg(Kernel, 1, sizeof(cl_float), (void*)&alpha);
     ret |= clSetKernelArg(Kernel, 2, sizeof(cl_mem), (void*)&top_data);
     OCL_CHECK(ret);
-    size_t Global_Work_Size[] = {n};
+    size_t Global_Work_Size[] = {(size_t)n};
     size_t Local_Work_Size[] = {256};
     OCL_CHECK(clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, Global_Work_Size, Local_Work_Size, 0, NULL, NULL));
 }
@@ -1014,7 +985,7 @@ void caffe_gpu_mul (const int n, const Dtype* a, const Dtype* b, Dtype* y){
     ret |= clSetKernelArg(Kernel, 2, sizeof(cl_mem), (void*)&b);
     ret |= clSetKernelArg(Kernel, 3, sizeof(cl_mem), (void*)&y);
     OCL_CHECK(ret);
-    size_t Global_Work_Size[] = {n};
+    size_t Global_Work_Size[] = {(size_t)n};
     size_t Local_Work_Size[] = {256};
     OCL_CHECK(clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, Global_Work_Size, Local_Work_Size, 0, NULL, NULL));
 }
@@ -1032,7 +1003,7 @@ void caffe_gpu_powx (const int n, const Dtype* a, const Dtype alpha, Dtype* y){
     ret |= clSetKernelArg(Kernel, 2, sizeof(Dtype), (void*)&alpha);
     ret |= clSetKernelArg(Kernel, 3, sizeof(cl_mem), (void*)&y);
     OCL_CHECK(ret);
-    size_t Global_Work_Size[] = {n};
+    size_t Global_Work_Size[] = {(size_t)n};
     size_t Local_Work_Size[] = {256};
     OCL_CHECK(clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, Global_Work_Size, Local_Work_Size, 0, NULL, NULL));
 }
@@ -1054,7 +1025,7 @@ void DropoutForward(const int count, const Dtype* bottom_data, const int* MaskMe
     ret|=clSetKernelArg(kernel,4,sizeof(cl_mem),(void*)&top_data);
     OCL_CHECK(ret);
 
-    size_t Global_Work_Size[] = {count};
+    size_t Global_Work_Size[] = {(size_t)count};
     size_t Local_Work_Size[] = {256};
     OCL_CHECK(clEnqueueNDRangeKernel(amdDevice.CommandQueue, kernel, 1, NULL, Global_Work_Size, Local_Work_Size, 0, NULL, NULL));
 }
@@ -1077,7 +1048,7 @@ void DropoutBackward(const int count, const Dtype* top_diff, const int* MaskMem,
     ret |= clSetKernelArg(kernel,5,sizeof(cl_mem),  (void*)&bottom_diff);
     OCL_CHECK(ret);
 
-    size_t Global_Work_Size[] = {count};
+    size_t Global_Work_Size[] = {(size_t)count};
     size_t Local_Work_Size[] = {256};
     OCL_CHECK(clEnqueueNDRangeKernel(amdDevice.CommandQueue, kernel, 1, NULL, Global_Work_Size, Local_Work_Size, 0, NULL, NULL));
 }

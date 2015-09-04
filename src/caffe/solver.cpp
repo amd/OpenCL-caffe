@@ -210,6 +210,13 @@ void Solver<Dtype>::Step(int iters) {
 #else
         NO_GPU;
 #endif
+      case Caffe::APU:
+#ifndef CPU_ONLY
+        caffe_gpu_set(blob->count(), static_cast<Dtype>(0),
+            blob->mutable_gpu_diff());
+#else
+        NO_GPU;
+#endif
         break;
       }
     }
