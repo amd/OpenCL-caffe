@@ -27,15 +27,6 @@ void Solver<Dtype>::ocl_setup(){
    powx_kernel = clCreateKernel(amdDevice.Program, "powx_float", NULL);
 }
 
-//template <typename Dtype>
-/*Solver<Dtype>::~Solver(){
-    OCL_CHECK( clReleaseKernel(scalar_kernel) );
-    OCL_CHECK( clReleaseKernel(add_kernel) );
-    OCL_CHECK( clReleaseKernel(div_kernel) );
-    OCL_CHECK( clReleaseKernel(powx_kernel) );
-}
-*/
-
 template <typename Dtype>
 Solver<Dtype>::Solver(const string& param_file)
     : net_() {
@@ -51,14 +42,7 @@ void Solver<Dtype>::Init(const SolverParameter& param) {
   param_ = param;
   CHECK_GE(param_.average_loss(), 1) << "average_loss should be non-negative.";
 
-//#ifndef CPU_ONLY
-  //AMD device related initialization
-  //amdDevice.Init();
   ocl_setup();
-//  cl_int err =  clblasSetup();
-//#else
-//  NO_GPU;
-//#endif
 
   if (param_.random_seed() >= 0) {
     Caffe::set_random_seed(param_.random_seed());

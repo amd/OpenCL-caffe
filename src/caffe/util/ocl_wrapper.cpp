@@ -1079,69 +1079,6 @@ template void DropoutBackward<double>(const int count, const double* top_diff, c
 template <typename Dtype>
 void ocl_conv(Dtype* bottom_data, Dtype* top_data, Dtype* weights, Dtype* bias, int channel_in, int width, int height, int channel_out, int width_out, int height_out, int kernel_w, int kernel_h, int stride, int pad, int batch_sz)
 {
-/*        std::string kernel_name = "Conv" + get_dtype_suffix<Dtype>();
-        cl_kernel ker_rand = amdDevice.GetKernel(kernel_name);
-
-
-        int weights_stride = kernel_w * kernel_h;//correct?
-        int bot_stride = width;
-        int bot_channel_stride = width * height; 
-        int bot_batch_stride = width * height * channel_in;
-
-        int top_stride = width_out;
-        int top_channel_stride = width_out * height_out;
-        int top_batch_stride = width_out * height_out * channel_out;
-
-        //int height_out = (int)top->getDim(ANN_TENSOR_HEIGHT);
-        //int width_out = (int)top->getDim(ANN_TENSOR_WIDTH);
-        int vis_height = height_out * stride - 2 * pad;
-        int vis_width = width_out * stride - 2 * pad;
-
-        int ocl_group_sz0_ = 8;
-        int ocl_group_sz1_ = 8;
-        int ocl_group_lg2sz1_ = (int)ceil(log((double)ocl_group_sz1_)/log(2.));
-        int ocl_group_lg2sz0_ = (int)ceil(log((double)ocl_group_sz0_)/log(2.));
-        
-        int outputs = channel_out;
-        int n_out_pix_horiz_ = (width_out < 2 * ocl_group_sz0_) ? 1 : (width_out < 4 * ocl_group_sz0_) ? 2 : 4;
-        int n_out_pix_vert_ = (height_out < 2 * ocl_group_sz1_) ? 1 : 2; // (height_out <= 192) ? 2 : 4;
-        int n_outs_ = ((outputs & 1) == 1) ? 1 : (kernel_w == 3) && ((outputs / 4) * 4 == outputs) ? 4 : 2; // (n_out_pix_horiz_ >= 4) ? 1 : 2;
-
-        int n_outputs = channel_out;
-        n_outputs /= n_outs_;
-        int i_n_group_horiz = (width_out + ocl_group_sz0_ * n_out_pix_horiz_ - 1) / (ocl_group_sz0_ * n_out_pix_horiz_);
-        int i_n_group_vert = (height_out + ocl_group_sz1_ * n_out_pix_vert_ - 1) / (ocl_group_sz1_ * n_out_pix_vert_);
-
-        cl_int ret;
-        ret  = clSetKernelArg(ker_rand, 0, sizeof(cl_mem),   (void*)&bottom_data);
-        ret |= clSetKernelArg(ker_rand, 0, sizeof(cl_mem),   (void*)&weights);
-        ret |= clSetKernelArg(ker_rand, 0, sizeof(cl_mem),   (void*)&bias);
-        ret |= clSetKernelArg(ker_rand, 0, sizeof(cl_mem),   (void*)&top_data);
-        ret |= clSetKernelArg(ker_rand, 1, sizeof(cl_int),   (void*)&kernel_w);
-        ret |= clSetKernelArg(ker_rand, 2, sizeof(cl_int),   (void*)&channel_out);
-        ret |= clSetKernelArg(ker_rand, 2, sizeof(cl_int),   (void*)&channel_in);
-        ret |= clSetKernelArg(ker_rand, 2, sizeof(cl_int),   (void*)&pad);
-        ret |= clSetKernelArg(ker_rand, 2, sizeof(cl_int),   (void*)&stride);
-        ret |= clSetKernelArg(ker_rand, 2, sizeof(cl_int),   (void*)&n_out_pix_horiz_);
-        ret |= clSetKernelArg(ker_rand, 2, sizeof(cl_int),   (void*)&n_out_pix_vert_);
-        ret |= clSetKernelArg(ker_rand, 2, sizeof(cl_int),   (void*)&bot_batch_stride);
-        ret |= clSetKernelArg(ker_rand, 2, sizeof(cl_int),   (void*)&bot_channel_stride);
-        ret |= clSetKernelArg(ker_rand, 2, sizeof(cl_int),   (void*)&bot_stride);
-        ret |= clSetKernelArg(ker_rand, 2, sizeof(cl_int),   (void*)&top_batch_stride);
-        ret |= clSetKernelArg(ker_rand, 2, sizeof(cl_int),   (void*)&top_channel_stride);
-        ret |= clSetKernelArg(ker_rand, 2, sizeof(cl_int),   (void*)&top_stride);
-        ret |= clSetKernelArg(ker_rand, 2, sizeof(cl_int),   (void*)&vis_width);
-        ret |= clSetKernelArg(ker_rand, 2, sizeof(cl_int),   (void*)&vis_height);
-        ret |= clSetKernelArg(ker_rand, 2, sizeof(cl_int),   (void*)&weights_stride);
-        ret |= clSetKernelArg(ker_rand, 2, sizeof(cl_int),   (void*)&width_out);
-        ret |= clSetKernelArg(ker_rand, 2, sizeof(cl_int),   (void*)&height_out);
-        ret |= clSetKernelArg(ker_rand, 2, sizeof(cl_int),   (void*)&n_outs_);
-        OCL_CHECK(ret);
-
-         size_t l_wk[3] = { ocl_group_sz0_, ocl_group_sz1_, 1};
-	 size_t g_wk[3] = { i_n_group_horiz * l_wk[0], i_n_group_vert * l_wk[1], batch_sz * n_outputs };
-
-        OCL_CHECK (clEnqueueNDRangeKernel(amdDevice.CommandQueue, ker_rand, 1, NULL, globalws, localws, 0, NULL, NULL) );*/
 }
 template void ocl_conv<float>(float* bottom_data, float* top_data, float* weights, float* bias, int channel_in, int width, int height, int channel_out, int width_out, int height_out, int kernel_w, int kernel_h, int stride, int pad, int batch_sz);
 template void ocl_conv<double>(double* bottom_data, double* top_data, double* weights, double* bias, int channel_in, int width, int height, int channel_out, int width_out, int height_out, int kernel_w, int kernel_h, int stride, int pad, int batch_sz);

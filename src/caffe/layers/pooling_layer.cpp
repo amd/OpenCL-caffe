@@ -333,25 +333,12 @@ void PoolingLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
         height_, width_, pooled_height_, pooled_width_, kernel_h_,
         kernel_w_, stride_h_, stride_w_, pad_h_, pad_w_, top_data,
         mask, top_mask);
-   /* 
-   // NOLINT_NEXT_LINE(whitespace/operators)
-    MaxPoolForward<Dtype><<<CAFFE_GET_BLOCKS(count), CAFFE_CUDA_NUM_THREADS>>>(
-        count, bottom_data, bottom[0]->num(), channels_,
-        height_, width_, pooled_height_, pooled_width_, kernel_h_,
-        kernel_w_, stride_h_, stride_w_, pad_h_, pad_w_, top_data,
-        mask, top_mask);*/
     break;
  case PoolingParameter_PoolMethod_AVE:
     // NOLINT_NEXT_LINE(whitespace/operators)
     AvePoolForward(count, bottom_data, bottom[0]->num(), channels_,
         height_, width_, pooled_height_, pooled_width_, kernel_h_,
         kernel_w_, stride_h_, stride_w_, pad_h_, pad_w_, top_data);
- /*
-    // NOLINT_NEXT_LINE(whitespace/operators)
-    AvePoolForward<Dtype><<<CAFFE_GET_BLOCKS(count), CAFFE_CUDA_NUM_THREADS>>>(
-        count, bottom_data, bottom[0]->num(), channels_,
-        height_, width_, pooled_height_, pooled_width_, kernel_h_,
-        kernel_w_, stride_h_, stride_w_, pad_h_, pad_w_, top_data);*/
     break;
   case PoolingParameter_PoolMethod_STOCHASTIC:
     if (this->phase_ == TRAIN) {

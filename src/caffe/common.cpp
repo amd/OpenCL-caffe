@@ -12,7 +12,6 @@ shared_ptr<Caffe> Caffe::singleton_;
 // random seeding
 int64_t cluster_seedgen(void) {
  //To fix: for now we use fixed seed to get same result each time
-  /*
   int64_t s, seed, pid;
   FILE* f = fopen("/dev/urandom", "rb");
   if (f && fread(&seed, 1, sizeof(seed), f) == sizeof(seed)) {
@@ -28,8 +27,7 @@ int64_t cluster_seedgen(void) {
   pid = getpid();
   s = time(NULL);
   seed = abs(((s * 181) * ((pid - 83) * 359)) % 104729);
-  return seed;
-  */
+  //return seed;
   LOG(WARNING) << "return fixed seed 37";
   return 37;
 }
@@ -93,21 +91,6 @@ void* Caffe::RNG::generator() {
 
 Caffe::Caffe()
 {
-/*    : cublas_handle_(NULL), curand_generator_(NULL), random_generator_(),
-    mode_(Caffe::CPU) {
-  // Try to create a cublas handler, and report an error if failed (but we will
-  // keep the program running as one might just want to run CPU code).
-  if (cublasCreate(&cublas_handle_) != CUBLAS_STATUS_SUCCESS) {
-    LOG(ERROR) << "Cannot create Cublas handle. Cublas won't be available.";
-  }
-  // Try to create a curand handler.
-  if (curandCreateGenerator(&curand_generator_, CURAND_RNG_PSEUDO_DEFAULT)
-      != CURAND_STATUS_SUCCESS ||
-      curandSetPseudoRandomGeneratorSeed(curand_generator_, cluster_seedgen())
-      != CURAND_STATUS_SUCCESS) {
-    LOG(ERROR) << "Cannot create Curand generator. Curand won't be available.";
-  }
-*/
 #ifndef CPU_ONLY
    cl_int err =  clblasSetup();
    if(err != CL_SUCCESS){
@@ -117,33 +100,12 @@ Caffe::Caffe()
 }
 
 Caffe::~Caffe() {
- /* if (cublas_handle_) CUBLAS_CHECK(cublasDestroy(cublas_handle_));
-  if (curand_generator_) {
-    CURAND_CHECK(curandDestroyGenerator(curand_generator_));
-  }
-*/
 #ifndef CPU_ONLY
    clblasTeardown();
 #endif
 }
 
 void Caffe::set_random_seed(const unsigned int seed) {
-  // Curand seed
- /* static bool g_curand_availability_logged = false;
-  if (Get().curand_generator_) {
-    CURAND_CHECK(curandSetPseudoRandomGeneratorSeed(curand_generator(),
-        seed));
-    CURAND_CHECK(curandSetGeneratorOffset(curand_generator(), 0));
-  } else {
-    if (!g_curand_availability_logged) {
-        LOG(ERROR) <<
-            "Curand not available. Skipping setting the curand seed.";
-        g_curand_availability_logged = true;
-    }
-  }
-  // RNG seed
-  Get().random_generator_.reset(new RNG(seed));
-*/
 }
 
 void Caffe::SetDevice(const int device_id) {

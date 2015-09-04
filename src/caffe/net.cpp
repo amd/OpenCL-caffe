@@ -35,7 +35,6 @@ Net<Dtype>::Net(const string& param_file, Phase phase) {
 template <typename Dtype>
 void Net<Dtype>::Init(const NetParameter& in_param) {
   // Set phase from the state.
-  //amdDevice.Init();
   phase_ = in_param.state().phase();
   // Filter layers based on their include/exclude rules and
   // the current NetState.

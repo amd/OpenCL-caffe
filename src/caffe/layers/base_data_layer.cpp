@@ -87,8 +87,6 @@ void BasePrefetchingDataLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bo
   
   JoinPrefetchThread();
   DLOG(INFO) << "Thread joined";
-  // Copy the data from prefetch thread to data_layer
-   //OCL_CHECK( clEnqueueCopyBuffer (amdDevice.CommandQueue, (cl_mem) prefetch_data_->gpu_data(), (cl_mem) (*top)[0]->mutable_gpu_data(), 0, 0, sizeof(Dtype)*prefetch_data_->count(), 0, NULL, NULL) );
   
    top[0]->ReshapeLike(this->prefetch_data_);
    OCL_CHECK( clEnqueueWriteBuffer (amdDevice.CommandQueue, (cl_mem)top[0]->mutable_gpu_data(), CL_TRUE, 0, sizeof(Dtype)*prefetch_data_.count(), prefetch_data_.cpu_data(), 0, NULL, NULL) );
@@ -97,28 +95,15 @@ void BasePrefetchingDataLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bo
        // Reshape to loaded labels.
    top[1]->ReshapeLike(prefetch_label_);
    OCL_CHECK( clEnqueueWriteBuffer (amdDevice.CommandQueue, (cl_mem)top[1]->mutable_gpu_data(), CL_TRUE, 0, sizeof(Dtype)*prefetch_label_.count(), prefetch_label_.cpu_data(), 0, NULL, NULL) );
-   //OCL_CHECK( clEnqueueCopyBuffer (amdDevice.CommandQueue, (cl_mem) prefetch_label_->gpu_data(), (cl_mem) (*top)[1]->mutable_gpu_data(), 0, 0, sizeof(Dtype)*prefetch_label_->count(), 0, NULL, NULL) );
    }
   
-//  clFinish(amdDevice.CommandQueue);
-
 #ifdef Track_data_transfer
 #endif
   
-//  CHECK_BLOB_DATA(top[0], 20, "top[0]");  
-
   // Start a new prefetch thread
   DLOG(INFO) << "CreatePrefetchThread";
   CreatePrefetchThread();
-  //return Dtype(0.);
 }
-
-/*template <typename Dtype>
-void BasePrefetchingDataLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top){
-}*/
-
-
 
 #ifdef CPU_ONLY
 STUB_GPU_FORWARD(BasePrefetchingDataLayer, Forward);

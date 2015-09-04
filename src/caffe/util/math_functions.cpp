@@ -544,8 +544,6 @@ double caffe_cpu_dot<double>(const int n, const double* x, const double* y) {
 template <>
 void caffe_gpu_dot<float>(const int n, const float* x, const float* y,
     float* out) {
-  //need to pass in scratchBuff
-  //AMDBLAS_CHECK(clAmdBlasSdot(n, out, 0, x, 0, 1, y, 0, 1, scratch_buf, 1, &(amdDevice.CommandQueue), 0, NULL, NULL));
 }
 
 template <>

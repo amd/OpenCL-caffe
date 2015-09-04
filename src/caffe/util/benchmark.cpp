@@ -13,14 +13,6 @@ Timer::Timer()
 }
 
 Timer::~Timer() {
-  if (Caffe::mode() == Caffe::GPU) {
-#ifndef CPU_ONLY
-   // CUDA_CHECK(cudaEventDestroy(start_gpu_));
-   // CUDA_CHECK(cudaEventDestroy(stop_gpu_));
-#else
-    NO_GPU;
-#endif
-  }
 }
 
 void Timer::Start() {
@@ -72,12 +64,6 @@ float Timer::Seconds() {
 void Timer::Init() {
   if (!initted()) {
     if (Caffe::mode() == Caffe::GPU) {
-#ifndef CPU_ONLY
-     // CUDA_CHECK(cudaEventCreate(&start_gpu_));
-     // CUDA_CHECK(cudaEventCreate(&stop_gpu_));
-#else
-      NO_GPU;
-#endif
     }
     initted_ = true;
   }
