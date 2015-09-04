@@ -12,6 +12,7 @@ shared_ptr<Caffe> Caffe::singleton_;
 // random seeding
 int64_t cluster_seedgen(void) {
  //To fix: for now we use fixed seed to get same result each time
+/*
   int64_t s, seed, pid;
   FILE* f = fopen("/dev/urandom", "rb");
   if (f && fread(&seed, 1, sizeof(seed), f) == sizeof(seed)) {
@@ -29,7 +30,8 @@ int64_t cluster_seedgen(void) {
   seed = abs(((s * 181) * ((pid - 83) * 359)) % 104729);
   //return seed;
   LOG(WARNING) << "return fixed seed 37";
-  return 37;
+*/ 
+ return 37;
 }
 
 
@@ -91,18 +93,14 @@ void* Caffe::RNG::generator() {
 
 Caffe::Caffe()
 {
-#ifndef CPU_ONLY
    cl_int err =  clblasSetup();
    if(err != CL_SUCCESS){
        LOG(ERROR) << "clBLAS setup failed "<<err;
    }
-#endif
 }
 
 Caffe::~Caffe() {
-#ifndef CPU_ONLY
    clblasTeardown();
-#endif
 }
 
 void Caffe::set_random_seed(const unsigned int seed) {
