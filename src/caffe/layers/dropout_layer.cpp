@@ -17,7 +17,7 @@ void DropoutLayer<Dtype>::ocl_setup(int bottom_count){
 
 template <typename Dtype>
 DropoutLayer<Dtype>::~DropoutLayer(){
-   OCL_CHECK( clReleaseMemObject(MaskMem) );
+//   OCL_CHECK( clReleaseMemObject(MaskMem) );
 }
 
 
@@ -105,7 +105,7 @@ void DropoutLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
   //      count, bottom_data, mask, uint_thres_, scale_, top_data);
    // CUDA_POST_KERNEL_CHECK;
   } else {
-    caffe_gpu_copy(count*sizeof(Dtype), bottom_data, top_data);
+    caffe_gpu_copy(count, bottom_data, top_data);
   }
 }
 

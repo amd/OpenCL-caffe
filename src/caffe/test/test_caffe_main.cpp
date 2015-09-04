@@ -7,12 +7,12 @@
 
 namespace caffe {
 #ifndef CPU_ONLY
-  cudaDeviceProp CAFFE_TEST_CUDA_PROP;
+  //cudaDeviceProp CAFFE_TEST_CUDA_PROP;
 #endif
 }
 
 #ifndef CPU_ONLY
-using caffe::CAFFE_TEST_CUDA_PROP;
+//using caffe::CAFFE_TEST_CUDA_PROP;
 
 #endif
 
@@ -23,15 +23,16 @@ int main(int argc, char** argv) {
   // Before starting testing, let's first print out a few cuda defice info.
   int device = 0;
 //  cudaGetDeviceCount(&device);
-  cout << "Cuda number of devices: " << device << endl;
+ // cout << "Cuda number of devices: " << device << endl;
   if (argc > 1) {
     // Use the given device
     device = atoi(argv[1]);
-    cudaSetDevice(device);
+   // cudaSetDevice(device);
+    caffe::amdDevice.Init(device);
     cout << "Setting to use device " << device << endl;
-  } else if (CUDA_TEST_DEVICE >= 0) {
+  } else if (OPENCL_TEST_DEVICE >= 0) {
     // Use the device assigned in build configuration; but with a lower priority
-    device = CUDA_TEST_DEVICE;
+    device = OPENCL_TEST_DEVICE;
   }
 //  cudaGetDevice(&device);
   cout << "Current device id: " << device << endl;

@@ -227,11 +227,13 @@ void caffe_gpu_sgnbit<double>(const int n, const double* x, double* y)
 template<>
 void caffe_gpu_abs<float>(const int n, const float* x, float* y)
 {
+    caffe_gpu_abs_ocl(n, x, y);
 }
 
 template<>
 void caffe_gpu_abs<double>(const int n, const double* x, double* y)
 {
+    caffe_gpu_abs_ocl(n, x, y);
 }
 
 template <>
@@ -288,14 +290,16 @@ void caffe_gpu_memcpy(const size_t N, const void *X, void *Y)
 
 template <>
 void caffe_gpu_copy<float>(const int N, const float* X, float* Y) {
-  if(X != Y)
+  if(X != Y){
       CLBLAS_CHECK( clblasScopy( N, (cl_mem)X, 0,1, (cl_mem)Y, 0, 1, 1, &(amdDevice.CommandQueue), 0, NULL, NULL) );
+  }
 }
 
 template <>
 void caffe_gpu_copy<double>(const int N, const double* X, double* Y) {
-  if(X != Y)
+  if(X != Y){
       CLBLAS_CHECK( clblasDcopy( N, (cl_mem)X, 0,1, (cl_mem)Y, 0, 1, 1, &(amdDevice.CommandQueue), 0, NULL, NULL) );
+  }
 }
 
 template <>
@@ -622,11 +626,15 @@ void caffe_cpu_scale<double>(const int n, const double alpha, const double *x,
 template <>
 void caffe_gpu_scale<float>(const int n, const float alpha, const float *x,
                             float* y) {
+  caffe_gpu_copy(n, x, y);
+  caffe_gpu_scal(n, alpha, y);
 }
 
 template <>
 void caffe_gpu_scale<double>(const int n, const double alpha, const double *x,
                              double* y) {
+  caffe_gpu_copy(n, x, y);
+  caffe_gpu_scal(n, alpha, y);
 }
 
 template <typename Dtype>
@@ -664,18 +672,24 @@ void mul_kernel(const int n, const Dtype* a,
     const Dtype* b, Dtype* y) {
 }
 
+template <>
+void caffe_gpu_exp<float>(const int N, const float* a, float* y) {
+    kernel_exp(N, a, y);
+}
+
+template <>
+void caffe_gpu_exp<double>(const int N, const double* a, double* y) {
+    kernel_exp(N, a, y);
+}
+
 template<>
 void caffe_gpu_sign<float>(const int N, const float *X, float *Y){
-   cl_kernel caffe_gpu_sign_kernel = clCreateKernel(amdDevice.Program,"caffe_gpu_sign", NULL);
-   caffe_gpu_sign(caffe_gpu_sign_kernel, N, X, Y);
-   clReleaseKernel(caffe_gpu_sign_kernel);  
+   caffe_gpu_sign_ocl(N, X, Y);
 }
 
 template<>
 void caffe_gpu_sign<double>(const int N, const double *X, double *Y){
-   cl_kernel caffe_gpu_sign_kernel = clCreateKernel(amdDevice.Program,"caffe_gpu_sign", NULL);
-   caffe_gpu_sign(caffe_gpu_sign_kernel, N, X, Y);
-   clReleaseKernel(caffe_gpu_sign_kernel);
+   caffe_gpu_sign_ocl(N, X, Y);
 }
 
 template <>

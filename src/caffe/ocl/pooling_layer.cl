@@ -245,7 +245,7 @@ template __attribute__((mangled_name(AvePoolBackward_float))) __kernel void AveP
 template __attribute__((mangled_name(AvePoolBackward_double))) __kernel void AvePoolBackward(const int nthreads, __global double* top_diff, const int num, const int channels, const int height, const int width, const int pooled_height, const int pooled_width, const int kernel_h, const int kernel_w, const int stride_h, const int stride_w, const int pad_h, const int pad_w, __global double* bottom_diff);
 
 template <class Dtype>
-void StoPoolBackward(const int nthreads,
+__kernel void StoPoolBackward(const int nthreads,
     __global Dtype* rand_idx, __global Dtype* top_diff,
     const int num, const int channels, const int height,
     const int width, const int pooled_height, const int pooled_width,

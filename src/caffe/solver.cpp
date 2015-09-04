@@ -780,7 +780,7 @@ void AdaGradSolver<Dtype>::ComputeUpdateValue(int param_id, Dtype rate) {
         this->update_[param_id]->mutable_gpu_data());
 
     // update history
-    caffe_gpu_add(add_kernel, net_params[param_id]->count(),
+    caffe_gpu_add(net_params[param_id]->count(),
         this->update_[param_id]->gpu_data(),
         this->history_[param_id]->gpu_data(),
         this->history_[param_id]->mutable_gpu_data());

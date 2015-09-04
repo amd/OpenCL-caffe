@@ -49,13 +49,22 @@ template <class T>
 __kernel void caffe_gpu_sign(const int N, __global T* X, __global T* Y){
      int gdx = get_global_id(0);
      if(gdx < N){
-          Y[gdx] =((0.0<X[gdx])-(X[gdx]<0.0));
+          Y[gdx] =((X[gdx]>0.0)-(X[gdx]<0.0));
      }
 }
 
 template __attribute__((mangled_name(caffe_gpu_sign_float))) __kernel void caffe_gpu_sign(const int N, __global float* X, __global float* Y);
 template __attribute__((mangled_name(caffe_gpu_sign_double))) __kernel void caffe_gpu_sign(const int N, __global double* X, __global double* Y);
 
+template <class T>
+__kernel void caffe_gpu_abs(const int n, __global T* a, __global T* y) {
+    int index = get_global_id(0);
+    if(index < n) {
+        y[index] = fabs(a[index]);
+    }
+}
+template __attribute__((mangled_name(caffe_gpu_abs_float))) __kernel void caffe_gpu_abs(const int n, __global float* a, __global float* Y);
+template __attribute__((mangled_name(caffe_gpu_abs_double))) __kernel void caffe_gpu_abs(const int n, __global double* a, __global double* Y);
 
 template <class T>
 __kernel void get_max(const int num, const int dim, __global T* data, __global T* out){
