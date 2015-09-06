@@ -72,7 +72,7 @@ public:
     cl_kernel GetKernel(std::string kernel_name);    
     void ReleaseKernels();
 };
-extern char* buildOption;
+extern std::string buildOption;
 extern Device amdDevice;
 
 }  // namespace caffe

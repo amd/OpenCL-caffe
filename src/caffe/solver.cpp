@@ -229,7 +229,7 @@ void Solver<Dtype>::Step(int iters) {
       losses[idx] = loss;
       printf("smoothed_loss = %f, losses[idx] = %f, idx = %d\n", smoothed_loss, losses[idx], idx);
     }
-       printf("smoothed_loss = %f, ave_loss = %d, losses.size() = %d \n", smoothed_loss,average_loss, losses.size());
+      printf("smoothed_loss = %f, ave_loss = %d, losses.size() = %lu \n", smoothed_loss,average_loss, losses.size());
     if (display) {
       LOG(INFO) << "Iteration " << iter_ << ", loss = " << smoothed_loss;
       const vector<Blob<Dtype>*>& result = net_->output_blobs();

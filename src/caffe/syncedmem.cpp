@@ -48,16 +48,6 @@ if (cpu_ptr_ && own_cpu_data_) {
   }
 
   clReleaseKernel(oclmem_kernel);
-/*  if (cpu_ptr_ && own_cpu_data_) {
-    CaffeFreeHost(cpu_ptr_);
-  }
-
-#ifndef CPU_ONLY
-  if (gpu_ptr_) {
-    CUDA_CHECK(cudaFree(gpu_ptr_));
-  }
-#endif  // CPU_ONLY
-*/
 }	
 
 void SyncedMemory::ocl_setup() {
@@ -69,13 +59,7 @@ void SyncedMemory::ocl_setup() {
 inline void SyncedMemory::to_cpu() {
 switch (head_) {
   case UNINITIALIZED:
-    //allocate pre-pinned memory
-    //pinned_buffer_ptr_
-   // if(data_layer_){
-   // gpu_cache_ptr_ = clCreateBuffer(amdDevice.Context, CL_MEM_USE_PERSISTENT_MEM_AMD, size_, NULL, NULL);
-   // }
-   // else{
-      gpu_cache_ptr_ = clCreateBuffer(amdDevice.Context, CL_MEM_ALLOC_HOST_PTR, size_, NULL, NULL);
+    gpu_cache_ptr_ = clCreateBuffer(amdDevice.Context, CL_MEM_ALLOC_HOST_PTR, size_, NULL, NULL);
     //}
     cpu_ptr_ = clEnqueueMapBuffer(amdDevice.CommandQueue, (cl_mem)gpu_cache_ptr_, CL_TRUE, CL_MAP_READ | CL_MAP_WRITE, 0, size_, 0, NULL, NULL, NULL);
     memset(cpu_ptr_, 0, size_);
@@ -151,17 +135,6 @@ const void* SyncedMemory::cpu_data() {
 }
 
 void SyncedMemory::set_cpu_data(void* data) {
-/*CHECK(data);
-  if (own_cpu_data_) {
-  OCL_CHECK( clEnqueueUnmapMemObject(amdDevice.CommandQueue, (cl_mem) gpu_cache_ptr_, cpu_ptr_, 0, NULL, NULL));
-  OCL_CHECK( clReleaseMemObject((cl_mem) gpu_cache_ptr_));
-  clFinish(amdDevice.CommandQueue); //is this necessary?
-  }
-  gpu_cache_ptr_ = clCreateBuffer(amdDevice.Context, CL_MEM_USE_HOST_PTR, size_, data, NULL);
-  cpu_ptr_ = clEnqueueMapBuffer(amdDevice.CommandQueue, (cl_mem)gpu_cache_ptr_, CL_TRUE, CL_MAP_READ | CL_MAP_WRITE, 0, size_, 0, NULL, NULL, NULL);
-  head_ = HEAD_AT_CPU;
-  own_cpu_data_ = false;
-*/
   CHECK(data);
   if (own_cpu_data_) {
     CaffeFreeHost(cpu_ptr_);
@@ -196,8 +169,10 @@ void* SyncedMemory::mutable_gpu_data() {
 #endif
 }
 
-const void *SyncedMemory::gpu_cache_data()
-{
+const void *SyncedMemory::gpu_cache_data() {
+  return 0;
 }
+
+
 }  // namespace caffe
 

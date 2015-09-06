@@ -33,7 +33,7 @@
 #include <dirent.h>
 
 namespace caffe {
-char* buildOption = "-x clc++ ";
+string buildOption = "-x clc++ ";
 std::string oclKernelPath = "./src/caffe/ocl/";
 Device amdDevice;
 
@@ -148,7 +148,7 @@ void Device::BuildProgram(std::string kernel_dir)
     if(NULL == Program){
         fprintf(stderr,"Err: Failed to create program\n");
     }
-    cl_int iStatus = clBuildProgram(Program, 1, pDevices, buildOption, NULL, NULL);
+    cl_int iStatus = clBuildProgram(Program, 1, pDevices, buildOption.c_str(), NULL, NULL);
     LOG(INFO) << "Build Program";
     if(CL_SUCCESS != iStatus){
         fprintf(stderr,"Err: Failed to build program\n");
