@@ -167,7 +167,7 @@ __kernel void kernel_add_scalar(const int count, const T data, __global T* out) 
 }
 
 template __attribute__ ((mangled_name(kernel_add_scalar_float))) __kernel void kernel_add_scalar(const int count, const float data, __global float* out);
-template __attribute__ ((mangled_name(kernel_add_scalar__double))) __kernel void kernel_add_scalar(const int count, const double data, __global double* out);
+template __attribute__ ((mangled_name(kernel_add_scalar_double))) __kernel void kernel_add_scalar(const int count, const double data, __global double* out);
 
 template <class T>
 __kernel void kernel_log(const int count, __global const T* data, __global T* out) {

@@ -152,7 +152,6 @@ void SoftmaxWithLossLayer<Dtype>::Forward_gpu(
        outer_num_, dim, inner_num_, has_ignore_label_, ignore_label_, counts);
   Dtype loss;
   caffe_gpu_asum(nthreads, loss_data, &loss);
-  printf("loss = %f\n", loss);
   if (normalize_) {
     Dtype count;
     caffe_gpu_asum(nthreads, counts, &count);
@@ -160,6 +159,7 @@ void SoftmaxWithLossLayer<Dtype>::Forward_gpu(
   } else {
     loss /= outer_num_;
   }
+  printf("loss = %f\n", loss);
   top[0]->mutable_cpu_data()[0] = loss;
   if (top.size() == 2) {
     top[1]->ShareData(prob_);

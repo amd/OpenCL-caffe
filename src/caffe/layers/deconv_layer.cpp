@@ -77,11 +77,12 @@ void DeconvolutionLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
     const Dtype* bottom_data = bottom[i]->gpu_data();
     Dtype* top_data = top[i]->mutable_gpu_data();
     for (int n = 0; n < this->num_; ++n) {
-      this->backward_gpu_gemm(bottom_data + bottom[i]->offset(n), weight,
-          top_data + top[i]->offset(n));
+      this->bottom_offset_ = bottom[i]->offset(n);
+      this->top_offset_ = top[i]->offset(n);
+      this->backward_gpu_gemm(bottom_data, weight, top_data);
       if (this->bias_term_) {
         const Dtype* bias = this->blobs_[1]->gpu_data();
-        this->forward_gpu_bias(top_data + top[i]->offset(n), bias);
+        this->forward_gpu_bias(top_data, bias);
       }
     }
   }
@@ -100,11 +101,15 @@ void DeconvolutionLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
     if (this->bias_term_ && this->param_propagate_down_[1]) {
       Dtype* bias_diff = this->blobs_[1]->mutable_gpu_diff();
       for (int n = 0; n < this->num_; ++n) {
+        this->top_offset_ = top[i]->offset(n);
+        this->bottom_offset_ = bottom[i]->offset(n);
         this->backward_gpu_bias(bias_diff, top_diff + top[i]->offset(n));
       }
     }
     if (this->param_propagate_down_[0] || propagate_down[i]) {
       for (int n = 0; n < this->num_; ++n) {
+        this->top_offset_ = top[i]->offset(n);
+        this->bottom_offset_ = bottom[i]->offset(n);
         // gradient w.r.t. weight. Note that we will accumulate diffs.
         if (this->param_propagate_down_[0]) {
           this->weight_gpu_gemm(top_diff + top[i]->offset(n),

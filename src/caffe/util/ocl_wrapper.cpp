@@ -966,8 +966,8 @@ void LRNFillScale(cl_kernel LFSkernel, const int nthreads, const Dtype* const in
   ret|=clSetKernelArg(LFSkernel,4,sizeof(cl_int),(void*)&height);
   ret|=clSetKernelArg(LFSkernel,5,sizeof(cl_int),(void*)&width);
   ret|=clSetKernelArg(LFSkernel,6,sizeof(cl_int),(void*)&size);
-  ret|=clSetKernelArg(LFSkernel,7,sizeof(cl_float),(void*)&alpha_over_size);
-  ret|=clSetKernelArg(LFSkernel,8,sizeof(cl_float),(void*)&k);
+  ret|=clSetKernelArg(LFSkernel,7,sizeof(Dtype),(void*)&alpha_over_size);
+  ret|=clSetKernelArg(LFSkernel,8,sizeof(Dtype),(void*)&k);
   ret|=clSetKernelArg(LFSkernel,9,sizeof(cl_mem),(void*)&scale);
   OCL_CHECK(ret);
   size_t uiGlobal_Work_Size[]={(size_t)nthreads};
@@ -990,7 +990,7 @@ void LRNComputeOutput(cl_kernel LCOkernel, int nthreads, const Dtype* in,
   ret=clSetKernelArg(LCOkernel,0,sizeof(cl_int),(void*)&nthreads);
   ret|=clSetKernelArg(LCOkernel,1,sizeof(cl_mem),(void*)&in);
   ret|=clSetKernelArg(LCOkernel,2,sizeof(cl_mem),(void*)&scale);
-  ret|=clSetKernelArg(LCOkernel,3,sizeof(cl_float),(void*)&negative_beta);
+  ret|=clSetKernelArg(LCOkernel,3,sizeof(Dtype),(void*)&negative_beta);
   ret|=clSetKernelArg(LCOkernel,4,sizeof(cl_mem),(void*)&out);
   OCL_CHECK(ret);
   size_t uiGlobal_Work_Size2[]={(size_t)nthreads};
@@ -1020,8 +1020,8 @@ void LRNComputeDiff(cl_kernel LCDkernel, const int nthreads,
   ret|=clSetKernelArg(LCDkernel,7,sizeof(cl_int),(void*)&height);
   ret|=clSetKernelArg(LCDkernel,8,sizeof(cl_int),(void*)&width);
   ret|=clSetKernelArg(LCDkernel,9,sizeof(cl_int),(void*)&size);
-  ret|=clSetKernelArg(LCDkernel,10,sizeof(cl_float),(void*)&negative_beta);
-  ret|=clSetKernelArg(LCDkernel,11,sizeof(cl_float),(void*)&cache_ratio);
+  ret|=clSetKernelArg(LCDkernel,10,sizeof(Dtype),(void*)&negative_beta);
+  ret|=clSetKernelArg(LCDkernel,11,sizeof(Dtype),(void*)&cache_ratio);
   ret|=clSetKernelArg(LCDkernel,12,sizeof(cl_mem),(void*)&bottom_diff);
   OCL_CHECK(ret);
   size_t uiGlobal_Work_Size[]={(size_t)nthreads};
@@ -1117,7 +1117,7 @@ void caffe_gpu_add_scalar(const int n, const Dtype alpha, Dtype* top_data){
     cl_kernel Kernel = amdDevice.GetKernel(kernel_name);
     cl_int ret;
     ret  = clSetKernelArg(Kernel, 0, sizeof(cl_int), (void*)&n);
-    ret |= clSetKernelArg(Kernel, 1, sizeof(cl_float), (void*)&alpha);
+    ret |= clSetKernelArg(Kernel, 1, sizeof(Dtype), (void*)&alpha);
     ret |= clSetKernelArg(Kernel, 2, sizeof(cl_mem), (void*)&top_data);
     OCL_CHECK(ret);
     size_t Global_Work_Size[] = {(size_t)n};
@@ -1175,7 +1175,7 @@ void DropoutForward(const int count, const Dtype* bottom_data, const int* MaskMe
     ret=clSetKernelArg(kernel,0,sizeof(cl_int),(void*)&count);
     ret|=clSetKernelArg(kernel,1,sizeof(cl_mem),(void*)&bottom_data);
     ret|=clSetKernelArg(kernel,2,sizeof(cl_mem),(void*)&MaskMem);
-    ret|=clSetKernelArg(kernel,3,sizeof(cl_float),(void*)&scale_);
+    ret|=clSetKernelArg(kernel,3,sizeof(Dtype),(void*)&scale_);
     ret|=clSetKernelArg(kernel,4,sizeof(cl_mem),(void*)&top_data);
     OCL_CHECK(ret);
 
@@ -1198,7 +1198,7 @@ void DropoutBackward(const int count, const Dtype* top_diff, const int* MaskMem,
     ret |= clSetKernelArg(kernel,1,sizeof(cl_mem),  (void*)&top_diff);
     ret |= clSetKernelArg(kernel,2,sizeof(cl_mem),  (void*)&MaskMem);
     ret |= clSetKernelArg(kernel,3,sizeof(cl_int),  (void*)&threshold_);
-    ret |= clSetKernelArg(kernel,4,sizeof(cl_float),(void*)&scale_);
+    ret |= clSetKernelArg(kernel,4,sizeof(Dtype),(void*)&scale_);
     ret |= clSetKernelArg(kernel,5,sizeof(cl_mem),  (void*)&bottom_diff);
     OCL_CHECK(ret);
 
@@ -1263,10 +1263,10 @@ void  Concat(const int nthreads, const Dtype* in_data, const bool forward, const
     ret |= clSetKernelArg(kernel, 2, sizeof(cl_bool),  (void*)&forward);
     ret |= clSetKernelArg(kernel, 3, sizeof(cl_int),  (void*)&num_concats);
     ret |= clSetKernelArg(kernel, 4, sizeof(cl_int),  (void*)&concat_size);
-    ret |= clSetKernelArg(kernel, 5, sizeof(cl_mem),  (void*)&top_concat_axis);
-    ret |= clSetKernelArg(kernel, 6, sizeof(cl_mem),  (void*)&bottom_concat_axis); 
-    ret |= clSetKernelArg(kernel, 7, sizeof(cl_mem),  (void*)&offset_concat_axis);
-    ret |= clSetKernelArg(kernel, 8, sizeof(cl_int),  (void*)&out_data);
+    ret |= clSetKernelArg(kernel, 5, sizeof(cl_int),  (void*)&top_concat_axis);
+    ret |= clSetKernelArg(kernel, 6, sizeof(cl_int),  (void*)&bottom_concat_axis); 
+    ret |= clSetKernelArg(kernel, 7, sizeof(cl_int),  (void*)&offset_concat_axis);
+    ret |= clSetKernelArg(kernel, 8, sizeof(cl_mem),  (void*)&out_data);
     OCL_CHECK(ret);
 
     size_t Global_Work_Size[] = {(size_t)nthreads};

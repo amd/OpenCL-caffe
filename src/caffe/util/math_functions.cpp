@@ -544,6 +544,12 @@ double caffe_cpu_dot<double>(const int n, const double* x, const double* y) {
 template <>
 void caffe_gpu_dot<float>(const int n, const float* x, const float* y,
     float* out) {
+    cl_mem scratchBuff = clCreateBuffer(amdDevice.Context, CL_MEM_READ_WRITE, (n*sizeof(float)), NULL, NULL);
+    cl_mem d_out = clCreateBuffer(amdDevice.Context, CL_MEM_READ_WRITE, (1*sizeof(float)), NULL, NULL);
+    clblasDdot(n,d_out,0,(cl_mem)x,0,1,(cl_mem)y, 0, 1, scratchBuff,1,&(amdDevice.CommandQueue),0,NULL,NULL);
+    clEnqueueReadBuffer(amdDevice.CommandQueue, d_out, CL_TRUE, 0, sizeof(float), out,0, NULL, NULL);
+    clReleaseMemObject(scratchBuff);
+    clReleaseMemObject(d_out);
 }
 
 template <>
@@ -551,6 +557,12 @@ void caffe_gpu_dot<double>(const int n, const double* x, const double* y,
     double * out) {
   //need to pass in scratchBuff
   //AMDBLAS_CHECK(clAmdBlasDdot(n, out, 0, x, 0, 1, y, 0, 1, scratch_buf, 1, &(amdDevice.CommandQueue), 0, NULL, NULL));
+    cl_mem scratchBuff = clCreateBuffer(amdDevice.Context, CL_MEM_READ_WRITE, (n*sizeof(double)), NULL, NULL);
+    cl_mem d_out = clCreateBuffer(amdDevice.Context, CL_MEM_READ_WRITE, (1*sizeof(double)), NULL, NULL);
+    clblasDdot(n,d_out,0,(cl_mem)x,0,1,(cl_mem)y, 0, 1, scratchBuff,1,&(amdDevice.CommandQueue),0,NULL,NULL);
+    clEnqueueReadBuffer(amdDevice.CommandQueue, d_out, CL_TRUE, 0, sizeof(double), out,0, NULL, NULL);
+    clReleaseMemObject(scratchBuff);
+    clReleaseMemObject(d_out);
 }
 
 template <>
@@ -597,6 +609,12 @@ void caffe_gpu_asum<float>(const int n, const float* x, float* y) {
 
 template <>
 void caffe_gpu_asum<double>(const int n, const double* x, double* y) {
+    cl_mem scratchBuff = clCreateBuffer(amdDevice.Context, CL_MEM_READ_WRITE, (n*sizeof(cl_double)), NULL, NULL);
+    cl_mem d_y = clCreateBuffer(amdDevice.Context, CL_MEM_READ_WRITE, (1*sizeof(cl_double)), NULL, NULL);
+    clblasDasum(n,d_y,0,(cl_mem)x,0,1,scratchBuff,1,&(amdDevice.CommandQueue),0,NULL,NULL);
+    clEnqueueReadBuffer(amdDevice.CommandQueue, d_y, CL_TRUE, 0, sizeof(double), y,0, NULL, NULL);
+    clReleaseMemObject(scratchBuff);
+    clReleaseMemObject(d_y);
 }
 
 //DEFINE_AND_INSTANTIATE_GPU_UNARY_FUNC(sign, y[index] = (Dtype(0) < x[index])

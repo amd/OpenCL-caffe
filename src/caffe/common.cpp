@@ -104,6 +104,8 @@ Caffe::~Caffe() {
 }
 
 void Caffe::set_random_seed(const unsigned int seed) {
+  // RNG seed
+  Get().random_generator_.reset(new RNG(seed));
 }
 
 void Caffe::SetDevice(const int device_id) {
