@@ -223,6 +223,31 @@ void caffe_gpu_powx (const int n, const Dtype* a, const Dtype alpha, Dtype* y);
 
 template <typename Dtype>
 void caffe_gpu_mul (const int n, const Dtype* a, const Dtype* b, Dtype* y);
+
+template <typename Dtype>
+void  BNLLForward(const int count, const Dtype* bottom_data, Dtype *top_data);
+
+template <typename Dtype>
+void  BNLLBackward(const int count, const Dtype* top_diff, const Dtype* bottom_data, Dtype *bottom_diff);
+
+template <typename Dtype>
+void  Concat(const int nthreads, const Dtype* in_data, const bool forward, const int num_concats, const int  concat_size,
+        const int top_concat_axis, const int bottom_concat_axis, const int offset_concat_axis, Dtype *out_data);
+
+template <typename Dtype>
+void CLLBackward(const int count, const int channels,
+    const Dtype margin, const bool legacy_version, const Dtype alpha,
+    const Dtype* y, const Dtype* diff, const Dtype* dist_sq,
+    Dtype *bottom_diff);
+
+template <typename Dtype>
+void MaxForward(const int nthreads, const Dtype* bottom_data_a,
+    const Dtype* bottom_data_b, const int blob_idx, Dtype* top_data,
+    int* mask);
+
+template <typename Dtype>
+void MaxBackward(const int nthreads, const Dtype* top_diff,
+    const int blob_idx, const int* mask, Dtype* bottom_diff);
 }
 #endif  // CAFFE_UTIL_OCL_UTIL_HPP_
   // namespace caffe

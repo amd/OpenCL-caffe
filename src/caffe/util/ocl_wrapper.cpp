@@ -1209,11 +1209,166 @@ void DropoutBackward(const int count, const Dtype* top_diff, const int* MaskMem,
 template void DropoutBackward<float>(const int count, const float* top_diff, const int* MaskMem, const float threshold_, const float scale_, float* bottom_diff);
 template void DropoutBackward<double>(const int count, const double* top_diff, const int* MaskMem, const float threshold_, const double scale_, double* bottom_diff);
 
+
+template <typename Dtype>
+void  BNLLForward(const int count, const Dtype* bottom_data, Dtype *top_data)
+{
+    std::string kernel_name = "BNLLForward" + get_dtype_suffix<Dtype>();
+    cl_kernel kernel = amdDevice.GetKernel(kernel_name);
+
+    cl_int ret;
+    ret = clSetKernelArg(kernel, 0,sizeof(cl_int),  (void*)&count);
+    ret |= clSetKernelArg(kernel,1,sizeof(cl_mem),  (void*)&bottom_data);
+    ret |= clSetKernelArg(kernel,2,sizeof(cl_mem),  (void*)&top_data);
+    OCL_CHECK(ret);
+
+    size_t Global_Work_Size[] = {(size_t)count};
+    size_t Local_Work_Size[] = {256};
+    OCL_CHECK(clEnqueueNDRangeKernel(amdDevice.CommandQueue, kernel, 1, NULL, Global_Work_Size, Local_Work_Size, 0, NULL, NULL));
+}
+template void  BNLLForward<float>(const int count, const float* bottom_data, float *top_data);
+template void  BNLLForward<double>(const int count, const double* bottom_data, double *top_data);
+
+template <typename Dtype>
+void  BNLLBackward(const int count, const Dtype* top_diff, const Dtype* bottom_data, Dtype *bottom_diff)
+{
+    std::string kernel_name = "BNLLBackward" + get_dtype_suffix<Dtype>();
+    cl_kernel kernel = amdDevice.GetKernel(kernel_name);
+
+    cl_int ret;
+    ret = clSetKernelArg(kernel, 0,sizeof(cl_int),  (void*)&count);
+    ret |= clSetKernelArg(kernel,1,sizeof(cl_mem),  (void*)&top_diff);
+    ret |= clSetKernelArg(kernel,2,sizeof(cl_mem),  (void*)&bottom_data);
+    ret |= clSetKernelArg(kernel,3,sizeof(cl_mem),  (void*)&bottom_diff);
+    OCL_CHECK(ret);
+
+    size_t Global_Work_Size[] = {(size_t)count};
+    size_t Local_Work_Size[] = {256};
+    OCL_CHECK(clEnqueueNDRangeKernel(amdDevice.CommandQueue, kernel, 1, NULL, Global_Work_Size, Local_Work_Size, 0, NULL, NULL));
+}
+template void  BNLLBackward<float>(const int count, const float* top_diff, const float* bottom_data, float *bottom_diff);
+template void  BNLLBackward<double>(const int count, const double* top_diff, const double* bottom_data, double *bottom_diff);
+
+
+template <typename Dtype>
+void  Concat(const int nthreads, const Dtype* in_data, const bool forward, const int num_concats, const int  concat_size,
+        const int top_concat_axis, const int bottom_concat_axis, const int offset_concat_axis, Dtype *out_data)
+{
+    std::string kernel_name = "Concat" + get_dtype_suffix<Dtype>();
+    cl_kernel kernel = amdDevice.GetKernel(kernel_name);
+
+    cl_int ret;
+    ret = clSetKernelArg(kernel,  0, sizeof(cl_int),  (void*)&nthreads);
+    ret |= clSetKernelArg(kernel, 1, sizeof(cl_mem),  (void*)&in_data);
+    ret |= clSetKernelArg(kernel, 2, sizeof(cl_bool),  (void*)&forward);
+    ret |= clSetKernelArg(kernel, 3, sizeof(cl_int),  (void*)&num_concats);
+    ret |= clSetKernelArg(kernel, 4, sizeof(cl_int),  (void*)&concat_size);
+    ret |= clSetKernelArg(kernel, 5, sizeof(cl_mem),  (void*)&top_concat_axis);
+    ret |= clSetKernelArg(kernel, 6, sizeof(cl_mem),  (void*)&bottom_concat_axis); 
+    ret |= clSetKernelArg(kernel, 7, sizeof(cl_mem),  (void*)&offset_concat_axis);
+    ret |= clSetKernelArg(kernel, 8, sizeof(cl_int),  (void*)&out_data);
+    OCL_CHECK(ret);
+
+    size_t Global_Work_Size[] = {(size_t)nthreads};
+    size_t Local_Work_Size[] = {256};
+    OCL_CHECK(clEnqueueNDRangeKernel(amdDevice.CommandQueue, kernel, 1, NULL, Global_Work_Size, Local_Work_Size, 0, NULL, NULL));
+}
+template void  Concat<float>(const int nthreads, const float* in_data, const bool forward, const int num_concats, const int  concat_size,
+        const int top_concat_axis, const int bottom_concat_axis, const int offset_concat_axis, float *out_data);
+template void  Concat<double>(const int nthreads, const double* in_data, const bool forward, const int num_concats, const int  concat_size,
+        const int top_concat_axis, const int bottom_concat_axis, const int offset_concat_axis, double *out_data);
+
+template <typename Dtype>
+void CLLBackward(const int count, const int channels,
+    const Dtype margin, const bool legacy_version, const Dtype alpha,
+    const Dtype* y, const Dtype* diff, const Dtype* dist_sq,
+    Dtype *bottom_diff)
+{
+    std::string kernel_name = "CLLBackward" + get_dtype_suffix<Dtype>();
+    cl_kernel kernel = amdDevice.GetKernel(kernel_name);
+
+    cl_int ret;
+    ret = clSetKernelArg(kernel,  0, sizeof(cl_int),  (void*)&count);
+    ret |= clSetKernelArg(kernel, 1, sizeof(cl_int),  (void*)&channels);
+    ret |= clSetKernelArg(kernel, 2, sizeof(Dtype),   (void*)&margin);
+    ret |= clSetKernelArg(kernel, 3, sizeof(cl_bool),  (void*)&legacy_version);
+    ret |= clSetKernelArg(kernel, 4, sizeof(Dtype),   (void*)&alpha);
+    ret |= clSetKernelArg(kernel, 5, sizeof(cl_mem),  (void*)&y);
+    ret |= clSetKernelArg(kernel, 6, sizeof(cl_mem),  (void*)&diff);
+    ret |= clSetKernelArg(kernel, 7, sizeof(cl_mem),  (void*)&dist_sq);
+    ret |= clSetKernelArg(kernel, 8, sizeof(cl_mem),  (void*)&bottom_diff);
+    OCL_CHECK(ret);
+
+    size_t Global_Work_Size[] = {(size_t)count};
+    size_t Local_Work_Size[] = {256};
+    OCL_CHECK(clEnqueueNDRangeKernel(amdDevice.CommandQueue, kernel, 1, NULL, Global_Work_Size, Local_Work_Size, 0, NULL, NULL));
+}
+template void CLLBackward<float>(const int count, const int channels,
+    const float margin, const bool legacy_version, const float alpha,
+    const float* y, const float* diff, const float* dist_sq,
+    float *bottom_diff);
+template void CLLBackward<double>(const int count, const int channels,
+    const double margin, const bool legacy_version, const double alpha,
+    const double* y, const double* diff, const double* dist_sq,
+    double *bottom_diff);
+
+template <typename Dtype>
+void MaxForward(const int nthreads, const Dtype* bottom_data_a,
+    const Dtype* bottom_data_b, const int blob_idx, Dtype* top_data,
+    int* mask)
+{
+    std::string kernel_name = "MaxForward" + get_dtype_suffix<Dtype>();
+    cl_kernel kernel = amdDevice.GetKernel(kernel_name);
+
+    cl_int ret;
+    ret = clSetKernelArg(kernel,  0, sizeof(cl_int),  (void*)&nthreads);
+    ret |= clSetKernelArg(kernel, 1, sizeof(cl_mem),  (void*)&bottom_data_a);
+    ret |= clSetKernelArg(kernel, 2, sizeof(cl_mem),  (void*)&bottom_data_b);
+    ret |= clSetKernelArg(kernel, 3, sizeof(cl_int),  (void*)&blob_idx);
+    ret |= clSetKernelArg(kernel, 4, sizeof(cl_mem),  (void*)&top_data);
+    ret |= clSetKernelArg(kernel, 5, sizeof(cl_mem),  (void*)&mask);
+    OCL_CHECK(ret);
+
+    size_t Global_Work_Size[] = {(size_t)nthreads};
+    size_t Local_Work_Size[] = {256};
+    OCL_CHECK(clEnqueueNDRangeKernel(amdDevice.CommandQueue, kernel, 1, NULL, Global_Work_Size, Local_Work_Size, 0, NULL, NULL));
+}
+template void MaxForward<float>(const int nthreads, const float* bottom_data_a,
+    const float* bottom_data_b, const int blob_idx, float* top_data,
+    int* mask);
+template void MaxForward<double>(const int nthreads, const double* bottom_data_a,
+    const double* bottom_data_b, const int blob_idx, double* top_data,
+    int* mask);
+
+template <typename Dtype>
+void MaxBackward(const int nthreads, const Dtype* top_diff,
+    const int blob_idx, const int* mask, Dtype* bottom_diff)
+{
+    std::string kernel_name = "MaxBackward" + get_dtype_suffix<Dtype>();
+    cl_kernel kernel = amdDevice.GetKernel(kernel_name);
+
+    cl_int ret;
+    ret = clSetKernelArg(kernel,  0, sizeof(cl_int),  (void*)&nthreads);
+    ret |= clSetKernelArg(kernel, 1, sizeof(cl_mem),  (void*)&top_diff);
+    ret |= clSetKernelArg(kernel, 2, sizeof(cl_int),  (void*)&blob_idx);
+    ret |= clSetKernelArg(kernel, 3, sizeof(cl_mem),  (void*)&mask);
+    ret |= clSetKernelArg(kernel, 4, sizeof(cl_mem),  (void*)&bottom_diff);
+    OCL_CHECK(ret);
+
+    size_t Global_Work_Size[] = {(size_t)nthreads};
+    size_t Local_Work_Size[] = {256};
+    OCL_CHECK(clEnqueueNDRangeKernel(amdDevice.CommandQueue, kernel, 1, NULL, Global_Work_Size, Local_Work_Size, 0, NULL, NULL));
+}
+template void MaxBackward<float>(const int nthreads, const float* top_diff, const int blob_idx, const int* mask, float* bottom_diff);
+template void MaxBackward<double>(const int nthreads, const double* top_diff, const int blob_idx, const int* mask, double* bottom_diff);
+
+
 template <typename Dtype>
 void ocl_conv(Dtype* bottom_data, Dtype* top_data, Dtype* weights, Dtype* bias, int channel_in, int width, int height, int channel_out, int width_out, int height_out, int kernel_w, int kernel_h, int stride, int pad, int batch_sz)
 {
 }
 template void ocl_conv<float>(float* bottom_data, float* top_data, float* weights, float* bias, int channel_in, int width, int height, int channel_out, int width_out, int height_out, int kernel_w, int kernel_h, int stride, int pad, int batch_sz);
 template void ocl_conv<double>(double* bottom_data, double* top_data, double* weights, double* bias, int channel_in, int width, int height, int channel_out, int width_out, int height_out, int kernel_w, int kernel_h, int stride, int pad, int batch_sz);
+
 
 }  // namespace caffe
