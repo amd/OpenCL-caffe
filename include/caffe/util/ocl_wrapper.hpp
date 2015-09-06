@@ -147,6 +147,27 @@ void kernel_channel_subtract(const int count,
     const int spatial_dim, const Dtype* channel_max, Dtype* data);
 
 template <typename Dtype>
+void kernel_powx(const int count, const Dtype* data, const Dtype alpha, Dtype* out);
+
+template <typename Dtype>
+void kernel_div(const int count, const Dtype* a, const Dtype* b, Dtype* out);
+
+template <typename Dtype>
+void kernel_add(const int count, const Dtype* a, const Dtype* b, Dtype* out);
+
+template <typename Dtype>
+void kernel_mul(const int count, const Dtype* a, const Dtype* b, Dtype* out);
+
+template <typename Dtype>
+void kernel_log(const int count, const Dtype* data, Dtype* out);
+
+template <typename Dtype>
+void kernel_sub(const int count, const Dtype* a, const Dtype* b, Dtype* out);
+
+template <typename Dtype>
+void kernel_add_scalar(const int count, const Dtype data, Dtype* out);
+
+template <typename Dtype>
 void kernel_exp(const int count, const Dtype* data, Dtype* out);
 
 template <typename Dtype>

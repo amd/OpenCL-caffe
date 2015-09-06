@@ -206,6 +206,139 @@ template void kernel_channel_subtract<double>( const int count,
     const int spatial_dim, const double* channel_max, double* data);
 
 template <typename Dtype>
+void kernel_mul(const int count, const Dtype* a, const Dtype* b, Dtype* out)
+{
+    std::string kernel_name = "kernel_mul" + get_dtype_suffix<Dtype>();
+    cl_kernel Kernel = amdDevice.GetKernel(kernel_name);
+
+    OCL_CHECK( clSetKernelArg(Kernel, 0, sizeof(cl_int), (void*)&count) );
+    OCL_CHECK( clSetKernelArg(Kernel, 1, sizeof(cl_mem), (void*)&a) );
+    OCL_CHECK( clSetKernelArg(Kernel, 2, sizeof(cl_mem), (void*)&b) );
+    OCL_CHECK( clSetKernelArg(Kernel, 3, sizeof(cl_mem), (void*)&out) );
+
+    size_t Global_Work_Size[1] = {(size_t)count};
+    size_t Local_Work_Size[1] = {256};
+    OCL_CHECK( clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, Global_Work_Size, Local_Work_Size, 0, NULL, NULL) );
+}
+
+template void kernel_mul<float>(const int count, const float* a, const float* b, float* out);
+template void kernel_mul<double>(const int count, const double* a, const double* b, double* out);
+
+template <typename Dtype>
+void kernel_add_scalar(const int count, const Dtype data, Dtype* out)
+{
+    std::string kernel_name = "kernel_add_scalar" + get_dtype_suffix<Dtype>();
+    cl_kernel Kernel = amdDevice.GetKernel(kernel_name);
+
+    OCL_CHECK( clSetKernelArg(Kernel, 0, sizeof(cl_int), (void*)&count) );
+    OCL_CHECK( clSetKernelArg(Kernel, 1, sizeof(Dtype), (void*)&data) );
+    OCL_CHECK( clSetKernelArg(Kernel, 2, sizeof(cl_mem), (void*)&out) );
+
+    size_t Global_Work_Size[1] = {(size_t)count};
+    size_t Local_Work_Size[1] = {256};
+    OCL_CHECK( clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, Global_Work_Size, Local_Work_Size, 0, NULL, NULL) );
+}
+
+template void kernel_add_scalar<float>(const int count, const float data, float* out);
+template void kernel_add_scalar<double>(const int count, const double data, double* out);
+
+
+template <typename Dtype>
+void kernel_powx(const int count, const Dtype* data, const Dtype alpha, Dtype* out)
+{
+    std::string kernel_name = "kernel_powx" + get_dtype_suffix<Dtype>();
+    cl_kernel Kernel = amdDevice.GetKernel(kernel_name);
+
+    OCL_CHECK( clSetKernelArg(Kernel, 0, sizeof(cl_int), (void*)&count) );
+    OCL_CHECK( clSetKernelArg(Kernel, 1, sizeof(cl_mem), (void*)&data) );
+    OCL_CHECK( clSetKernelArg(Kernel, 2, sizeof(Dtype), (void*)&alpha) );
+    OCL_CHECK( clSetKernelArg(Kernel, 3, sizeof(cl_mem), (void*)&out) );
+
+    size_t Global_Work_Size[1] = {(size_t)count};
+    size_t Local_Work_Size[1] = {256};
+    OCL_CHECK( clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, Global_Work_Size, Local_Work_Size, 0, NULL, NULL) );
+}
+
+template void kernel_powx<float>(const int count, const float* data, const float alpha, float* out);
+template void kernel_powx<double>(const int count, const double* data, const double alpha, double* out);
+
+template <typename Dtype>
+void kernel_div(const int count, const Dtype* a, const Dtype* b, Dtype* out)
+{
+    std::string kernel_name = "kernel_div" + get_dtype_suffix<Dtype>();
+    cl_kernel Kernel = amdDevice.GetKernel(kernel_name);
+
+    OCL_CHECK( clSetKernelArg(Kernel, 0, sizeof(cl_int), (void*)&count) );
+    OCL_CHECK( clSetKernelArg(Kernel, 1, sizeof(cl_mem), (void*)&a) );
+    OCL_CHECK( clSetKernelArg(Kernel, 2, sizeof(cl_mem), (void*)&b) );
+    OCL_CHECK( clSetKernelArg(Kernel, 3, sizeof(cl_mem), (void*)&out) );
+
+    size_t Global_Work_Size[1] = {(size_t)count};
+    size_t Local_Work_Size[1] = {256};
+    OCL_CHECK( clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, Global_Work_Size, Local_Work_Size, 0, NULL, NULL) );
+}
+
+template void kernel_div<float>(const int count, const float* a, const float* b, float* out);
+template void kernel_div<double>(const int count, const double* a, const double* b, double* out);
+
+template <typename Dtype>
+void kernel_add(const int count, const Dtype* a, const Dtype* b, Dtype* out)
+{
+    std::string kernel_name = "kernel_add" + get_dtype_suffix<Dtype>();
+    cl_kernel Kernel = amdDevice.GetKernel(kernel_name);
+
+    OCL_CHECK( clSetKernelArg(Kernel, 0, sizeof(cl_int), (void*)&count) );
+    OCL_CHECK( clSetKernelArg(Kernel, 1, sizeof(cl_mem), (void*)&a) );
+    OCL_CHECK( clSetKernelArg(Kernel, 2, sizeof(cl_mem), (void*)&b) );
+    OCL_CHECK( clSetKernelArg(Kernel, 3, sizeof(cl_mem), (void*)&out) );
+
+    size_t Global_Work_Size[1] = {(size_t)count};
+    size_t Local_Work_Size[1] = {256};
+    OCL_CHECK( clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, Global_Work_Size, Local_Work_Size, 0, NULL, NULL) );
+}
+
+template void kernel_add<float>(const int count, const float* a, const float* b, float* out);
+template void kernel_add<double>(const int count, const double* a, const double* b, double* out);
+
+template <typename Dtype>
+void kernel_sub(const int count, const Dtype* a, const Dtype* b, Dtype* out)
+{
+    std::string kernel_name = "kernel_sub" + get_dtype_suffix<Dtype>();
+    cl_kernel Kernel = amdDevice.GetKernel(kernel_name);
+
+    OCL_CHECK( clSetKernelArg(Kernel, 0, sizeof(cl_int), (void*)&count) );
+    OCL_CHECK( clSetKernelArg(Kernel, 1, sizeof(cl_mem), (void*)&a) );
+    OCL_CHECK( clSetKernelArg(Kernel, 2, sizeof(cl_mem), (void*)&b) );
+    OCL_CHECK( clSetKernelArg(Kernel, 3, sizeof(cl_mem), (void*)&out) );
+
+    size_t Global_Work_Size[1] = {(size_t)count};
+    size_t Local_Work_Size[1] = {256};
+    OCL_CHECK( clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, Global_Work_Size, Local_Work_Size, 0, NULL, NULL) );
+}
+
+template void kernel_sub<float>(const int count, const float* a, const float* b, float* out);
+template void kernel_sub<double>(const int count, const double* a, const double* b, double* out);
+
+template <typename Dtype>
+void kernel_log(const int count, const Dtype* data, Dtype* out)
+{
+    std::string kernel_name = "kernel_log" + get_dtype_suffix<Dtype>();
+    cl_kernel Kernel = amdDevice.GetKernel(kernel_name);
+
+    OCL_CHECK( clSetKernelArg(Kernel, 0, sizeof(cl_int), (void*)&count) );
+    OCL_CHECK( clSetKernelArg(Kernel, 1, sizeof(cl_mem), (void*)&data) );
+    OCL_CHECK( clSetKernelArg(Kernel, 2, sizeof(cl_mem), (void*)&out) );
+
+    size_t Global_Work_Size[1] = {(size_t)count};
+    size_t Local_Work_Size[1] = {256};
+    OCL_CHECK( clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, Global_Work_Size, Local_Work_Size, 0, NULL, NULL) );
+}
+
+template void kernel_log<float>(const int count, const float* data, float* out);
+template void kernel_log<double>(const int count, const double* data, double* out);
+
+
+template <typename Dtype>
 void kernel_exp(const int count, const Dtype* data, Dtype* out)
 {
     std::string kernel_name = "kernel_exp" + get_dtype_suffix<Dtype>();

@@ -653,31 +653,24 @@ void caffe_gpu_set(const int N, const double alpha, double* Y) {
   }
 }
 
-template <typename Dtype>
-void add_scalar_kernel(const int n, const Dtype alpha, Dtype* y) {
-}
-
 template <>
 void caffe_gpu_add_scalar(const int N, const float alpha, float* Y) {
+  kernel_add_scalar(N, alpha, Y);
 }
 
 template <>
 void caffe_gpu_add_scalar(const int N, const double alpha, double* Y) {
-}
-
-template <typename Dtype>
-void mul_kernel(const int n, const Dtype* a,
-    const Dtype* b, Dtype* y) {
+  kernel_add_scalar(N, alpha, Y);
 }
 
 template <>
 void caffe_gpu_exp<float>(const int N, const float* a, float* y) {
-    kernel_exp(N, a, y);
+  kernel_exp(N, a, y);
 }
 
 template <>
 void caffe_gpu_exp<double>(const int N, const double* a, double* y) {
-    kernel_exp(N, a, y);
+  kernel_exp(N, a, y);
 }
 
 template<>
@@ -691,8 +684,23 @@ void caffe_gpu_sign<double>(const int N, const double *X, double *Y){
 }
 
 template <>
+void caffe_gpu_sub<float>(const int N, const float* a, const float* b,
+    float* y) {
+  // NOLINT_NEXT_LINE(whitespace/operators)
+  kernel_sub(N, a, b, y);
+}
+
+template <>
+void caffe_gpu_sub<double>(const int N, const double* a, const double* b,
+    double* y) {
+  // NOLINT_NEXT_LINE(whitespace/operators)
+  kernel_sub(N, a, b, y);
+}
+
+template <>
 void caffe_gpu_mul<float>(const int N, const float* a,
     const float* b, float* y) {
+  kernel_mul(N, a, b, y);
 }
 
 template <>
@@ -700,26 +708,31 @@ void caffe_gpu_mul<double>(const int N, const double* a,
     const double* b, double* y) {
 }
 
-template <typename Dtype>
-void div_kernel(const int n, const Dtype* a,
-    const Dtype* b, Dtype* y) {
-}
-
 template <>
 void caffe_gpu_div<float>(const int N, const float* a,
     const float* b, float* y) {
+  kernel_div(N, a, b, y);
 }
 
 template <>
 void caffe_gpu_div<double>(const int N, const double* a,
     const double* b, double* y) {
+  kernel_div(N, a, b, y);
 }
 
-template <typename Dtype>
-void powx_kernel(const int n, const Dtype* a,
-    const Dtype alpha, Dtype* y) {
+template <>
+void caffe_gpu_powx<float>(const int N, const float* a,
+    const float alpha, float* y) {
+  // NOLINT_NEXT_LINE(whitespace/operators)
+  kernel_powx(N, a, alpha, y);
 }
 
+template <>
+void caffe_gpu_powx<double>(const int N, const double* a,
+    const double alpha, double* y) {
+  // NOLINT_NEXT_LINE(whitespace/operators)
+  kernel_powx(N, a, alpha, y);
+}
 
 void popc_kernel(const int n, const float* a,
     const float* b, uint8_t* y) {
@@ -762,6 +775,23 @@ template <>
 void caffe_gpu_rng_gaussian(const int n, const double mu, const double sigma,
                             double* r) {
 }
+
+template <>
+void caffe_gpu_log<float>(const int N, const float* a, float* y) {
+  // NOLINT_NEXT_LINE(whitespace/operators)
+  kernel_log(N, a, y);
+}
+
+template <>
+void caffe_gpu_log<double>(const int N, const double* a, double* y) {
+  // NOLINT_NEXT_LINE(whitespace/operators)
+  kernel_log(N, a, y);
+}
+
+
+
+
+
 
 template <>
 void caffe_log<float>(const int n, const float* a, float* y) {
@@ -809,16 +839,14 @@ template <>
 void caffe_gpu_add<float>(const int N, const float* a, const float* b,
     float* y) {
   // NOLINT_NEXT_LINE(whitespace/operators)
- // add_kernel<float><<<CAFFE_GET_BLOCKS(N), CAFFE_CUDA_NUM_THREADS>>>(
-   //   N, a, b, y);
+  kernel_add(N, a, b, y);
 }
 
 template <>
 void caffe_gpu_add<double>(const int N, const double* a, const double* b,
     double* y) {
   // NOLINT_NEXT_LINE(whitespace/operators)
- // add_kernel<double><<<CAFFE_GET_BLOCKS(N), CAFFE_CUDA_NUM_THREADS>>>(
-   //   N, a, b, y);
+  kernel_add(N, a, b, y);
 }
 
 template <>

@@ -90,6 +90,62 @@ __kernel void exp (const int num, __global T* data, __global T* out){
 template __attribute__ ((mangled_name(exp_float))) __kernel void exp (const int num, __global float* data, __global float* out);
 template __attribute__ ((mangled_name(exp_double))) __kernel void exp (const int num, __global double* data, __global double* out);
 
+template <class T>
+__kernel void kernel_sub(const int count, __global const T* a, __global const T* b, __global T* out) {
+ int index = get_global_id(0);
+   if(index < count) {
+    out[index] = a[index] - b[index];
+  }
+}
+
+template __attribute__ ((mangled_name(kernel_sub_float))) __kernel void kernel_sub(const int count, __global const float* a, __global const float* b, __global float* out);
+template __attribute__ ((mangled_name(kernel_sub_double))) __kernel void kernel_sub(const int count, __global const double* a, __global const double* b, __global double* out);
+
+template <class T>
+__kernel void kernel_add(const int count, __global const T* a, __global const T* b, __global T* out) {
+ int index = get_global_id(0);
+   if(index < count) {
+    out[index] = a[index] + b[index];
+  }
+}
+
+template __attribute__ ((mangled_name(kernel_add_float))) __kernel void kernel_add(const int count, __global const float* a, __global const float* b, __global float* out);
+template __attribute__ ((mangled_name(kernel_add_double))) __kernel void kernel_add(const int count, __global const double* a, __global const double* b, __global double* out);
+
+template <class T>
+__kernel void kernel_div(const int count, __global const T* a, __global const T* b, __global T* out) {
+ int index = get_global_id(0);
+   if(index < count) {
+    out[index] = a[index] / b[index];
+  }
+}
+
+template __attribute__ ((mangled_name(kernel_div_float))) __kernel void kernel_div(const int count, __global const float* a, __global const float* b, __global float* out);
+template __attribute__ ((mangled_name(kernel_div_double))) __kernel void kernel_div(const int count, __global const double* a, __global const double* b, __global double* out);
+
+template <class T>
+__kernel void kernel_mul(const int count, __global const T* a, __global const T* b, __global T* out) {
+ int index = get_global_id(0);
+   if(index < count) {
+    out[index] = a[index] * b[index];
+  }
+}
+
+template __attribute__ ((mangled_name(kernel_mul_float))) __kernel void kernel_mul(const int count, __global const float* a, __global const float* b, __global float* out);
+template __attribute__ ((mangled_name(kernel_mul_double))) __kernel void kernel_mul(const int count, __global const double* a, __global const double* b, __global double* out);
+
+
+template <class T>
+__kernel void kernel_powx(const int count, __global const T* data, const T alpha, __global T* out) {
+ int index = get_global_id(0);
+   if(index < count) {
+    out[index] = pow(data[index], alpha);
+  }
+}
+
+template __attribute__ ((mangled_name(kernel_powx_float))) __kernel void kernel_powx(const int count, __global const float* data, const float alpha, __global float* out);
+template __attribute__ ((mangled_name(kernel_powx_double))) __kernel void kernel_powx(const int count, __global const double* data, const double alpha, __global double* out);
+
 
 template <class T>
 __kernel void kernel_exp(const int count, __global const T* data, __global T* out) {
@@ -102,6 +158,27 @@ __kernel void kernel_exp(const int count, __global const T* data, __global T* ou
 template __attribute__ ((mangled_name(kernel_exp_float))) __kernel void kernel_exp(const int count, __global const float* data, __global float* out);
 template __attribute__ ((mangled_name(kernel_exp_double))) __kernel void kernel_exp(const int count, __global const double* data, __global double* out);
 
+template <class T>
+__kernel void kernel_add_scalar(const int count, const T data, __global T* out) {
+ int index = get_global_id(0);
+   if(index < count) {
+     out[index] = out[index] + data;
+  }
+}
+
+template __attribute__ ((mangled_name(kernel_add_scalar_float))) __kernel void kernel_add_scalar(const int count, const float data, __global float* out);
+template __attribute__ ((mangled_name(kernel_add_scalar__double))) __kernel void kernel_add_scalar(const int count, const double data, __global double* out);
+
+template <class T>
+__kernel void kernel_log(const int count, __global const T* data, __global T* out) {
+ int index = get_global_id(0);
+   if(index < count) {
+     out[index] = log(data[index]);
+  }
+}
+
+template __attribute__ ((mangled_name(kernel_log_float))) __kernel void kernel_log(const int count, __global const float* data, __global float* out);
+template __attribute__ ((mangled_name(kernel_log_double))) __kernel void kernel_log(const int count, __global const double* data, __global double* out);
 
 template <class T>
 __kernel void diff (const int num, const int dim, __global T* data, __global T* label){
