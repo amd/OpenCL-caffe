@@ -923,6 +923,96 @@ void ReLUBackward(const int count, const Dtype* top_diff, const Dtype* bottom_da
 template void ReLUBackward<float>(const int count, const float* top_diff, const float* bottom_data, float* bottom_diff, float negative_slope);
 template void ReLUBackward<double>(const int count, const double* top_diff, const double* bottom_data, double* bottom_diff, double negative_slope);
 
+template <typename Dtype> 
+void SigmoidForward(const int count, const Dtype* bottom_data, Dtype* top_data){
+    std::string kernel_name = "SigmoidForward" + get_dtype_suffix<Dtype>();
+    cl_kernel Kernel = amdDevice.GetKernel(kernel_name);
+    cl_int ret;
+    ret  = clSetKernelArg(Kernel, 0, sizeof(cl_int), (void*)&count);
+    ret |= clSetKernelArg(Kernel, 1, sizeof(cl_mem), (void*)&bottom_data);
+    ret |= clSetKernelArg(Kernel, 2, sizeof(cl_mem), (void*)&top_data);
+    OCL_CHECK(ret);
+    size_t Global_Work_Size[] = {(size_t)count};
+    size_t Local_Work_Size[] = {256};
+    OCL_CHECK(clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, Global_Work_Size, Local_Work_Size, 0, NULL, NULL));
+}
+
+template void SigmoidForward<float>(const int count, const float* bottom_data, float* top_data);
+template void SigmoidForward<double>(const int count, const double* bottom_data, double* top_data);
+
+template <typename Dtype> 
+void SigmoidBackward(const int count, const Dtype* top_diff, const Dtype* top_data, Dtype* bottom_diff){
+    std::string kernel_name = "SigmoidBackward" + get_dtype_suffix<Dtype>();
+    cl_kernel Kernel = amdDevice.GetKernel(kernel_name);
+  
+    cl_int ret;
+    ret  = clSetKernelArg(Kernel, 0, sizeof(cl_int), (void*)&count);
+    ret |= clSetKernelArg(Kernel, 1, sizeof(cl_mem), (void*)&top_diff);
+    ret |= clSetKernelArg(Kernel, 2, sizeof(cl_mem), (void*)&top_data);
+    ret |= clSetKernelArg(Kernel, 3, sizeof(cl_mem), (void*)&bottom_diff);
+    OCL_CHECK(ret);
+
+    size_t uiGlobal_Work_Size[] = {(size_t)count};
+    size_t uiLocal_Work_Size[] = {256};
+    OCL_CHECK( clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, uiGlobal_Work_Size, uiLocal_Work_Size, 0, NULL, NULL) );
+}
+template void SigmoidBackward<float>(const int count, const float* top_diff, const float* top_data, float* bottom_diff);
+template void SigmoidBackward<double>(const int count, const double* top_diff, const double* top_data, double* bottom_diff);
+
+template <typename Dtype> 
+void ThresholdForward(const int count, const Dtype threshold, const Dtype* bottom_data, Dtype* top_data){
+    std::string kernel_name = "ThresholdForward" + get_dtype_suffix<Dtype>();
+    cl_kernel Kernel = amdDevice.GetKernel(kernel_name);
+    cl_int ret;
+    ret  = clSetKernelArg(Kernel, 0, sizeof(cl_int), (void*)&count);
+    ret |= clSetKernelArg(Kernel, 1, sizeof(Dtype), (void*)&threshold);
+    ret |= clSetKernelArg(Kernel, 2, sizeof(cl_mem), (void*)&bottom_data);
+    ret |= clSetKernelArg(Kernel, 3, sizeof(cl_mem), (void*)&top_data);
+    OCL_CHECK(ret);
+    size_t Global_Work_Size[] = {(size_t)count};
+    size_t Local_Work_Size[] = {256};
+    OCL_CHECK(clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, Global_Work_Size, Local_Work_Size, 0, NULL, NULL));
+}
+
+template void ThresholdForward<float>(const int count, const float threshold, const float* bottom_data, float* top_data);
+template void ThresholdForward<double>(const int count, const double threshold, const double* bottom_data, double* top_data);
+
+template <typename Dtype> 
+void TanHForward(const int count, const Dtype* bottom_data, Dtype* top_data){
+    std::string kernel_name = "TanHForward" + get_dtype_suffix<Dtype>();
+    cl_kernel Kernel = amdDevice.GetKernel(kernel_name);
+    cl_int ret;
+    ret  = clSetKernelArg(Kernel, 0, sizeof(cl_int), (void*)&count);
+    ret |= clSetKernelArg(Kernel, 1, sizeof(cl_mem), (void*)&bottom_data);
+    ret |= clSetKernelArg(Kernel, 2, sizeof(cl_mem), (void*)&top_data);
+    OCL_CHECK(ret);
+    size_t Global_Work_Size[] = {(size_t)count};
+    size_t Local_Work_Size[] = {256};
+    OCL_CHECK(clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, Global_Work_Size, Local_Work_Size, 0, NULL, NULL));
+}
+
+template void TanHForward<float>(const int count, const float* bottom_data, float* top_data);
+template void TanHForward<double>(const int count, const double* bottom_data, double* top_data);
+
+template <typename Dtype> 
+void TanHBackward(const int count, const Dtype* top_diff, const Dtype* top_data, Dtype* bottom_diff){
+    std::string kernel_name = "TanHBackward" + get_dtype_suffix<Dtype>();
+    cl_kernel Kernel = amdDevice.GetKernel(kernel_name);
+  
+    cl_int ret;
+    ret  = clSetKernelArg(Kernel, 0, sizeof(cl_int), (void*)&count);
+    ret |= clSetKernelArg(Kernel, 1, sizeof(cl_mem), (void*)&top_diff);
+    ret |= clSetKernelArg(Kernel, 2, sizeof(cl_mem), (void*)&top_data);
+    ret |= clSetKernelArg(Kernel, 3, sizeof(cl_mem), (void*)&bottom_diff);
+    OCL_CHECK(ret);
+
+    size_t uiGlobal_Work_Size[] = {(size_t)count};
+    size_t uiLocal_Work_Size[] = {256};
+    OCL_CHECK( clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, uiGlobal_Work_Size, uiLocal_Work_Size, 0, NULL, NULL) );
+}
+template void TanHBackward<float>(const int count, const float* top_diff, const float* top_data, float* bottom_diff);
+template void TanHBackward<double>(const int count, const double* top_diff, const double* top_data, double* bottom_diff);
+
 template <typename Dtype>
 void opttrans(const Dtype* data_im, const int im_offset, const int channels,
     const int height, const int width, Dtype* data_opt, const int opt_offset, const int optnum) {

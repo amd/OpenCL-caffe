@@ -43,7 +43,7 @@ void ReLULayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
   Dtype* top_data = top[0]->mutable_gpu_data();
   const int count = bottom[0]->count();
   Dtype negative_slope = this->layer_param_.relu_param().negative_slope();
- ReLUForward(count,bottom_data,top_data,negative_slope);
+  ReLUForward(count,bottom_data,top_data,negative_slope);
 }
 
 
@@ -57,7 +57,7 @@ void ReLULayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
     Dtype* bottom_diff = bottom[0]->mutable_gpu_diff();
     const int count = bottom[0]->count();
     Dtype negative_slope = this->layer_param_.relu_param().negative_slope();
-   ReLUBackward(count,top_diff,bottom_data,bottom_diff,negative_slope);
+    ReLUBackward(count,top_diff,bottom_data,bottom_diff,negative_slope);
   }
 }
 

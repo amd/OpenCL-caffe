@@ -6,6 +6,7 @@
 
 #include "caffe/layer.hpp"
 #include "caffe/vision_layers.hpp"
+#include "caffe/util/ocl_wrapper.hpp"
 
 namespace caffe {
 
@@ -40,11 +41,24 @@ void TanHLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
 template <typename Dtype>
 void TanHLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
       const vector<Blob<Dtype>*>& top){
+  const Dtype* bottom_data = bottom[0]->gpu_data();
+  Dtype* top_data = top[0]->mutable_gpu_data();
+  const int count = bottom[0]->count();
+  // NOLINT_NEXT_LINE(whitespace/operators)
+  TanHForward(count, bottom_data, top_data);
 }
 
 template <typename Dtype>
 void TanHLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
       const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom){
+  if (propagate_down[0]) {
+    const Dtype* top_data = top[0]->gpu_data();
+    const Dtype* top_diff = top[0]->gpu_diff();
+    Dtype* bottom_diff = bottom[0]->mutable_gpu_diff();
+    const int count = bottom[0]->count();
+    // NOLINT_NEXT_LINE(whitespace/operators)
+    TanHBackward(count, top_diff, top_data, bottom_diff);
+}
 }
 
 

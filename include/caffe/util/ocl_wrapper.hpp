@@ -84,6 +84,20 @@ void AvePoolBackward(const int nthreads, const Dtype* const top_diff, const int 
 
 template <typename Dtype>
  void StoPoolBackward(const int nthreads, const Dtype* const rand_idx, const Dtype* const top_diff, const int num, const int channels, const int height, const int width, const int pooled_height, const int pooled_width, const int kernel_h, const int kernel_w, const int stride_h, const int stride_w, Dtype* const bottom_diff);
+template <typename Dtype>
+void SigmoidForward(const int count, const Dtype* bottom_data, Dtype* top_data);
+
+template <typename Dtype>
+void SigmoidBackward(const int count, const Dtype* top_diff, const Dtype* top_data, Dtype* bottom_diff);
+
+template <typename Dtype>
+void TanHForward(const int count, const Dtype* bottom_data, Dtype* top_data);
+
+template <typename Dtype>
+void TanHBackward(const int count, const Dtype* top_diff, const Dtype* top_data, Dtype* bottom_diff);
+
+template <typename Dtype>
+void ThresholdForward(const int count, const Dtype threshold, const Dtype* bottom_data, Dtype* top_data);
 
 template <typename Dtype>
 void ave_pool_fp_gpu(cl_kernel Kernel, const int count, const Dtype* bottom_data, const int clnum, const int channels_, const int height_, const int width_, const int pooled_height_, const int pooled_width_, const int kernel_size_, const int stride_, const int pad_, Dtype* top_data);

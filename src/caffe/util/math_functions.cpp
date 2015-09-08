@@ -32,6 +32,7 @@
 #include "caffe/common.hpp"
 #include "caffe/util/math_functions.hpp"
 #include "caffe/util/rng.hpp"
+#include "caffe/util/ocl_util.hpp"
 
 static const clblasOrder order = clblasColumnMajor;
 #define pi 3.1415926
@@ -659,16 +660,12 @@ void set_kernel(const int n, const Dtype alpha, Dtype* y) {
 
 template <>
 void caffe_gpu_set(const int N, const float alpha, float* Y) {
-  if (alpha == 0) {
-    return;
-  }
+  ocl_memset(Y, alpha, N);
 }
 
 template <>
 void caffe_gpu_set(const int N, const double alpha, double* Y) {
-  if (alpha == 0) {
-    return;
-  }
+  ocl_memset(Y, alpha, N);
 }
 
 template <>
