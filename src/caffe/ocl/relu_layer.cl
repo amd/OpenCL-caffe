@@ -37,8 +37,9 @@ template __attribute__ ((mangled_name(ReLUForward_double))) __kernel void ReLUFo
 template <class T>
 __kernel void ReLUBackward(const int count, __global T* in_diff, __global T* in_data,__global T* out_diff,T negative_slope){
 	int index = get_global_id(0);
-        if(index < count)
-		out_diff[index] = in_diff[index] * (in_data[index] > 0)+(in_data[index] <= 0) * negative_slope;
+        if(index < count) {
+            out_diff[index] = in_diff[index] * ((in_data[index] > 0) + (in_data[index] <= 0) * negative_slope);
+        }
 }
 
 template __attribute__ ((mangled_name(ReLUBackward_float))) __kernel void ReLUBackward(const int count, __global float* in_diff, __global float* in_data, __global float* out_diff, float negative_slope);

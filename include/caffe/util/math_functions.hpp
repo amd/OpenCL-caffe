@@ -122,7 +122,7 @@ inline void caffe_memset(const size_t N, const int alpha, void* X) {
 
 inline void caffe_gpu_memset(const size_t N, const int alpha, void* X) {
 #ifndef CPU_ONLY
-  ocl_memset((int*)X, alpha, N);
+  ocl_memset((int*)X, (alpha<<24)|(alpha<<16)|(alpha<<8)|alpha, N);
 #else
   NO_GPU;
 #endif

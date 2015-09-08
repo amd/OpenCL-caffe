@@ -178,7 +178,7 @@ void caffe_gpu_gemv<double>(const CBLAS_TRANSPOSE TransA, const int M,
     const double* x, size_t offx, const double beta, int incx,
     double* y, size_t offy, int incy) {
     clblasTranspose transA = (TransA == CblasNoTrans)? clblasNoTrans : clblasTrans;
-    CLBLAS_CHECK( clblasSgemv(amdDevice.row, transA, M, N, (cl_double)alpha, (cl_mem)A, offA, lda, (cl_mem)x, offx, incx, (cl_double)beta, (cl_mem)y, offy, incy, 1, &(amdDevice.CommandQueue), 0, NULL, NULL) );
+    CLBLAS_CHECK( clblasDgemv(amdDevice.row, transA, M, N, (cl_double)alpha, (cl_mem)A, offA, lda, (cl_mem)x, offx, incx, (cl_double)beta, (cl_mem)y, offy, incy, 1, &(amdDevice.CommandQueue), 0, NULL, NULL) );
 
 }
 
@@ -187,12 +187,20 @@ template <>
 void caffe_gpu_gemv<float>(const CBLAS_TRANSPOSE TransA, const int M,
     const int N, const float alpha, const float* A, const float* x,
     const float beta, float* y) {
+    clblasTranspose transA = (TransA == CblasNoTrans)? clblasNoTrans : clblasTrans;
+    CLBLAS_CHECK( clblasSgemv(amdDevice.row, transA,
+                                  M, N, (cl_float)alpha, (cl_mem)A, 0, N,
+                                  (cl_mem)x, 0, 1, (cl_float)beta,
+                                  (cl_mem)y, 0, 1,
+                                  1, &(amdDevice.CommandQueue), 0, NULL, NULL) );
 }
 
 template <>
 void caffe_gpu_gemv<double>(const CBLAS_TRANSPOSE TransA, const int M,
     const int N, const double alpha, const double* A, const double* x,
     const double beta, double* y) {
+    clblasTranspose transA = (TransA == CblasNoTrans)? clblasNoTrans : clblasTrans;
+    CLBLAS_CHECK( clblasDgemv(amdDevice.row, transA, M, N, (cl_double)alpha, (cl_mem)A, 0, N, (cl_mem)x, 0, 1, (cl_double)beta, (cl_mem)y, 0, 1, 1, &(amdDevice.CommandQueue), 0, NULL, NULL) );
 }
 
 template <>
@@ -283,11 +291,20 @@ void caffe_copy<double>(const int N, const double* X, double* Y) {
   cblas_dcopy(N, X, 1, Y, 1);
 }
 
+//template <typename Dtype>
 void caffe_gpu_memcpy(const size_t N, const void *X, void *Y)
 {
-   OCL_CHECK(clEnqueueCopyBuffer(amdDevice.CommandQueue, (cl_mem)X, (cl_mem)Y, 0, 0, N, 0, NULL, NULL));
-   clFinish(amdDevice.CommandQueue);
+  clEnqueueReadBuffer(amdDevice.CommandQueue, (cl_mem)X, CL_TRUE, 0, N, Y,0, NULL, NULL);  
+// OCL_CHECK(clEnqueueCopyBuffer(amdDevice.CommandQueue, (cl_mem)X, (cl_mem)Y, 0, 0, N, 0, NULL, NULL));
 }
+/*
+template void caffe_gpu_memcpy<long>(const size_t N, const long* X, long* Y);
+template void caffe_gpu_memcpy<unsigned long>(const size_t N, const unsigned long* X, unsigned long* Y);
+template void caffe_gpu_memcpy<int>(const size_t N, const int* X, int* Y);
+template void caffe_gpu_memcpy<unsigned int>(const size_t N, const unsigned int* X, unsigned int* Y);
+template void caffe_gpu_memcpy<float>(const size_t N, const float* X, float* Y);
+template void caffe_gpu_memcpy<double>(const size_t N, const double* X, double* Y);
+*/
 
 template <>
 void caffe_gpu_copy<float>(const int N, const float* X, float* Y) {
@@ -547,7 +564,7 @@ void caffe_gpu_dot<float>(const int n, const float* x, const float* y,
     float* out) {
     cl_mem scratchBuff = clCreateBuffer(amdDevice.Context, CL_MEM_READ_WRITE, (n*sizeof(float)), NULL, NULL);
     cl_mem d_out = clCreateBuffer(amdDevice.Context, CL_MEM_READ_WRITE, (1*sizeof(float)), NULL, NULL);
-    clblasDdot(n,d_out,0,(cl_mem)x,0,1,(cl_mem)y, 0, 1, scratchBuff,1,&(amdDevice.CommandQueue),0,NULL,NULL);
+    clblasSdot(n,d_out,0,(cl_mem)x,0,1,(cl_mem)y, 0, 1, scratchBuff,1,&(amdDevice.CommandQueue),0,NULL,NULL);
     clEnqueueReadBuffer(amdDevice.CommandQueue, d_out, CL_TRUE, 0, sizeof(float), out,0, NULL, NULL);
     clReleaseMemObject(scratchBuff);
     clReleaseMemObject(d_out);
@@ -721,6 +738,7 @@ void caffe_gpu_mul<float>(const int N, const float* a,
 template <>
 void caffe_gpu_mul<double>(const int N, const double* a,
     const double* b, double* y) {
+  kernel_mul(N, a, b, y);
 }
 
 template <>
