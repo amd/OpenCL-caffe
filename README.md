@@ -46,7 +46,7 @@ https://github.com/amd/OpenCL-caffe/wiki
 #License and support
 Original caffe is provided in the [BSD 2-Clause license](https://github.com/BVLC/caffe/blob/master/LICENSE) open source license. The OpenCL ports written by AMD is covered by AMD license. As an open source project, we hope to maintain an open dynamics and sharing culture. We encourage the contribution and support from external, your contribution will be covered either by BSD 2-Clause license or which ever your preferred licence.
 
-# Oroginal Caffe information
+# Original Caffe information
 ## Caffe
 
 Caffe is a deep learning framework made with expression, speed, and modularity in mind.
