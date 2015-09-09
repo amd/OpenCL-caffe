@@ -42,3 +42,9 @@ CONTRIBUTION AGREEMENT
 By contributing to the BVLC/caffe repository through pull-request, comment,
 or otherwise, the contributor releases their content to the
 license and copyright terms herein.
+
+AMD license on the OpenCL parts
+
+AMD holds license for the OpenCL related code, kernels and optimizations. 
+AMD license is added to the file or part of the file that written by AMD.
+For details, please see license declaration for individual file.
