@@ -279,15 +279,15 @@ __kernel void StoPoolBackward(const int nthreads,
 
 	}
 }
-template __attribute__ ((mangled_name(StoPoolBackward_float))) __kernel void StoPoolBackward<float>(const int nthreads,
-	__global float* rand_idx, __global float* top_diff,
-	const int num, const int channels, const int height,
-	const int width, const int pooled_height, const int pooled_width,
-	const int kernel_h, const int kernel_w, const int stride_h,
-	const int stride_w, __global float* bottom_diff);
-template __attribute__ ((mangled_name(StoPoolBackward_double))) __kernel void StoPoolBackward<double>(const int nthreads,
-	__global double* rand_idx, __global double* top_diff,
-	const int num, const int channels, const int height,
-	const int width, const int pooled_height, const int pooled_width,
-	const int kernel_h, const int kernel_w, const int stride_h,
-	const int stride_w, __global double* bottom_diff);
+template __attribute__ ((mangled_name(StoPoolBackward_float))) __kernel  void StoPoolBackward(const int nthreads,
+    __global float* rand_idx, __global float* top_diff,
+    const int num, const int channels, const int height,
+    const int width, const int pooled_height, const int pooled_width,
+    const int kernel_h, const int kernel_w, const int stride_h,
+    const int stride_w, __global float* bottom_diff);
+template __attribute__ ((mangled_name(StoPoolBackward_double))) __kernel void StoPoolBackward(const int nthreads,
+    __global double* rand_idx, __global double* top_diff,
+    const int num, const int channels, const int height,
+    const int width, const int pooled_height, const int pooled_width,
+    const int kernel_h, const int kernel_w, const int stride_h,
+    const int stride_w, __global double* bottom_diff);

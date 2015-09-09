@@ -286,44 +286,40 @@ void caffe_gpu_add(const int n, const Dtype* in1, const Dtype* in2, Dtype* y);
 template<typename Dtype>
 void caffe_gpu_add_scalar(const int n, const Dtype alpha, Dtype* top_data);
 
-template<typename Dtype>
-void LRNFillScale(cl_kernel LFSkernel, const int nthreads,
-	const Dtype* const in,
-	const int num, const int channels, const int height,
-	const int width, const int size, const Dtype alpha_over_size,
-	const Dtype k, Dtype* const scale);
+template <typename Dtype>
+void LRNFillScale(const int nthreads, const Dtype* const in,
+    const int num, const int channels, const int height,
+    const int width, const int size, const Dtype alpha_over_size,
+    const Dtype k, Dtype* const scale);
 
-template<typename Dtype>
-void LRNComputeOutput(cl_kernel LCOkernel, int nthreads, const Dtype* in,
-	Dtype* scale, Dtype negative_beta, Dtype* out);
+template <typename Dtype>
+void LRNComputeOutput(int nthreads, const Dtype* in,
+     Dtype* scale, Dtype negative_beta, Dtype* out);
 
-template<typename Dtype>
-void LRNComputeDiff(cl_kernel LCDkernel, const int nthreads,
-	const Dtype* const bottom_data, const Dtype* const top_data,
-	const Dtype* const scale, const Dtype* const top_diff,
-	const int num, const int channels, const int height,
-	const int width, const int size, const Dtype negative_beta,
-	const Dtype cache_ratio, Dtype* const bottom_diff);
-template<typename Dtype>
-void caffe_gpu_powx(const int n, const Dtype* a, const Dtype alpha, Dtype* y);
+template <typename Dtype>
+void LRNComputeDiff(const int nthreads,
+    const Dtype* const bottom_data, const Dtype* const top_data,
+    const Dtype* const scale, const Dtype* const top_diff,
+    const int num, const int channels, const int height,
+    const int width, const int size, const Dtype negative_beta,
+    const Dtype cache_ratio, Dtype* const bottom_diff);
+template <typename Dtype>
+void caffe_gpu_powx (const int n, const Dtype* a, const Dtype alpha, Dtype* y);
 
-template<typename Dtype>
-void caffe_gpu_mul(const int n, const Dtype* a, const Dtype* b, Dtype* y);
+template <typename Dtype>
+void caffe_gpu_mul (const int n, const Dtype* a, const Dtype* b, Dtype* y);
 
-template<typename Dtype>
-void BNLLForward(const int count, const Dtype* bottom_data, Dtype *top_data);
+template <typename Dtype>
+void  BNLLForward(const int count, const Dtype* bottom_data, Dtype *top_data);
 
-template<typename Dtype>
-void BNLLBackward(const int count, const Dtype* top_diff,
-	const Dtype* bottom_data, Dtype *bottom_diff);
+template <typename Dtype>
+void  BNLLBackward(const int count, const Dtype* top_diff, const Dtype* bottom_data, Dtype *bottom_diff);
 
-template<typename Dtype>
-void Concat(const int nthreads, const Dtype* in_data, const bool forward,
-	const int num_concats, const int concat_size,
-	const int top_concat_axis, const int bottom_concat_axis,
-	const int offset_concat_axis, Dtype *out_data);
+template <typename Dtype>
+void  Concat(const int nthreads, const Dtype* in_data, const bool forward, const int num_concats, const int  concat_size,
+        const int top_concat_axis, const int bottom_concat_axis, const int offset_concat_axis, Dtype *out_data);
 
-template<typename Dtype>
+template <typename Dtype>
 void CLLBackward(const int count, const int channels,
 	const Dtype margin, const bool legacy_version, const Dtype alpha,
 	const Dtype* y, const Dtype* diff, const Dtype* dist_sq,

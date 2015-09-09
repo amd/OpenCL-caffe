@@ -1,4 +1,4 @@
-s#include <algorithm>
+#include <algorithm>
 #include <vector>
 
 #include "caffe/layer.hpp"

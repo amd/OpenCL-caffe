@@ -70,29 +70,26 @@ void LRNLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
 
 template<typename Dtype>
 void LRNLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
-	const vector<Blob<Dtype>*>& top) {
-	CHECK_EQ(4, bottom[0]->num_axes()) << "Input must have 4 axes, "
-		<< "corresponding to (num, channels, height, width)";
-	num_ = bottom[0]->num();
-	channels_ = bottom[0]->channels();
-	height_ = bottom[0]->height();
-	width_ = bottom[0]->width();
-	switch (this->layer_param_.lrn_param().norm_region()) {
-		case LRNParameter_NormRegion_ACROSS_CHANNELS:
-			top[0]->Reshape(num_, channels_, height_, width_);
-			scale_.Reshape(num_, channels_, height_, width_);
-			break;
-		case LRNParameter_NormRegion_WITHIN_CHANNEL:
-			split_layer_->Reshape(bottom, split_top_vec_);
-			square_layer_->Reshape(square_bottom_vec_, square_top_vec_);
-			pool_layer_->Reshape(square_top_vec_, pool_top_vec_);
-			power_layer_->Reshape(pool_top_vec_, power_top_vec_);
-			product_layer_->Reshape(product_bottom_vec_, top);
-			break;
-	}
-	LFSkernel = clCreateKernel(amdDevice.Program, "LRNFillScalefloat", NULL);
-	LCDkernel = clCreateKernel(amdDevice.Program, "LRNComputeDifffloat", NULL);
-	LCOkernel = clCreateKernel(amdDevice.Program, "LRNComputeOutputfloat", NULL);
+      const vector<Blob<Dtype>*>& top) {
+  CHECK_EQ(4, bottom[0]->num_axes()) << "Input must have 4 axes, "
+      << "corresponding to (num, channels, height, width)";
+  num_ = bottom[0]->num();
+  channels_ = bottom[0]->channels();
+  height_ = bottom[0]->height();
+  width_ = bottom[0]->width();
+  switch (this->layer_param_.lrn_param().norm_region()) {
+  case LRNParameter_NormRegion_ACROSS_CHANNELS:
+    top[0]->Reshape(num_, channels_, height_, width_);
+    scale_.Reshape(num_, channels_, height_, width_);
+    break;
+  case LRNParameter_NormRegion_WITHIN_CHANNEL:
+    split_layer_->Reshape(bottom, split_top_vec_);
+    square_layer_->Reshape(square_bottom_vec_, square_top_vec_);
+    pool_layer_->Reshape(square_top_vec_, pool_top_vec_);
+    power_layer_->Reshape(pool_top_vec_, power_top_vec_);
+    product_layer_->Reshape(product_bottom_vec_, top);
+    break;
+  }
 }
 
 template<typename Dtype>
@@ -254,35 +251,32 @@ void LRNLayer<Dtype>::WithinChannelBackward(
 
 template<typename Dtype>
 void LRNLayer<Dtype>::CrossChannelForward_gpu(
-	const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
-	// First, compute scale
-	const Dtype* bottom_data = bottom[0]->gpu_data();
-	Dtype* top_data = top[0]->mutable_gpu_data();
-	Dtype* scale_data = scale_.mutable_gpu_data();
-	// We will launch one kernel for each pixel location, and have the kernel
-	// go through all the channels.
-	int n_threads = num_ * height_ * width_;
-	// NOLINT_NEXT_LINE(whitespace/operators)
-	LRNFillScale(LFSkernel,
-		n_threads, bottom_data, num_, channels_, height_, width_, size_,
-		alpha_ / size_, k_, scale_data);
-	n_threads = bottom[0]->count();
-	// NOLINT_NEXT_LINE(whitespace/operators)
-	LRNComputeOutput(LCOkernel,
-		n_threads, bottom_data, scale_data, -beta_, top_data);
+    const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
+  // First, compute scale
+  const Dtype* bottom_data = bottom[0]->gpu_data();
+  Dtype* top_data = top[0]->mutable_gpu_data();
+  Dtype* scale_data = scale_.mutable_gpu_data();
+  // We will launch one kernel for each pixel location, and have the kernel
+  // go through all the channels.
+  int n_threads = num_ * height_ * width_;
+  // NOLINT_NEXT_LINE(whitespace/operators)
+  LRNFillScale(n_threads, bottom_data, num_, channels_, height_, width_, size_,
+      alpha_ / size_, k_, scale_data);
+  n_threads = bottom[0]->count();
+  // NOLINT_NEXT_LINE(whitespace/operators)
+  LRNComputeOutput(n_threads, bottom_data, scale_data, -beta_, top_data);
 }
 
 template<typename Dtype>
 void LRNLayer<Dtype>::CrossChannelBackward_gpu(
-	const vector<Blob<Dtype>*>& top, const vector<bool>& propagate_down,
-	const vector<Blob<Dtype>*>& bottom) {
-	int n_threads = num_ * height_ * width_;
-	// NOLINT_NEXT_LINE(whitespace/operators)
-	LRNComputeDiff(LCDkernel,
-		n_threads, bottom[0]->gpu_data(), top[0]->gpu_data(),
-		scale_.gpu_data(), top[0]->gpu_diff(), num_, channels_, height_, width_,
-		size_, -beta_, Dtype(2. * alpha_ * beta_ / size_),
-		bottom[0]->mutable_gpu_diff());
+    const vector<Blob<Dtype>*>& top, const vector<bool>& propagate_down,
+    const vector<Blob<Dtype>*>& bottom) {
+  int n_threads = num_ * height_ * width_;
+  // NOLINT_NEXT_LINE(whitespace/operators)
+  LRNComputeDiff(n_threads, bottom[0]->gpu_data(), top[0]->gpu_data(),
+      scale_.gpu_data(), top[0]->gpu_diff(), num_, channels_, height_, width_,
+      size_, -beta_, Dtype(2. * alpha_ * beta_ / size_),
+      bottom[0]->mutable_gpu_diff());
 }
 
 template<typename Dtype>

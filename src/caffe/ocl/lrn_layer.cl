@@ -31,8 +31,8 @@ __kernel void LRNComputeOutput(const int nthreads, __global T* in, __global T* s
 	for(index; index < nthreads; index += tmp)
 	out[index] = in[index] * pow(scale[index], negative_beta);
 }
-template __attribute__((mangled_name(LRNComputeOutputfloat))) __kernel void LRNComputeOutput(const int nthreads, __global float* in, __global float* scale, const float negative_beta, __global float* out);
-template __attribute__((mangled_name(LRNComputeOutputdouble))) __kernel void LRNComputeOutput(const int nthreads, __global double* in, __global double* scale, const double negative_beta, __global double* out);
+template __attribute__((mangled_name(LRNComputeOutput_float))) __kernel void LRNComputeOutput(const int nthreads, __global float* in, __global float* scale, const float negative_beta, __global float* out);
+template __attribute__((mangled_name(LRNComputeOutput_double))) __kernel void LRNComputeOutput(const int nthreads, __global double* in, __global double* scale, const double negative_beta, __global double* out);
 
 template <class T>
 __kernel void LRNFillScale(const int nthreads, __global T* in, const int num, const int channels, const int height, const int width, const int size, const T alpha_over_size, const T k, __global T* scale) {
@@ -78,8 +78,8 @@ __kernel void LRNFillScale(const int nthreads, __global T* in, const int num, co
 		}
 	}
 }
-template __attribute__((mangled_name(LRNFillScalefloat))) __kernel void LRNFillScale (const int nthreads, __global float* in, const int num, const int channels, const int height, const int width, const int size, const float alpha_over_size, const float k, __global float* scale);
-template __attribute__((mangled_name(LRNFillScaledouble))) __kernel void LRNFillScale (const int nthreads, __global double* in, const int num, const int channels, const int height, const int width, const int size, const double alpha_over_size, const double k, __global double* scale);
+template __attribute__((mangled_name(LRNFillScale_float))) __kernel void LRNFillScale (const int nthreads, __global float* in, const int num, const int channels, const int height, const int width, const int size, const float alpha_over_size, const float k,  __global float* scale);
+template __attribute__((mangled_name(LRNFillScale_double))) __kernel void LRNFillScale (const int nthreads, __global double* in, const int num, const int channels, const int height, const int width, const int size, const double alpha_over_size, const double k, __global double* scale);
 
 template <class T>
 __kernel void LRNComputeDiff(const int nthreads, __global T* bottom_data, __global T* top_data, __global T* scale, __global T* top_diff, const int num, const int channels, const int height, const int width, const int size, const T negative_beta, const T cache_ratio, __global T* bottom_diff) {
@@ -135,5 +135,5 @@ __kernel void LRNComputeDiff(const int nthreads, __global T* bottom_data, __glob
 	}
 }
 
-template __attribute__((mangled_name(LRNComputeDifffloat))) __kernel void LRNComputeDiff(const int nthreads, __global float* bottom_data, __global float* top_data, __global float* scale, __global float* top_diff, const int num, const int channels, const int height, const int width, const int size, const float negative_beta, const float cache_ratio, __global float* bottom_diff);
-template __attribute__((mangled_name(LRNComputeDiffdouble))) __kernel void LRNComputeDiff(const int nthreads, __global double* bottom_data, __global double* top_data, __global double* scale, __global double* top_diff, const int num, const int channels, const int height, const int width, const int size, const double negative_beta, const double cache_ratio, __global double* bottom_diff);
+template __attribute__((mangled_name(LRNComputeDiff_float))) __kernel void LRNComputeDiff(const int nthreads, __global float* bottom_data, __global float* top_data, __global float* scale, __global float* top_diff, const int num, const int channels, const int height, const int width, const int size, const float negative_beta, const float cache_ratio, __global float* bottom_diff);
+template __attribute__((mangled_name(LRNComputeDiff_double))) __kernel void LRNComputeDiff(const int nthreads, __global double* bottom_data, __global double* top_data, __global double* scale, __global double* top_diff, const int num, const int channels, const int height, const int width, const int size, const double negative_beta, const double cache_ratio, __global double* bottom_diff);
