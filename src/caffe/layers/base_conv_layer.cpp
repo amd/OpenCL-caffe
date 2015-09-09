@@ -298,6 +298,7 @@ void BaseConvolutionLayer<Dtype>::forward_gpu_gemm_opt (const Dtype* input,
       conv_im2col_gpu_opt(input);
     }   
     col_buff = col_buffer_.gpu_data();
+   }else{
     caffe_gpu_memcpy(K_ * N_ * opt_num2 * sizeof(Dtype), col_buff, (Dtype*)transMem);
   }
 #ifdef multiQ

@@ -684,12 +684,12 @@ void set_kernel(const int n, const Dtype alpha, Dtype* y) {
 }
 
 template <>
-void caffe_gpu_set(const int N, const float alpha, float* Y) {
+void caffe_gpu_set<float>(const int N, const float alpha, float* Y) {
   ocl_memset(Y, alpha, N);
 }
 
 template <>
-void caffe_gpu_set(const int N, const double alpha, double* Y) {
+void caffe_gpu_set<double>(const int N, const double alpha, double* Y) {
   ocl_memset(Y, alpha, N);
 }
 
