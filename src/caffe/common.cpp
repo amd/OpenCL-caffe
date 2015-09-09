@@ -91,6 +91,7 @@ void* Caffe::RNG::generator() {
 
 Caffe::Caffe()
 {
+        amdDevice.Init();
 	cl_int err = clblasSetup();
 	if (err != CL_SUCCESS) {
 		LOG(ERROR) << "clBLAS setup failed " << err;
