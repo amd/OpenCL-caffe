@@ -25,21 +25,21 @@
  **************************************************************************************/
 
 template <class T>
-__kernel void SigmoidForward(const int count, __global T* in, __global T* out){
+__kernel void SigmoidForward(const int count, __global T* in, __global T* out) {
 	int index = get_global_id(0);
 	if(index < count)
-		out[index] = 1. / (1. + exp(-in[index]));
+	out[index] = 1. / (1. + exp(-in[index]));
 }
 
 template __attribute__ ((mangled_name(SigmoidForward_float))) __kernel void SigmoidForward(const int count, __global float* in, __global float* out);
 template __attribute__ ((mangled_name(SigmoidForward_double))) __kernel void SigmoidForward(const int count, __global double* in, __global double* out);
 
 template <class T>
-__kernel void SigmoidBackward(const int count, __global T* in_diff, __global T* out_data,__global T* out_diff){
+__kernel void SigmoidBackward(const int count, __global T* in_diff, __global T* out_data,__global T* out_diff) {
 	int index = get_global_id(0);
-        const T sigmoid_x = out_data[index];
-        if(index < count)
-		out_diff[index] = in_diff[index] * sigmoid_x * (1 - sigmoid_x);
+	const T sigmoid_x = out_data[index];
+	if(index < count)
+	out_diff[index] = in_diff[index] * sigmoid_x * (1 - sigmoid_x);
 }
 
 template __attribute__ ((mangled_name(SigmoidBackward_float))) __kernel void SigmoidBackward(const int count, __global float* in_diff, __global float* out_data, __global float* out_diff);

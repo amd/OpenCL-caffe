@@ -26,113 +26,113 @@
 
 template <class T>
 __kernel void LRNComputeOutput(const int nthreads, __global T* in, __global T* scale, const T negative_beta, __global T* out) {
-  int index = get_global_id(0);
-  int tmp = get_global_size(0);
-  for(index; index < nthreads; index += tmp) 
-    out[index] = in[index] * pow(scale[index], negative_beta);
+	int index = get_global_id(0);
+	int tmp = get_global_size(0);
+	for(index; index < nthreads; index += tmp)
+	out[index] = in[index] * pow(scale[index], negative_beta);
 }
 template __attribute__((mangled_name(LRNComputeOutputfloat))) __kernel void LRNComputeOutput(const int nthreads, __global float* in, __global float* scale, const float negative_beta, __global float* out);
 template __attribute__((mangled_name(LRNComputeOutputdouble))) __kernel void LRNComputeOutput(const int nthreads, __global double* in, __global double* scale, const double negative_beta, __global double* out);
 
 template <class T>
-__kernel void LRNFillScale(const int nthreads, __global T* in, const int num, const int channels, const int height, const int width, const int size, const T alpha_over_size, const T k,  __global T* scale) {
-  int index = get_global_id(0);
-  int tmp = get_global_size(0);
-  for(index; index < nthreads; index += tmp) {
-    // find out the local offset
-    const int w = index % width;
-    const int h = (index / width) % height;
-    const int n = index / width / height;
-    const int offset = (n * channels * height + h) * width + w;
-    const int step = height * width;
-    in = in + offset;
-    scale = scale + offset;
-    int head = 0;
-    const int pre_pad = (size - 1) / 2;
-    const int post_pad = size - pre_pad - 1;
-    T accum_scale = 0;
-    // fill the scale at [n, :, h, w]
-    // accumulate values
-    while (head < post_pad && head < channels) {
-      accum_scale += in[head * step] * in[head * step];
-      ++head;
-    }
-    // both add and subtract
-    while (head < channels) {
-      accum_scale += in[head * step] * in[head * step];
-      if (head - size >= 0) {
-        accum_scale -= in[(head - size) * step]
-                       * in[(head - size) * step];
-      }
-      scale[(head - post_pad) * step] = k + accum_scale * alpha_over_size;
-      ++head;
-    }
-    // subtract only
-    while (head < channels + post_pad) {
-      if (head - size >= 0) {
-        accum_scale -= in[(head - size) * step]
-                       * in[(head - size) * step];
-      }
-      scale[(head - post_pad) * step] = k + accum_scale * alpha_over_size;
-      ++head;
-    }
-  }
+__kernel void LRNFillScale(const int nthreads, __global T* in, const int num, const int channels, const int height, const int width, const int size, const T alpha_over_size, const T k, __global T* scale) {
+	int index = get_global_id(0);
+	int tmp = get_global_size(0);
+	for(index; index < nthreads; index += tmp) {
+		// find out the local offset
+		const int w = index % width;
+		const int h = (index / width) % height;
+		const int n = index / width / height;
+		const int offset = (n * channels * height + h) * width + w;
+		const int step = height * width;
+		in = in + offset;
+		scale = scale + offset;
+		int head = 0;
+		const int pre_pad = (size - 1) / 2;
+		const int post_pad = size - pre_pad - 1;
+		T accum_scale = 0;
+		// fill the scale at [n, :, h, w]
+		// accumulate values
+		while (head < post_pad && head < channels) {
+			accum_scale += in[head * step] * in[head * step];
+			++head;
+		}
+		// both add and subtract
+		while (head < channels) {
+			accum_scale += in[head * step] * in[head * step];
+			if (head - size >= 0) {
+				accum_scale -= in[(head - size) * step]
+				* in[(head - size) * step];
+			}
+			scale[(head - post_pad) * step] = k + accum_scale * alpha_over_size;
+			++head;
+		}
+		// subtract only
+		while (head < channels + post_pad) {
+			if (head - size >= 0) {
+				accum_scale -= in[(head - size) * step]
+				* in[(head - size) * step];
+			}
+			scale[(head - post_pad) * step] = k + accum_scale * alpha_over_size;
+			++head;
+		}
+	}
 }
-template __attribute__((mangled_name(LRNFillScalefloat))) __kernel void LRNFillScale (const int nthreads, __global float* in, const int num, const int channels, const int height, const int width, const int size, const float alpha_over_size, const float k,  __global float* scale);
+template __attribute__((mangled_name(LRNFillScalefloat))) __kernel void LRNFillScale (const int nthreads, __global float* in, const int num, const int channels, const int height, const int width, const int size, const float alpha_over_size, const float k, __global float* scale);
 template __attribute__((mangled_name(LRNFillScaledouble))) __kernel void LRNFillScale (const int nthreads, __global double* in, const int num, const int channels, const int height, const int width, const int size, const double alpha_over_size, const double k, __global double* scale);
 
 template <class T>
 __kernel void LRNComputeDiff(const int nthreads, __global T* bottom_data, __global T* top_data, __global T* scale, __global T* top_diff, const int num, const int channels, const int height, const int width, const int size, const T negative_beta, const T cache_ratio, __global T* bottom_diff) {
-  int index = get_global_id(0);
-  int tmp = get_global_size(0);
-  for(index; index < nthreads; index += tmp) {
-    const int w = index % width;
-    const int h = (index / width) % height;
-    const int n = index / width / height;
-    const int offset = (n * channels * height + h) * width + w;
-    const int step = height * width;
-    bottom_data += offset;
-    top_data += offset;
-    scale += offset;
-    top_diff += offset;
-    bottom_diff += offset;
-    int head = 0;
-    const int pre_pad = size - (size + 1) / 2;
-    const int post_pad = size - pre_pad - 1;
-    T accum_ratio = 0;
-    // accumulate values
-    while (head < post_pad && head < channels) {
-      accum_ratio += top_diff[head * step] * top_data[head * step] /
-          scale[head * step];
-      ++head;
-    }
-    // both add and subtract
-    while (head < channels) {
-      accum_ratio += top_diff[head * step] * top_data[head * step] /
-          scale[head * step];
-      if (head - size >= 0) {
-        accum_ratio -= top_diff[(head - size) * step] *
-            top_data[(head - size) * step] / scale[(head - size) * step];
-      }
-      bottom_diff[(head - post_pad) * step] =
-          top_diff[(head - post_pad) * step]
-            * pow(scale[(head - post_pad) * step], negative_beta)
-          - cache_ratio * bottom_data[(head - post_pad) * step] * accum_ratio;
-      ++head;
-    }
-    // subtract only
-    while (head < channels + post_pad) {
-      if (head - size >= 0) {
-        accum_ratio -= top_diff[(head - size) * step] *
-            top_data[(head - size) * step] / scale[(head - size) * step];
-      }
-      bottom_diff[(head - post_pad) * step] =
-          top_diff[(head - post_pad) * step]
-            * pow(scale[(head - post_pad) * step], negative_beta)
-          - cache_ratio * bottom_data[(head - post_pad) * step] * accum_ratio;
-      ++head;
-    }
-}
+	int index = get_global_id(0);
+	int tmp = get_global_size(0);
+	for(index; index < nthreads; index += tmp) {
+		const int w = index % width;
+		const int h = (index / width) % height;
+		const int n = index / width / height;
+		const int offset = (n * channels * height + h) * width + w;
+		const int step = height * width;
+		bottom_data += offset;
+		top_data += offset;
+		scale += offset;
+		top_diff += offset;
+		bottom_diff += offset;
+		int head = 0;
+		const int pre_pad = size - (size + 1) / 2;
+		const int post_pad = size - pre_pad - 1;
+		T accum_ratio = 0;
+		// accumulate values
+		while (head < post_pad && head < channels) {
+			accum_ratio += top_diff[head * step] * top_data[head * step] /
+			scale[head * step];
+			++head;
+		}
+		// both add and subtract
+		while (head < channels) {
+			accum_ratio += top_diff[head * step] * top_data[head * step] /
+			scale[head * step];
+			if (head - size >= 0) {
+				accum_ratio -= top_diff[(head - size) * step] *
+				top_data[(head - size) * step] / scale[(head - size) * step];
+			}
+			bottom_diff[(head - post_pad) * step] =
+			top_diff[(head - post_pad) * step]
+			* pow(scale[(head - post_pad) * step], negative_beta)
+			- cache_ratio * bottom_data[(head - post_pad) * step] * accum_ratio;
+			++head;
+		}
+		// subtract only
+		while (head < channels + post_pad) {
+			if (head - size >= 0) {
+				accum_ratio -= top_diff[(head - size) * step] *
+				top_data[(head - size) * step] / scale[(head - size) * step];
+			}
+			bottom_diff[(head - post_pad) * step] =
+			top_diff[(head - post_pad) * step]
+			* pow(scale[(head - post_pad) * step], negative_beta)
+			- cache_ratio * bottom_data[(head - post_pad) * step] * accum_ratio;
+			++head;
+		}
+	}
 }
 
 template __attribute__((mangled_name(LRNComputeDifffloat))) __kernel void LRNComputeDiff(const int nthreads, __global float* bottom_data, __global float* top_data, __global float* scale, __global float* top_diff, const int num, const int channels, const int height, const int width, const int size, const float negative_beta, const float cache_ratio, __global float* bottom_diff);

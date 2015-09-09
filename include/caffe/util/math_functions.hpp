@@ -40,156 +40,157 @@ namespace caffe {
 
 // Decaf gemm provides a simpler interface to the gemm functions, with the
 // limitation that the data has to be contiguous in memory.
-template <typename Dtype>
+template<typename Dtype>
 void caffe_cpu_gemm(const CBLAS_TRANSPOSE TransA,
-    const CBLAS_TRANSPOSE TransB, const int M, const int N, const int K,
-    const Dtype alpha, const Dtype* A, const Dtype* B, const Dtype beta,
-    Dtype* C);
+	const CBLAS_TRANSPOSE TransB, const int M, const int N, const int K,
+	const Dtype alpha, const Dtype* A, const Dtype* B, const Dtype beta,
+	Dtype* C);
 
 // Decaf gpu gemm provides an interface that is almost the same as the cpu
 // gemm function - following the c convention and calling the fortran-order
 // gpu code under the hood.
-template <typename Dtype>
+template<typename Dtype>
 void caffe_gpu_gemm(const CBLAS_TRANSPOSE TransA,
-    const CBLAS_TRANSPOSE TransB, const int M, const int N, const int K,
-    const Dtype alpha, const Dtype* A, const Dtype* B, const Dtype beta,
-    Dtype* C);
+	const CBLAS_TRANSPOSE TransB, const int M, const int N, const int K,
+	const Dtype alpha, const Dtype* A, const Dtype* B, const Dtype beta,
+	Dtype* C);
 
-template <typename Dtype>
-cl_event caffe_gpu_gemm( cl_command_queue *queue, const CBLAS_TRANSPOSE TransA,
-    const CBLAS_TRANSPOSE TransB, const int M, const int N, const int K,
-    const Dtype alpha, const Dtype* A, const int offA, const Dtype* B, const int offB, const Dtype beta,
-    Dtype* C, const int offC);
+template<typename Dtype>
+cl_event caffe_gpu_gemm(cl_command_queue *queue, const CBLAS_TRANSPOSE TransA,
+	const CBLAS_TRANSPOSE TransB, const int M, const int N, const int K,
+	const Dtype alpha, const Dtype* A, const int offA, const Dtype* B,
+	const int offB, const Dtype beta,
+	Dtype* C, const int offC);
 /*This is Yuan Gao's sgemm_ex*/
-template <typename Dtype>
+template<typename Dtype>
 void caffe_gpu_exgemm(const CBLAS_TRANSPOSE TransA,
-    const CBLAS_TRANSPOSE TransB, const int M, const int N, const int K,
-    const Dtype alpha, const Dtype* A, const Dtype* B, const Dtype beta,
-    Dtype* C, const int offset1, const int offset2, const int offset3);
+	const CBLAS_TRANSPOSE TransB, const int M, const int N, const int K,
+	const Dtype alpha, const Dtype* A, const Dtype* B, const Dtype beta,
+	Dtype* C, const int offset1, const int offset2, const int offset3);
 
-
-template <typename Dtype>
+template<typename Dtype>
 cl_event caffe_gpu_gemm(const CBLAS_TRANSPOSE TransA,
-    const CBLAS_TRANSPOSE TransB, const int M, const int N, const int K,
-    const Dtype alpha, const Dtype* A, const int offA, const Dtype* B, const int offB, const Dtype beta,
-    Dtype* C, const int offC);
+	const CBLAS_TRANSPOSE TransB, const int M, const int N, const int K,
+	const Dtype alpha, const Dtype* A, const int offA, const Dtype* B,
+	const int offB, const Dtype beta,
+	Dtype* C, const int offC);
 
-template <typename Dtype>
+template<typename Dtype>
 void caffe_cpu_gemv(const CBLAS_TRANSPOSE TransA, const int M, const int N,
-    const Dtype alpha, const Dtype* A, const Dtype* x, const Dtype beta,
-    Dtype* y);
+	const Dtype alpha, const Dtype* A, const Dtype* x, const Dtype beta,
+	Dtype* y);
 
-template <typename Dtype>
+template<typename Dtype>
 void caffe_gpu_gemv(const CBLAS_TRANSPOSE TransA, const int M,
-    const int N, const Dtype alpha, const Dtype* A, size_t offA, int lda,
-    const Dtype * x, size_t offx, const Dtype beta, int incx,
-    Dtype* y, size_t offy, int incy);
+	const int N, const Dtype alpha, const Dtype* A, size_t offA, int lda,
+	const Dtype * x, size_t offx, const Dtype beta, int incx,
+	Dtype* y, size_t offy, int incy);
 
-template <typename Dtype>
+template<typename Dtype>
 void caffe_gpu_gemv(const CBLAS_TRANSPOSE TransA, const int M, const int N,
-    const Dtype alpha, const Dtype* A, const Dtype* x, const Dtype beta,
-    Dtype* y);
+	const Dtype alpha, const Dtype* A, const Dtype* x, const Dtype beta,
+	Dtype* y);
 
-
-template <typename Dtype>
+template<typename Dtype>
 void caffe_axpy(const int N, const Dtype alpha, const Dtype* X,
-    Dtype* Y);
+	Dtype* Y);
 
-template <typename Dtype>
+template<typename Dtype>
 void caffe_gpu_axpy(const int N, const Dtype alpha, const Dtype* X,
-    Dtype* Y);
+	Dtype* Y);
 
-template <typename Dtype>
+template<typename Dtype>
 void caffe_cpu_axpby(const int N, const Dtype alpha, const Dtype* X,
-    const Dtype beta, Dtype* Y);
+	const Dtype beta, Dtype* Y);
 
-template <typename Dtype>
+template<typename Dtype>
 void caffe_gpu_axpby(const int N, const Dtype alpha, const Dtype* X,
-    const Dtype beta, Dtype* Y);
+	const Dtype beta, Dtype* Y);
 
-template <typename Dtype>
+template<typename Dtype>
 void caffe_copy(const int N, const Dtype *X, Dtype *Y);
 
-template <typename Dtype>
+template<typename Dtype>
 void caffe_set(const int N, const Dtype alpha, Dtype *X);
 
-template <typename Dtype>
+template<typename Dtype>
 void caffe_gpu_set(const int N, const Dtype alpha, Dtype *X);
 
 inline void caffe_memset(const size_t N, const int alpha, void* X) {
-  memset(X, alpha, N);  // NOLINT(caffe/alt_fn)
+	memset(X, alpha, N);  // NOLINT(caffe/alt_fn)
 }
 
 inline void caffe_gpu_memset(const size_t N, const int alpha, void* X) {
 #ifndef CPU_ONLY
-  ocl_memset((int*)X, (alpha<<24)|(alpha<<16)|(alpha<<8)|alpha, N);
+	ocl_memset((int*) X, (alpha << 24) | (alpha << 16) | (alpha << 8) | alpha, N);
 #else
-  NO_GPU;
+	NO_GPU;
 #endif
 }
 
 void caffe_gpu_memcpy(const size_t N, const void *X, void *Y);
 
-template <typename Dtype>
+template<typename Dtype>
 void caffe_gpu_memcpy(const size_t N, const Dtype *X, Dtype *Y);
 
-template <typename Dtype>
+template<typename Dtype>
 void caffe_gpu_copy(const int N, const Dtype *X, Dtype *Y);
 
-template <typename Dtype>
+template<typename Dtype>
 void caffe_add_scalar(const int N, const Dtype alpha, Dtype *X);
 
-template <typename Dtype>
+template<typename Dtype>
 void caffe_gpu_add_scalar(const int N, const Dtype alpha, Dtype *X);
 
-template <typename Dtype>
-void caffe_add_scalar(cl_kernel kernel, const int N, const Dtype alpha, Dtype *X);
+template<typename Dtype>
+void caffe_add_scalar(cl_kernel kernel, const int N, const Dtype alpha,
+	Dtype *X);
 
-template <typename Dtype>
+template<typename Dtype>
 void caffe_scal(const int N, const Dtype alpha, Dtype *X);
 
-template <typename Dtype>
+template<typename Dtype>
 void caffe_gpu_scal(const int N, const Dtype alpha, Dtype *X);
 
-template <typename Dtype>
+template<typename Dtype>
 void caffe_sqr(const int N, const Dtype* a, Dtype* y);
 
-template <typename Dtype>
+template<typename Dtype>
 void caffe_add(const int N, const Dtype* a, const Dtype* b, Dtype* y);
 
-template <typename Dtype>
+template<typename Dtype>
 void caffe_sub(const int N, const Dtype* a, const Dtype* b, Dtype* y);
 
-template <typename Dtype>
+template<typename Dtype>
 void caffe_mul(const int N, const Dtype* a, const Dtype* b, Dtype* y);
 
-template <typename Dtype>
+template<typename Dtype>
 void caffe_gpu_mul(const int N, const Dtype* a, const Dtype* b, Dtype* y);
 
-template <typename Dtype>
+template<typename Dtype>
 void caffe_div(const int N, const Dtype* a, const Dtype* b, Dtype* y);
 
 //CUDA version, need to be deleted
-template <typename Dtype>
+template<typename Dtype>
 void caffe_gpu_div(const int N, const Dtype* a, const Dtype* b, Dtype* y);
 
-template <typename Dtype>
-void caffe_gpu_div(cl_kernel kernel, const int N, const Dtype* a, const Dtype* b, Dtype* y);
+template<typename Dtype>
+void caffe_gpu_div(cl_kernel kernel, const int N, const Dtype* a,
+	const Dtype* b, Dtype* y);
 
-template <typename Dtype>
+template<typename Dtype>
 void caffe_powx(const int n, const Dtype* a, const Dtype b, Dtype* y);
 
 //CUDA version, need to be deleted
-template <typename Dtype>
+template<typename Dtype>
 void caffe_gpu_powx(const int n, const Dtype* a, const Dtype b, Dtype* y);
-
 
 unsigned int caffe_rng_rand();
 
-template <typename Dtype>
+template<typename Dtype>
 Dtype caffe_nextafter(const Dtype b);
 
-template <typename Dtype>
+template<typename Dtype>
 void caffe_rng_uniform(const int n, const Dtype a, const Dtype b, Dtype* r);
 
 // caffe_gpu_rng_uniform with two arguments generates integers in the range
@@ -201,54 +202,54 @@ void caffe_gpu_rng_uniform(const int n, unsigned int* r);
 // specification of curandGenerateUniform.  With a = 0, b = 1, just calls
 // curandGenerateUniform; with other limits will shift and scale the outputs
 // appropriately after calling curandGenerateUniform.
-template <typename Dtype>
+template<typename Dtype>
 void caffe_gpu_rng_uniform(const int n, const Dtype a, const Dtype b, Dtype* r);
 
-template <typename Dtype>
+template<typename Dtype>
 void caffe_rng_gaussian(const int n, const Dtype mu, const Dtype sigma,
-                        Dtype* r);
+	Dtype* r);
 
-template <typename Dtype>
+template<typename Dtype>
 void caffe_gpu_rng_gaussian(const int n, const Dtype mu, const Dtype sigma,
-                            Dtype* r);
+	Dtype* r);
 
-template <typename Dtype>
+template<typename Dtype>
 void caffe_rng_bernoulli(const int n, const Dtype p, int* r);
 
-template <typename Dtype>
+template<typename Dtype>
 void caffe_rng_bernoulli(const int n, const Dtype p, unsigned int* r);
 
-template <typename Dtype>
+template<typename Dtype>
 void caffe_gpu_rng_bernoulli(const int n, const Dtype p, int* r);
 
-template <typename Dtype>
+template<typename Dtype>
 void caffe_exp(const int n, const Dtype* a, Dtype* y);
 
-template <typename Dtype>
+template<typename Dtype>
 Dtype caffe_cpu_dot(const int n, const Dtype* x, const Dtype* y);
 
-template <typename Dtype>
+template<typename Dtype>
 void caffe_gpu_dot(const int n, const Dtype* x, const Dtype* y, Dtype* out);
 
-template <typename Dtype>
+template<typename Dtype>
 int caffe_cpu_hamming_distance(const int n, const Dtype* x, const Dtype* y);
 
-template <typename Dtype>
+template<typename Dtype>
 uint32_t caffe_gpu_hamming_distance(const int n, const Dtype* x,
-                                    const Dtype* y);
+	const Dtype* y);
 
 // Returns the sum of the absolute values of the elements of vector x
-template <typename Dtype>
+template<typename Dtype>
 Dtype caffe_cpu_asum(const int n, const Dtype* x);
 
-template <typename Dtype>
+template<typename Dtype>
 void caffe_gpu_asum(const int n, const Dtype* x, Dtype* y);
 
 // the branchless, type-safe version from
 // http://stackoverflow.com/questions/1903954/is-there-a-standard-sign-function-signum-sgn-in-c-c
 template<typename Dtype>
 inline char caffe_sign(Dtype val) {
-  return (Dtype(0) < val) - (val < Dtype(0));
+	return (Dtype(0) < val) - (val < Dtype(0));
 }
 
 // The following two macros are modifications of DEFINE_VSL_UNARY_FUNC
@@ -271,7 +272,6 @@ inline char caffe_sign(Dtype val) {
   void caffe_cpu_##name<float>(const int n, const float* x, float* y); \
   template <> \
   void caffe_cpu_##name<double>(const int n, const double* x, double* y)
-
 
 #define DEFINE_AND_INSTANTIATE_GPU_UNARY_FUNC(name, operation) \
 template<typename Dtype> \
@@ -301,53 +301,51 @@ void caffe_gpu_sgnbit(const int n, const Dtype* x, Dtype* y);
 
 DEFINE_CAFFE_CPU_UNARY_FUNC(fabs, y[i] = std::fabs(x[i]));
 
-template <typename Dtype>
+template<typename Dtype>
 void caffe_gpu_fabs(const int n, const Dtype* x, Dtype* y);
 
-template <typename Dtype>
+template<typename Dtype>
 void caffe_cpu_scale(const int n, const Dtype alpha, const Dtype *x, Dtype* y);
 
-template <typename Dtype>
+template<typename Dtype>
 void caffe_gpu_scale(const int n, const Dtype alpha, const Dtype *x, Dtype* y);
 
-template <typename Dtype>
+template<typename Dtype>
 void caffe_gpu_add(const int N, const Dtype* a, const Dtype* b, Dtype* y);
 
-template <typename Dtype>
+template<typename Dtype>
 void caffe_gpu_sub(const int N, const Dtype* a, const Dtype* b, Dtype* y);
 
-template <typename Dtype>
+template<typename Dtype>
 void caffe_gpu_mul(const int N, const Dtype* a, const Dtype* b, Dtype* y);
 
-template <typename Dtype>
+template<typename Dtype>
 void caffe_gpu_div(const int N, const Dtype* a, const Dtype* b, Dtype* y);
 
-template <typename Dtype>
+template<typename Dtype>
 void caffe_gpu_abs(const int n, const Dtype* a, Dtype* y);
 
-template <typename Dtype>
+template<typename Dtype>
 void caffe_gpu_exp(const int n, const Dtype* a, Dtype* y);
 
-template <typename Dtype>
+template<typename Dtype>
 void caffe_gpu_log(const int n, const Dtype* a, Dtype* y);
 
-template <typename Dtype>
+template<typename Dtype>
 void caffe_gpu_powx(const int n, const Dtype* a, const Dtype b, Dtype* y);
 
-template <typename Dtype>
+template<typename Dtype>
 void caffe_exp(const int n, const Dtype* a, Dtype* y);
 
-
-template <typename Dtype>
+template<typename Dtype>
 void caffe_abs(const int n, const Dtype* a, Dtype* y);
 
-template <typename Dtype>
+template<typename Dtype>
 void caffe_log(const int n, const Dtype* a, Dtype* y);
 
-template <typename Dtype>
+template<typename Dtype>
 Dtype caffe_cpu_strided_dot(const int n, const Dtype* x, const int incx,
-    const Dtype* y, const int incy);
+	const Dtype* y, const int incy);
 }  // namespace caffe
-
 
 #endif  // CAFFE_UTIL_MATH_FUNCTIONS_H_
