@@ -292,10 +292,13 @@ template <typename Dtype>
 void BaseConvolutionLayer<Dtype>::forward_gpu_gemm_opt (const Dtype* input,
     const Dtype* weight, Dtype* output, bool skip_im2col) {
   cl_command_queue Queue;
+  const Dtype* col_buff = input;
   if (!is_1x1_) {
     if (!skip_im2col) {
       conv_im2col_gpu_opt(input);
     }   
+    col_buff = col_buffer_.gpu_data();
+    caffe_gpu_memcpy(K_ * N_ * opt_num2 * sizeof(Dtype), col_buff, (Dtype*)transMem);
   }
 #ifdef multiQ
     for (int g = 0; g < group_; ++g) {
@@ -363,8 +366,7 @@ void BaseConvolutionLayer<Dtype>::backward_gpu_gemm_opt(const Dtype* output,
     const Dtype* weights, Dtype* input) {
   cl_command_queue Queue;
   if (is_1x1_) {
-    int count = height_ * width_ * conv_in_channels_ * opt_num2;
-    caffe_gpu_copy(count, input, (Dtype*)transMem);
+    caffe_gpu_memcpy( height_ * width_ * conv_in_channels_ * opt_num2 * sizeof(Dtype), input, (Dtype*)transMem);
   }
   for (int g = 0; g < group_; ++g) {
 #ifdef multiQ
@@ -387,6 +389,8 @@ void BaseConvolutionLayer<Dtype>::backward_gpu_gemm_opt(const Dtype* output,
 
   if (!is_1x1_) {
       conv_col2im_gpu_opt(input);
+   }else{
+     caffe_gpu_memcpy( height_ * width_ * conv_in_channels_ * opt_num2 * sizeof(Dtype), (Dtype*)transMem, input);
    }
 }
 
@@ -411,9 +415,10 @@ void BaseConvolutionLayer<Dtype>::weight_gpu_gemm_opt(const Dtype* input,
   cl_command_queue Queue;
   if (!is_1x1_) {
     conv_im2col_gpu_opt(input);
-  }
+  }else{
+    caffe_gpu_memcpy( K_ * N_ * group_ * opt_num2 * sizeof(Dtype), input, (Dtype*)transMem);
+ }
     opttrans(output, top_offset_, 1, M_ * group_, N_, (Dtype*)subTopMem, 0, opt_num2);
-
 
   for (int g = 0; g < group_; ++g) {
 #ifdef multiQ
