@@ -6,13 +6,17 @@ OpenCL is an open standard parallel programming language that is supported by mo
 
 #Design features
   -All layers ported to OpenCL
-
-  -Passes unit test
+  
+  -Aligned with CAFFE’s latest code
 
   -Performance improvement by batched sgemm implementation for conv layer
 
   -User can choose optimal batch number depening on H/W, image size and minibatch size
 
+  -Passes unit test
+
+  -OpenCL 2.0, 1.2
+  
   -Remove CUDA for simplicity, only contains C++ and OpenCL, maintains the same interfaces as original caffe to make it easy for caffe users
 
   -Users can directly run DNN models: AlexNet, VGG 16 and VGG-19
