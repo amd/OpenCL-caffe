@@ -131,6 +131,9 @@ inline void caffe_gpu_memset(const size_t N, const int alpha, void* X) {
 void caffe_gpu_memcpy(const size_t N, const void *X, void *Y);
 
 template <typename Dtype>
+void caffe_gpu_memcpy(const size_t N, const Dtype *X, Dtype *Y);
+
+template <typename Dtype>
 void caffe_gpu_copy(const int N, const Dtype *X, Dtype *Y);
 
 template <typename Dtype>

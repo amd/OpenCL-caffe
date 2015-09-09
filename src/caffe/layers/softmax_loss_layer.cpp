@@ -177,8 +177,8 @@ void SoftmaxWithLossLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
     Dtype* bottom_diff = bottom[0]->mutable_gpu_diff();
     const Dtype* prob_data = prob_.gpu_data();
     const Dtype* top_data = top[0]->gpu_data();
-   // caffe_gpu_memcpy(prob_.count() * sizeof(Dtype), prob_data, bottom_diff);
-    caffe_gpu_copy(prob_.count(), prob_data, bottom_diff);
+    caffe_gpu_memcpy(prob_.count() * sizeof(Dtype), prob_data, bottom_diff);
+    //caffe_gpu_copy(prob_.count(), prob_data, bottom_diff);
     const Dtype* label = bottom[1]->gpu_data();
     const int dim = prob_.count() / outer_num_;
     const int nthreads = outer_num_ * inner_num_;

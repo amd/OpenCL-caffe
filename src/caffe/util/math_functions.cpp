@@ -33,6 +33,7 @@
 #include "caffe/util/math_functions.hpp"
 #include "caffe/util/rng.hpp"
 #include "caffe/util/ocl_util.hpp"
+#include "caffe/util/ocl_wrapper.hpp"
 
 static const clblasOrder order = clblasColumnMajor;
 #define pi 3.1415926
@@ -302,9 +303,16 @@ template void caffe_gpu_memcpy<long>(const size_t N, const long* X, long* Y);
 template void caffe_gpu_memcpy<unsigned long>(const size_t N, const unsigned long* X, unsigned long* Y);
 template void caffe_gpu_memcpy<int>(const size_t N, const int* X, int* Y);
 template void caffe_gpu_memcpy<unsigned int>(const size_t N, const unsigned int* X, unsigned int* Y);
-template void caffe_gpu_memcpy<float>(const size_t N, const float* X, float* Y);
-template void caffe_gpu_memcpy<double>(const size_t N, const double* X, double* Y);
 */
+template<> 
+void caffe_gpu_memcpy<float>(const size_t N, const float* X, float* Y)
+{  OCL_CHECK (clEnqueueCopyBuffer(amdDevice.CommandQueue, (cl_mem)X, (cl_mem)Y, 0, 0, N, 0, NULL, NULL));
+}
+
+template<> 
+void caffe_gpu_memcpy<double>(const size_t N, const double* X, double* Y)
+{  OCL_CHECK (clEnqueueCopyBuffer(amdDevice.CommandQueue, (cl_mem)X, (cl_mem)Y, 0, 0, N, 0, NULL, NULL));
+}
 
 template <>
 void caffe_gpu_copy<float>(const int N, const float* X, float* Y) {

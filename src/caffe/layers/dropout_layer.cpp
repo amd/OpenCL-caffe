@@ -17,7 +17,7 @@ void DropoutLayer<Dtype>::ocl_setup(int bottom_count){
 
 template <typename Dtype>
 DropoutLayer<Dtype>::~DropoutLayer(){
-//   OCL_CHECK( clReleaseMemObject(MaskMem) );
+   OCL_CHECK( clReleaseMemObject(MaskMem) );
 }
 
 

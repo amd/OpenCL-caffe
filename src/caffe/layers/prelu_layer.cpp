@@ -141,7 +141,7 @@ void PReLULayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
   const int div_factor = channel_shared_ ? channels : 1;
   
   if (top[0] == bottom[0]) {
-    caffe_copy(count, bottom_data, bottom_memory_.mutable_gpu_data());
+    caffe_gpu_copy(count, bottom_data, bottom_memory_.mutable_gpu_data());
   }
   PReLUForward(count, channels, dim, bottom_data, top_data, slope_data, div_factor);
 }
@@ -171,8 +171,8 @@ void PReLULayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
       // compute element-wise diff
       // NOLINT_NEXT_LINE(whitespace/operators)
       PReLUParamBackward(
-          cdim, top_diff + top[0]->offset(n),
-          bottom_data + bottom[0]->offset(n),
+          cdim, top_diff, top[0]->offset(n),
+          bottom_data, bottom[0]->offset(n),
           backward_buff_.mutable_gpu_diff());
       if (channel_shared_) {
         Dtype d;

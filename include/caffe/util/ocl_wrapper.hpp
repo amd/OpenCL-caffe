@@ -125,7 +125,7 @@ template <typename Dtype>
 void PReLUBackward(const int count, const int channels, const int dim, const Dtype* top_diff, const Dtype* bottom_data, Dtype* bottom_diff, const Dtype* slope_data, const int div_factor);
 
 template <typename Dtype> 
-void PReLUParamBackward(const int count, const Dtype* top_diff, const Dtype* bottom_data, Dtype* bottom_diff);
+void PReLUParamBackward(const int count, const Dtype* top_diff, const int offset_out, const Dtype* bottom_data,const int offset_in, Dtype* bottom_diff);
 
 template <typename Dtype>
 void ReLUForward(const int count, const Dtype* bottom_data, Dtype* top_data, Dtype negative_slope);

@@ -869,20 +869,22 @@ template void PReLUBackward<float>(const int count, const int channels, const in
 template void PReLUBackward<double>(const int count, const int channels, const int dim, const double* top_diff, const double* bottom_data, double* bottom_diff, const double* slope_data, const int div_factor);
 
 template <typename Dtype> 
-void PReLUParamBackward(const int count, const Dtype* top_diff, const Dtype* bottom_data, Dtype* bottom_diff){
+void PReLUParamBackward(const int count, const Dtype* top_diff, const int offset_out, const Dtype* bottom_data, const int offset_in, Dtype* bottom_diff){
     std::string kernel_name = "PReLUParamBackward" + get_dtype_suffix<Dtype>();
     cl_kernel Kernel = amdDevice.GetKernel(kernel_name);
     cl_int ret;
     ret  = clSetKernelArg(Kernel, 0, sizeof(cl_int), (void*)&count);
     ret |= clSetKernelArg(Kernel, 1, sizeof(cl_mem), (void*)&top_diff);
-    ret |= clSetKernelArg(Kernel, 2, sizeof(cl_mem), (void*)&bottom_data);
-    ret |= clSetKernelArg(Kernel, 3, sizeof(cl_mem), (void*)&bottom_diff);
+    ret  = clSetKernelArg(Kernel, 2, sizeof(cl_int), (void*)&offset_out);
+    ret |= clSetKernelArg(Kernel, 3, sizeof(cl_mem), (void*)&bottom_data);
+    ret  = clSetKernelArg(Kernel, 4, sizeof(cl_int), (void*)&offset_in);
+    ret |= clSetKernelArg(Kernel, 5, sizeof(cl_mem), (void*)&bottom_diff);
     size_t Global_Work_Size[] = {(size_t)count};
     size_t Local_Work_Size[] = {256};
     OCL_CHECK(clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL, Global_Work_Size, Local_Work_Size, 0, NULL, NULL));
 }
-template void PReLUParamBackward<float>(const int count, const float* top_diff, const float* bottom_data, float* bottom_diff);
-template void PReLUParamBackward<double>(const int count, const double* top_diff, const double* bottom_data, double* bottom_diff);
+template void PReLUParamBackward<float>(const int count, const float* top_diff, const int offset_out, const float* bottom_data, const int offset_in, float* bottom_diff);
+template void PReLUParamBackward<double>(const int count, const double* top_diff, const int offset_out, const double* bottom_data, const int offset_in, double* bottom_diff);
 
 
 template <typename Dtype> 
