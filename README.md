@@ -1,17 +1,46 @@
 #OpenCL caffe
 
-This is an OpenCL implementation of one of the main stream DNN framework-CAFFE, see more details about CAFFE below. The OpenCL CAFFE is developed by AMD Research. The goal is to provide industry an effecient and ready to use OpenCL version of DNN framework.
+This is an OpenCL implementation of one of the main stream DNN framework-CAFFE, see more details about CAFFE below. The OpenCL CAFFE is developed by AMD Research lab. As The goal is to provide industry an effecient and ready to use OpenCL version of DNN framework. Things are not perfect yet. We will keep adding new features and improving performance.
 
 OpenCL is an open standard parallel programming language that is supported by more than 20 companies. People can use this framework to run their DNN app on heterogeneous platforms from vairous commercial chip manufacturer. Compared to CUDA based DNN, this framework support cross-platform compatability and with design space to optimize accordingly.
 
 #Design features
--All layers ported to OpenCL
--Passes unit test
--Performance improvement by batched sgemm implementation for conv layer
--User can choose optimal batch number depening on H/W and image size
--Remove CUDA for simplicity, only contains C++ and OpenCL, maintains the same interfaces as original caffe to make it easy for caffe users
--Users can directly run DNN models: AlexNet, VGG 16 and VGG-19
+  -All layers ported to OpenCL
 
+  -Passes unit test
+
+  -Performance improvement by batched sgemm implementation for conv layer
+
+  -User can choose optimal batch number depening on H/W, image size and minibatch size
+
+  -Remove CUDA for simplicity, only contains C++ and OpenCL, maintains the same interfaces as original caffe to make it easy for caffe users
+
+  -Users can directly run DNN models: AlexNet, VGG 16 and VGG-19
+
+Note: More featurs will be added in the near future. And this OpenCL caffe only verifies on AMD devices (CPUs/GPUs/APUs). Compatibility across different chip manufacturers will be considered to add if there is a need.
+
+#Performance
+
+We will keep updating the latest performance we could achieve in this section.
+
+* Training speed (Model: AlexNet)
+
+    -AMD W9100 (5.2TFLOPS), 255 images per second
+
+    -AMD R9 Fury((7.2TFLOPS)), 231 images per second
+
+* Recognition speed (Model: AlexNet)
+
+    -AMD W9100 (5.2TFLOPS), 590 images per second
+
+    -AMD R9 Fury((7.2TFLOPS)), 699 images per second
+
+#Wiki
+For more information on how to install, use or contribute to this code base, please visit our wiki page:
+https://github.com/amd/OpenCL-caffe/wiki
+
+#License and support
+Original caffe is provided in the [BSD 2-Clause license](https://github.com/BVLC/caffe/blob/master/LICENSE) open source license. The OpenCL ports written by AMD is covered by AMD license. As an open source project, we hope to maintain an open dynamics and sharing culture. We encourage the contribution and support from external, your contribution will be covered either by BSD 2-Clause license or which ever your preferred licence.
 
 # Caffe
 
