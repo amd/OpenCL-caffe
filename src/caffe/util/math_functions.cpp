@@ -801,20 +801,24 @@ void caffe_gpu_rng_uniform(const int n, unsigned int* r) {
 template <>
 void caffe_gpu_rng_uniform<float>(const int n, const float a, const float b,
                                   float* r) {
+	caffe_gpu_uniform(r, n, a, b);	// r is a cl_mem object
 }
 template <>
 void caffe_gpu_rng_uniform<double>(const int n, const double a, const double b,
                                    double* r) {
+	caffe_gpu_uniform(r, n, a, b);  // r is a cl_mem object
 }
 
 template <>
 void caffe_gpu_rng_gaussian(const int n, const float mu, const float sigma,
                             float* r) {
+	caffe_gpu_gaussian(r, n, mu, sigma);  // r is a cl_mem object
 }
 
 template <>
 void caffe_gpu_rng_gaussian(const int n, const double mu, const double sigma,
                             double* r) {
+	caffe_gpu_gaussian(r, n, mu, sigma);  // r is a cl_mem object
 }
 
 template <>

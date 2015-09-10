@@ -707,7 +707,7 @@ inline threefry4x32_ctr_t threefry4x32_R(unsigned int Nrounds, threefry4x32_ctr_
 } 
 
 template <class T>
-__kernel void PRNG_threefry4x32(
+__kernel void PRNG_threefry4x32_bernoulli(
         __global uint4 *randomnumber,
         threefry4x32_ctr_t ctr_i,
         T inf,
@@ -744,9 +744,110 @@ __kernel void PRNG_threefry4x32(
 }
 
 
-template __attribute__((mangled_name(RNGBernoulli_float))) __kernel void PRNG_threefry4x32(__global uint4 *randomnumber, threefry4x32_ctr_t ctr_i, float inf, float sup, float threshold, uint nrounds, uint numrandonm);
+template __attribute__((mangled_name(RNGBernoulli_float))) __kernel void PRNG_threefry4x32_bernoulli(__global uint4 *randomnumber, threefry4x32_ctr_t ctr_i, float inf, float sup, float threshold, uint nrounds, uint numrandonm);
 
-template __attribute__((mangled_name(RNGBernoulli_double))) __kernel void PRNG_threefry4x32(__global uint4 *randomnumber, threefry4x32_ctr_t ctr_i, double inf, double sup, double threshold, uint nrounds, uint numrandonm);
+template __attribute__((mangled_name(RNGBernoulli_double))) __kernel void PRNG_threefry4x32_bernoulli(__global uint4 *randomnumber, threefry4x32_ctr_t ctr_i, double inf, double sup, double threshold, uint nrounds, uint numrandonm);
 
 //end of the looooooong gpu_random_generator kernel 
+
+template <class T>
+__kernel void PRNG_threefry4x32_uniform(
+        __global float4 *randomnumber,
+        threefry4x32_ctr_t ctr_i,
+        T inf,
+        T sup,
+        uint nrounds,
+        uint numrandom
+){
+        size_t  gdx = get_global_id(0);
+
+        uint maxUint = 0;
+        maxUint--;
+        float r = (float)maxUint;
+
+        threefry4x32_ctr_t      ctr = ctr_i; 
+        threefry4x32_ukey_t ukey;
+
+        ukey.v[0] = ukey.v[1] = ukey.v[2] = ukey.v[3] = gdx;
+
+        threefry4x32_ctr_t  random4;
+
+        if ( gdx < numrandom )
+        {
+                random4 = threefry4x32_R(nrounds, ctr, ukey);
+                float4 frnd;
+                frnd.x = ( (((float)random4.v[0]) / r) * (sup - inf) + inf );
+                frnd.y = ( (((float)random4.v[1]) / r) * (sup - inf) + inf );
+                frnd.z = ( (((float)random4.v[2]) / r) * (sup - inf) + inf );
+                frnd.w = ( (((float)random4.v[3]) / r) * (sup - inf) + inf );
+                randomnumber[gdx] = frnd;
+        }
+}
+
+template __attribute__((mangled_name(RNGUniform_float))) __kernel void PRNG_threefry4x32_uniform(__global float4 *randomnumber, threefry4x32_ctr_t ctr_i, float inf, float sup, uint nrounds, uint numrandonm);
+
+template __attribute__((mangled_name(RNGUniform_double))) __kernel void PRNG_threefry4x32_uniform(__global float4 *randomnumber, threefry4x32_ctr_t ctr_i, double inf, double sup, uint nrounds, uint numrandonm);
+
+template <class T>
+__kernel void PRNG_threefry4x32_gaussian(
+	__global float4 *randomnumber, 
+	threefry4x32_ctr_t ctr_i,
+	float E,
+	float V,
+	uint nrounds,
+	uint numrandom
+){
+	size_t	gdx = get_global_id(0);
+
+	uint maxUint = 0;
+	maxUint--;
+	float r = (float)maxUint;
+
+	threefry4x32_ctr_t	ctr = ctr_i; 
+	threefry4x32_ukey_t ukey1, ukey2;
+
+	ukey1.v[0] = ukey2.v[1] = ukey1.v[2] = ukey2.v[3] = gdx;
+	ukey2.v[0] = ukey1.v[1] = ukey2.v[2] = ukey1.v[3] = 0;
+
+	threefry4x32_ctr_t  random1, random2;
+
+	if ( gdx < numrandom )
+	{
+		random1 = threefry4x32_R(nrounds, ctr, ukey1);
+		random2 = threefry4x32_R(nrounds, ctr, ukey2);
+		float4 frnd1;
+
+		float r1 = (((float)random1.v[0]) / r);          // generate a random sequence of uniform distribution
+		float r2 = (((float)random2.v[0]) / r);
+		float r3 = (((float)random1.v[1]) / r);
+		float r4 = (((float)random2.v[1]) / r);
+		float r5 = (((float)random1.v[2]) / r);
+		float r6 = (((float)random2.v[2]) / r);
+		float r7 = (((float)random1.v[3]) / r);
+		float r8 = (((float)random2.v[3]) / r);
+
+		if(r2 == 0 || r4 == 0 || r6 == 0 || r8 == 0){
+			r2 += 0.0001;
+			r4 += 0.0001;
+			r6 += 0.0001;
+			r8 += 0.0001;
+		}
+
+		frnd1.x = cos(2*M_PI*r1)*sqrt(-2.0*log(r2)) * V + E;     // return a pseudo sequence of normal distribution using two above uniform noise data
+		//frnd2.x = sin(2*M_PI*r1)*sqrt(-2.0*log(r2));      // return the quadrature counterpart of the foregoing pseudo normal distribution sequence
+		frnd1.y = cos(2*M_PI*r3)*sqrt(-2.0*log(r4)) * V + E;     // return a pseudo sequence of normal distribution using two above uniform noise data
+		//frnd2.y = sin(2*M_PI*r3)*sqrt(-2.0*log(r4));      // return the quadrature counterpart of the foregoing pseudo normal distribution sequence
+		frnd1.z = cos(2*M_PI*r5)*sqrt(-2.0*log(r6)) * V + E;     // return a pseudo sequence of normal distribution using two above uniform noise data
+		//frnd2.z = sin(2*M_PI*r5)*sqrt(-2.0*log(r6));      // return the quadrature counterpart of the foregoing pseudo normal distribution sequence
+		frnd1.w = cos(2*M_PI*r7)*sqrt(-2.0*log(r8)) * V + E;     // return a pseudo sequence of normal distribution using two above uniform noise data
+		//frnd2.w = sin(2*M_PI*r7)*sqrt(-2.0*log(r8));      // return the quadrature counterpart of the foregoing pseudo normal distribution sequence
+
+		randomnumber[gdx] = frnd1;
+	}
+}
+
+template __attribute__((mangled_name(RNGGaussian_float))) __kernel void PRNG_threefry4x32_gaussian(__global float4 *randomnumber, threefry4x32_ctr_t ctr_i, float E, float V, uint nrounds, uint numrandonm);
+
+template __attribute__((mangled_name(RNGGaussian_double))) __kernel void PRNG_threefry4x32_gaussian(__global float4 *randomnumber, threefry4x32_ctr_t ctr_i, double E, double V, uint nrounds, uint numrandonm);
+
 
