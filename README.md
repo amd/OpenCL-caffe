@@ -1,13 +1,13 @@
 #OpenCL caffe
 
-This is an OpenCL implementation of one of the main stream DNN framework-CAFFE, see more details about CAFFE below. The OpenCL CAFFE is developed by AMD Research lab. As The goal is to provide industry an effecient and ready to use OpenCL version of DNN framework. Things are not perfect yet. We will keep adding new features and improving performance.
+This is an OpenCL implementation of one of the main stream DNN framework-CAFFE, see more details about CAFFE below. The OpenCL caffe is developed by AMD Research lab. As The goal is to provide industry an effecient and ready to use OpenCL version of DNN framework. Things are not perfect yet. We will keep adding new features and improving performance.
 
 OpenCL is an open standard parallel programming language that is supported by more than 20 companies. People can use this framework to run their DNN app on heterogeneous platforms from vairous commercial chip manufacturer. Compared to CUDA based DNN, this framework support cross-platform compatability and with design space to optimize accordingly.
 
 #Design features
   -All layers ported to OpenCL
   
-  -Aligned with CAFFE’s latest code
+  -Aligned with caffe’s latest code
 
   -Performance improvement by batched sgemm implementation for conv layer
 
