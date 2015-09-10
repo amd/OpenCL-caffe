@@ -1,39 +1,37 @@
 #OpenCL caffe
 
-This is an OpenCL implementation of one of the main stream DNN framework-CAFFE, see more details about CAFFE below. The OpenCL CAFFE is developed by AMD Research lab. As The goal is to provide the community an OpenCL version of DNN framework to use. Things are not perfect yet. We will keep adding new features and improving performance. We also hope to get help from community to improve it together. 
-
-OpenCL is an open standard parallel programming language that is supported by more than 20 companies. People can use this framework to run their DNN app on heterogeneous platforms from vairous commercial chip manufacturer. Compared to CUDA based DNN, this framework support cross-platform compatability and with design space to optimize accordingly.
+This is an OpenCL implementation of the popular caffe DNN framework (https://github.com/BVLC/caffe). It includes a largely complete caffe feature set as of August 2015. The project is under active development to improve performance and add new features. Contributions from the community are welcome.
 
 #Design features
--All layers ported to OpenCL
+  -All layers ported to OpenCL
 
--Passes unit test
+  -Performance improvement by batched sgemm implementation for conv layer
 
--Performance improvement by batched sgemm implementation for conv layer
+  -User can choose optimal batch number depending on H/W, image size and minibatch size
 
--User can choose optimal batch number depening on H/W, image size and minibatch size
+  -Supports OpenCL 2.0, 1.2
+  
+  -Implemented in C++ and OpenCL, maintaining the same interfaces as original caffe to make it easy for caffe users
 
--Remove CUDA for simplicity, only contains C++ and OpenCL, maintains the same interfaces as original caffe to make it easy for caffe users
+  -Users can directly run DNN models: AlexNet, VGG 16 and VGG-19
 
--Users can directly run DNN models: AlexNet, VGG 16 and VGG-19
-
-Note: More featurs will be added in the near future. And this OpenCL caffe only verifies on AMD devices (CPUs/GPUs/APUs). Compatibility across different chip manufacturers will be considered to add if there is a need.
+Note: More features will be added in the near future. Currently this implementation has been verified and tuned on AMD devices (CPUs/GPUs/APUs). Compatibility across different chip manufacturers will be considered to be added in the future.
 
 #Performance
 
-We will keep updating the latest performance we could achieve in this section.
+We will keep updating the latest performance as we make optimizations. Fury results are preliminary and are actively being improved.
 
-Training speed (Model: AlexNet, minibatch size 128)
+* Training speed (Model: AlexNet, minibatch size 128)
 
--AMD W9100 (5.2TFLOPS), 255 images per second
+    -AMD W9100, 255 images per second
 
--AMD R9 Fury((7.2TFLOPS)), 261 images per second
+    -AMD R9 Fury, 261 images per second
 
-Recognition speed (Model: AlexNet, minibatch size 128)
+* Recognition speed (Model: AlexNet, minibatch size 128)
 
--AMD W9100 (5.2TFLOPS), 590 images per second
+    -AMD W9100, 590 images per second
 
--AMD R9 Fury((7.2TFLOPS)), 699 images per second
+    -AMD R9 Fury, 699 images per second
 
 #Wiki
 For more information on how to install, use or contribute to this code base, please visit our wiki page:
@@ -42,10 +40,11 @@ https://github.com/amd/OpenCL-caffe/wiki
 #Support needed
 We encourage the contribution and support from the community to improve it together.
 
-#License 
+#License
 Original caffe is provided in the [BSD 2-Clause license](https://github.com/BVLC/caffe/blob/master/LICENSE) open source license. The OpenCL ports written by AMD is covered by AMD license. As an open source project, we hope to maintain an open dynamics and sharing culture. We encourage the contribution and support from external, your contribution will be covered either by BSD 2-Clause license or which ever your preferred licence.
 
-# Caffe
+# Original Caffe information
+## Caffe
 
 Caffe is a deep learning framework made with expression, speed, and modularity in mind.
 It is developed by the Berkeley Vision and Learning Center ([BVLC](http://bvlc.eecs.berkeley.edu)) and community contributors.
