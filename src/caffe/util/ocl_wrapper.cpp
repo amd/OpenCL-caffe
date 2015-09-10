@@ -424,7 +424,7 @@ void kernel_channel_sum(const int num, const int channels,
 	OCL_CHECK(clSetKernelArg(Kernel, 3, sizeof(cl_mem), (void*) &data));
 	OCL_CHECK(clSetKernelArg(Kernel, 4, sizeof(cl_mem), (void*) &channel_sum));
 
-	size_t Global_Work_Size[1] = { (size_t)(num * channels) };
+	size_t Global_Work_Size[1] = { (size_t)(num * spatial_dim) };
 	size_t Local_Work_Size[1] = { 256 };
 	OCL_CHECK(
 			clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL,
@@ -499,7 +499,8 @@ void SoftmaxLossForwardGPU(const int nthreads,
 		Dtype* counts) {
 	std::string kernel_name = "SoftmaxLossForwardGPU" + get_dtype_suffix<Dtype>();
 	cl_kernel Kernel = amdDevice.GetKernel(kernel_name);
-
+        
+        int int_has_ignore_label = has_ignore_label_ ? 1 : 0;
 	OCL_CHECK(clSetKernelArg(Kernel, 0, sizeof(cl_int), (void*) &nthreads));
 	OCL_CHECK(clSetKernelArg(Kernel, 1, sizeof(cl_mem), (void*) &prob_data));
 	OCL_CHECK(clSetKernelArg(Kernel, 2, sizeof(cl_mem), (void*) &label));
@@ -507,8 +508,7 @@ void SoftmaxLossForwardGPU(const int nthreads,
 	OCL_CHECK(clSetKernelArg(Kernel, 4, sizeof(cl_int), (void*) &num));
 	OCL_CHECK(clSetKernelArg(Kernel, 5, sizeof(cl_int), (void*) &dim));
 	OCL_CHECK(clSetKernelArg(Kernel, 6, sizeof(cl_int), (void*) &spatial_dim));
-	OCL_CHECK(
-			clSetKernelArg(Kernel, 7, sizeof(cl_bool), (void*) &has_ignore_label_));
+	OCL_CHECK(clSetKernelArg(Kernel, 7, sizeof(cl_int), (void*) &int_has_ignore_label));
 	OCL_CHECK(clSetKernelArg(Kernel, 8, sizeof(cl_int), (void*) &ignore_label_));
 	OCL_CHECK(clSetKernelArg(Kernel, 9, sizeof(cl_mem), (void*) &counts));
 
@@ -536,6 +536,7 @@ void SoftmaxLossBackwardGPU(const int nthreads, const Dtype* top,
 	std::string kernel_name = "SoftmaxLossBackwardGPU"
 			+ get_dtype_suffix<Dtype>();
 	cl_kernel Kernel = amdDevice.GetKernel(kernel_name);
+        int int_has_ignore_label = has_ignore_label_ ? 1 : 0;
 
 	OCL_CHECK(clSetKernelArg(Kernel, 0, sizeof(cl_int), (void*) &nthreads));
 	OCL_CHECK(clSetKernelArg(Kernel, 1, sizeof(cl_mem), (void*) &top));
@@ -544,8 +545,7 @@ void SoftmaxLossBackwardGPU(const int nthreads, const Dtype* top,
 	OCL_CHECK(clSetKernelArg(Kernel, 4, sizeof(cl_int), (void*) &num));
 	OCL_CHECK(clSetKernelArg(Kernel, 5, sizeof(cl_int), (void*) &dim));
 	OCL_CHECK(clSetKernelArg(Kernel, 6, sizeof(cl_int), (void*) &spatial_dim));
-	OCL_CHECK(
-			clSetKernelArg(Kernel, 7, sizeof(cl_bool), (void*) &has_ignore_label_));
+	OCL_CHECK(clSetKernelArg(Kernel, 7, sizeof(cl_int), (void*) &int_has_ignore_label));
 	OCL_CHECK(clSetKernelArg(Kernel, 8, sizeof(cl_int), (void*) &ignore_label_));
 	OCL_CHECK(clSetKernelArg(Kernel, 9, sizeof(cl_mem), (void*) &counts));
 
