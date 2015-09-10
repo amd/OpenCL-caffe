@@ -8,29 +8,29 @@
 
 namespace caffe {
 
-template<typename Dtype>
+template <typename Dtype>
 void ReductionLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
-	const vector<Blob<Dtype>*>& top) {
+		const vector<Blob<Dtype>*>& top) {
 	op_ = this->layer_param_.reduction_param().operation();
 }
 
-template<typename Dtype>
+template <typename Dtype>
 void ReductionLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
-	const vector<Blob<Dtype>*>& top) {
+		const vector<Blob<Dtype>*>& top) {
 	axis_ = bottom[0]->CanonicalAxisIndex(
-		this->layer_param_.reduction_param().axis());
+			this->layer_param_.reduction_param().axis());
 	// In the output, we'll keep all axes up to the reduction axis, but
 	// throw away any after that.
 	// Note: currently reducing along non-tail axes is not supported; otherwise,
 	// we'd need to also copy any axes following an "end_axis".
 	vector<int> top_shape(bottom[0]->shape().begin(),
-		bottom[0]->shape().begin() + axis_);
+			bottom[0]->shape().begin() + axis_);
 	top[0]->Reshape(top_shape);
 	num_ = bottom[0]->count(0, axis_);
 	dim_ = bottom[0]->count(axis_);
 	CHECK_EQ(num_, top[0]->count());
 	if (op_ == ReductionParameter_ReductionOp_SUM ||
-		op_ == ReductionParameter_ReductionOp_MEAN) {
+			op_ == ReductionParameter_ReductionOp_MEAN) {
 		vector<int> sum_mult_shape(1, dim_);
 		sum_multiplier_.Reshape(sum_mult_shape);
 		caffe_set(dim_, Dtype(1), sum_multiplier_.mutable_cpu_data());
@@ -41,9 +41,9 @@ void ReductionLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
 	}
 }
 
-template<typename Dtype>
+template <typename Dtype>
 void ReductionLayer<Dtype>::Forward_cpu(
-	const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
+		const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
 	const Dtype* bottom_data = bottom[0]->cpu_data();
 	const Dtype* mult_data = NULL;
 	if (sum_multiplier_.count() > 0) {
@@ -64,7 +64,7 @@ void ReductionLayer<Dtype>::Forward_cpu(
 				break;
 			default:
 				LOG(FATAL) << "Unknown reduction op: "
-					<< ReductionParameter_ReductionOp_Name(op_);
+						<< ReductionParameter_ReductionOp_Name(op_);
 		}
 		bottom_data += dim_;
 		++top_data;
@@ -76,9 +76,9 @@ void ReductionLayer<Dtype>::Forward_cpu(
 	}
 }
 
-template<typename Dtype>
+template <typename Dtype>
 void ReductionLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
-	const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
+		const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
 	if (!propagate_down[0]) {
 		return;
 	}
@@ -96,7 +96,7 @@ void ReductionLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
 			break;
 		default:
 			LOG(FATAL) << "Unknown reduction op: "
-				<< ReductionParameter_ReductionOp_Name(op_);
+					<< ReductionParameter_ReductionOp_Name(op_);
 	}
 	const Dtype* top_diff = top[0]->cpu_diff();
 	Dtype* bottom_diff = bottom[0]->mutable_cpu_diff();
@@ -116,7 +116,7 @@ void ReductionLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
 				break;
 			default:
 				LOG(FATAL) << "Unknown reduction op: "
-					<< ReductionParameter_ReductionOp_Name(op_);
+						<< ReductionParameter_ReductionOp_Name(op_);
 		}
 		bottom_data += dim_;
 		bottom_diff += dim_;
@@ -124,9 +124,9 @@ void ReductionLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
 	}
 }
 
-template<typename Dtype>
+template <typename Dtype>
 void ReductionLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
-	const vector<Blob<Dtype>*>& top) {
+		const vector<Blob<Dtype>*>& top) {
 	const Dtype* bottom_data = bottom[0]->gpu_data();
 	const Dtype* mult_data = NULL;
 	if (sum_multiplier_.count() > 0) {
@@ -147,7 +147,7 @@ void ReductionLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 				break;
 			default:
 				LOG(FATAL) << "Unknown reduction op: "
-					<< ReductionParameter_ReductionOp_Name(op_);
+						<< ReductionParameter_ReductionOp_Name(op_);
 		}
 		bottom_data += dim_;
 		++top_data;
@@ -159,9 +159,9 @@ void ReductionLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 	}
 }
 
-template<typename Dtype>
+template <typename Dtype>
 void ReductionLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
-	const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
+		const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
 	if (!propagate_down[0]) {
 		return;
 	}
@@ -179,7 +179,7 @@ void ReductionLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
 			break;
 		default:
 			LOG(FATAL) << "Unknown reduction op: "
-				<< ReductionParameter_ReductionOp_Name(op_);
+					<< ReductionParameter_ReductionOp_Name(op_);
 	}
 	const Dtype* top_diff = top[0]->cpu_diff();
 	Dtype* bottom_diff = bottom[0]->mutable_gpu_diff();
@@ -199,7 +199,7 @@ void ReductionLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
 				break;
 			default:
 				LOG(FATAL) << "Unknown reduction op: "
-					<< ReductionParameter_ReductionOp_Name(op_);
+						<< ReductionParameter_ReductionOp_Name(op_);
 		}
 		bottom_data += dim_;
 		bottom_diff += dim_;

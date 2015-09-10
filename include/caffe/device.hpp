@@ -35,7 +35,8 @@ namespace caffe {
 class Device {
 	public:
 		Device()
-			: numPlatforms(0), numDevices(0), device_id(INT_MIN) {
+		:
+				numPlatforms(0), numDevices(0), device_id(INT_MIN) {
 		}
 		~Device();
 		cl_uint numPlatforms;
@@ -69,10 +70,10 @@ class Device {
 		;
 		void BuildProgram(std::string kernel_dir);
 
-		template<typename T>
+		template <typename T>
 		void DisplayDeviceInfo(cl_device_id id, cl_device_info name,
-			std::string str);
-		template<typename T>
+				std::string str);
+		template <typename T>
 		void appendBitfield(T info, T value, std::string name, std::string &str);
 
 		cl_kernel GetKernel(std::string kernel_name);

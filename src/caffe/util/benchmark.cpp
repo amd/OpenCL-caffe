@@ -6,9 +6,10 @@
 namespace caffe {
 
 Timer::Timer()
-	: initted_(false),
-		running_(false),
-		has_run_at_least_once_(false) {
+:
+		initted_(false),
+				running_(false),
+				has_run_at_least_once_(false) {
 	Init();
 }
 
@@ -98,7 +99,7 @@ float CPUTimer::MilliSeconds() {
 		Stop();
 	}
 	this->elapsed_milliseconds_ = (this->stop_cpu_ -
-		this->start_cpu_).total_milliseconds();
+			this->start_cpu_).total_milliseconds();
 	return this->elapsed_milliseconds_;
 }
 
@@ -111,7 +112,7 @@ float CPUTimer::MicroSeconds() {
 		Stop();
 	}
 	this->elapsed_microseconds_ = (this->stop_cpu_ -
-		this->start_cpu_).total_microseconds();
+			this->start_cpu_).total_microseconds();
 	return this->elapsed_microseconds_;
 }
 

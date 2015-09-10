@@ -17,7 +17,8 @@ inline void MDB_CHECK(int mdb_status) {
 class LMDBCursor: public Cursor {
 	public:
 		explicit LMDBCursor(MDB_txn* mdb_txn, MDB_cursor* mdb_cursor)
-			: mdb_txn_(mdb_txn), mdb_cursor_(mdb_cursor), valid_(false) {
+		:
+				mdb_txn_(mdb_txn), mdb_cursor_(mdb_cursor), valid_(false) {
 			SeekToFirst();
 		}
 		virtual ~LMDBCursor() {
@@ -32,11 +33,11 @@ class LMDBCursor: public Cursor {
 		}
 		virtual string key() {
 			return string(static_cast<const char*>(mdb_key_.mv_data),
-				mdb_key_.mv_size);
+					mdb_key_.mv_size);
 		}
 		virtual string value() {
 			return string(static_cast<const char*>(mdb_value_.mv_data),
-				mdb_value_.mv_size);
+					mdb_value_.mv_size);
 		}
 		virtual bool valid() {
 			return valid_;
@@ -62,7 +63,8 @@ class LMDBCursor: public Cursor {
 class LMDBTransaction: public Transaction {
 	public:
 		explicit LMDBTransaction(MDB_dbi* mdb_dbi, MDB_txn* mdb_txn)
-			: mdb_dbi_(mdb_dbi), mdb_txn_(mdb_txn) {
+		:
+				mdb_dbi_(mdb_dbi), mdb_txn_(mdb_txn) {
 		}
 		virtual void Put(const string& key, const string& value);
 		virtual void Commit() {
@@ -79,7 +81,8 @@ class LMDBTransaction: public Transaction {
 class LMDB: public DB {
 	public:
 		LMDB()
-			: mdb_env_(NULL) {
+		:
+				mdb_env_(NULL) {
 		}
 		virtual ~LMDB() {
 			Close();

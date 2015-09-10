@@ -40,265 +40,271 @@ static const clblasOrder order = clblasColumnMajor;
 
 namespace caffe {
 
-template<>
+template <>
 void caffe_cpu_gemm<float>(const CBLAS_TRANSPOSE TransA,
-	const CBLAS_TRANSPOSE TransB, const int M, const int N, const int K,
-	const float alpha, const float* A, const float* B, const float beta,
-	float* C) {
+		const CBLAS_TRANSPOSE TransB, const int M, const int N, const int K,
+		const float alpha, const float* A, const float* B, const float beta,
+		float* C) {
 	int lda = (TransA == CblasNoTrans) ? K : M;
 	int ldb = (TransB == CblasNoTrans) ? N : K;
 	cblas_sgemm(CblasRowMajor, TransA, TransB, M, N, K, alpha, A, lda, B,
-		ldb, beta, C, N);
+			ldb, beta, C, N);
 }
 
-template<>
+template <>
 void caffe_cpu_gemm<double>(const CBLAS_TRANSPOSE TransA,
-	const CBLAS_TRANSPOSE TransB, const int M, const int N, const int K,
-	const double alpha, const double* A, const double* B, const double beta,
-	double* C) {
+		const CBLAS_TRANSPOSE TransB, const int M, const int N, const int K,
+		const double alpha, const double* A, const double* B, const double beta,
+		double* C) {
 	int lda = (TransA == CblasNoTrans) ? K : M;
 	int ldb = (TransB == CblasNoTrans) ? N : K;
 	cblas_dgemm(CblasRowMajor, TransA, TransB, M, N, K, alpha, A, lda, B,
-		ldb, beta, C, N);
+			ldb, beta, C, N);
 }
 
-template<>
+template <>
 void caffe_gpu_gemm<float>(const CBLAS_TRANSPOSE TransA,
-	const CBLAS_TRANSPOSE TransB, const int M, const int N, const int K,
-	const float alpha, const float* A, const float* B, const float beta,
-	float* C) {
+		const CBLAS_TRANSPOSE TransB, const int M, const int N, const int K,
+		const float alpha, const float* A, const float* B, const float beta,
+		float* C) {
 	clblasTranspose transA =
-		(TransA == CblasNoTrans) ? clblasNoTrans : clblasTrans;
+			(TransA == CblasNoTrans) ? clblasNoTrans : clblasTrans;
 	clblasTranspose transB =
-		(TransB == CblasNoTrans) ? clblasNoTrans : clblasTrans;
+			(TransB == CblasNoTrans) ? clblasNoTrans : clblasTrans;
 	int lda = (TransA == CblasNoTrans) ? K : M;
 	int ldb = (TransB == CblasNoTrans) ? N : K;
 	int ldc = N;
 	//AMDBLAS_CHECK( clAmdBlasSgemm(amdDevice.col, transB, transA, N, M, K, (cl_float)alpha, (cl_mem)B, ldb, (cl_mem)A, lda, (cl_float)beta, (cl_mem)C, ldc, 1, &(amdDevice.CommandQueue), 0, NULL, NULL) );
 	CLBLAS_CHECK(
-		clblasSgemm(amdDevice.col, transB, transA, N, M, K, (cl_float) alpha,
-			(cl_mem) B, 0, ldb, (cl_mem) A, 0, lda, (cl_float) beta, (cl_mem) C, 0,
-			ldc, 1, &(amdDevice.CommandQueue), 0, NULL, NULL));
+			clblasSgemm(amdDevice.col, transB, transA, N, M, K, (cl_float) alpha,
+					(cl_mem) B, 0, ldb, (cl_mem) A, 0, lda, (cl_float) beta, (cl_mem) C,
+					0,
+					ldc, 1, &(amdDevice.CommandQueue), 0, NULL, NULL));
 }
 
-template<>
+template <>
 void caffe_gpu_gemm<double>(const CBLAS_TRANSPOSE TransA,
-	const CBLAS_TRANSPOSE TransB, const int M, const int N, const int K,
-	const double alpha, const double* A, const double* B, const double beta,
-	double* C) {
+		const CBLAS_TRANSPOSE TransB, const int M, const int N, const int K,
+		const double alpha, const double* A, const double* B, const double beta,
+		double* C) {
 	clblasTranspose transA =
-		(TransA == CblasNoTrans) ? clblasNoTrans : clblasTrans;
+			(TransA == CblasNoTrans) ? clblasNoTrans : clblasTrans;
 	clblasTranspose transB =
-		(TransB == CblasNoTrans) ? clblasNoTrans : clblasTrans;
+			(TransB == CblasNoTrans) ? clblasNoTrans : clblasTrans;
 	int lda = (TransA == CblasNoTrans) ? K : M;
 	int ldb = (TransB == CblasNoTrans) ? N : K;
 	int ldc = N;
 	CLBLAS_CHECK(
-		clblasDgemm(amdDevice.col, transB, transA, N, M, K, (cl_float) alpha,
-			(cl_mem) B, 0, ldb, (cl_mem) A, 0, lda, (cl_float) beta, (cl_mem) C, 0,
-			ldc, 1, &(amdDevice.CommandQueue), 0, NULL, NULL));
+			clblasDgemm(amdDevice.col, transB, transA, N, M, K, (cl_float) alpha,
+					(cl_mem) B, 0, ldb, (cl_mem) A, 0, lda, (cl_float) beta, (cl_mem) C,
+					0,
+					ldc, 1, &(amdDevice.CommandQueue), 0, NULL, NULL));
 }
 
-template<>
+template <>
 cl_event caffe_gpu_gemm<float>(const CBLAS_TRANSPOSE TransA,
-	const CBLAS_TRANSPOSE TransB, const int M, const int N, const int K,
-	const float alpha, const float* A, const int offA, const float* B,
-	const int offB, const float beta, float* C, const int offC) {
+		const CBLAS_TRANSPOSE TransB, const int M, const int N, const int K,
+		const float alpha, const float* A, const int offA, const float* B,
+		const int offB, const float beta, float* C, const int offC) {
 	cl_event event;
 	clblasTranspose transA =
-		(TransA == CblasNoTrans) ? clblasNoTrans : clblasTrans;
+			(TransA == CblasNoTrans) ? clblasNoTrans : clblasTrans;
 	clblasTranspose transB =
-		(TransB == CblasNoTrans) ? clblasNoTrans : clblasTrans;
+			(TransB == CblasNoTrans) ? clblasNoTrans : clblasTrans;
 	int lda = (TransA == CblasNoTrans) ? K : M;
 	int ldb = (TransB == CblasNoTrans) ? N : K;
 	int ldc = N;
 	CLBLAS_CHECK(
-		clblasSgemm(amdDevice.col, transB, transA, N, M, K, (cl_float) alpha,
-			(cl_mem) B, offB, ldb, (cl_mem) A, offA, lda, (cl_float) beta, (cl_mem) C,
-			offC, ldc, 1, &(amdDevice.CommandQueue), 0, NULL, &event));
+			clblasSgemm(amdDevice.col, transB, transA, N, M, K, (cl_float) alpha,
+					(cl_mem) B, offB, ldb, (cl_mem) A, offA, lda, (cl_float) beta,
+					(cl_mem) C,
+					offC, ldc, 1, &(amdDevice.CommandQueue), 0, NULL, &event));
 	return event;
 }
 
-template<>
+template <>
 cl_event caffe_gpu_gemm<double>(const CBLAS_TRANSPOSE TransA,
-	const CBLAS_TRANSPOSE TransB, const int M, const int N, const int K,
-	const double alpha, const double* A, const int offA, const double* B,
-	const int offB, const double beta, double* C, const int offC) {
+		const CBLAS_TRANSPOSE TransB, const int M, const int N, const int K,
+		const double alpha, const double* A, const int offA, const double* B,
+		const int offB, const double beta, double* C, const int offC) {
 	cl_event event;
 	clblasTranspose transA =
-		(TransA == CblasNoTrans) ? clblasNoTrans : clblasTrans;
+			(TransA == CblasNoTrans) ? clblasNoTrans : clblasTrans;
 	clblasTranspose transB =
-		(TransB == CblasNoTrans) ? clblasNoTrans : clblasTrans;
+			(TransB == CblasNoTrans) ? clblasNoTrans : clblasTrans;
 	int lda = (TransA == CblasNoTrans) ? K : M;
 	int ldb = (TransB == CblasNoTrans) ? N : K;
 	int ldc = N;
 	CLBLAS_CHECK(
-		clblasDgemm(amdDevice.col, transB, transA, N, M, K, (cl_float) alpha,
-			(cl_mem) B, offB, ldb, (cl_mem) A, offA, lda, (cl_float) beta, (cl_mem) C,
-			offC, ldc, 1, &(amdDevice.CommandQueue), 0, NULL, &event));
+			clblasDgemm(amdDevice.col, transB, transA, N, M, K, (cl_float) alpha,
+					(cl_mem) B, offB, ldb, (cl_mem) A, offA, lda, (cl_float) beta,
+					(cl_mem) C,
+					offC, ldc, 1, &(amdDevice.CommandQueue), 0, NULL, &event));
 	return event;
 }
 
-template<>
+template <>
 cl_event caffe_gpu_gemm<float>(cl_command_queue *queue,
-	const CBLAS_TRANSPOSE TransA,
-	const CBLAS_TRANSPOSE TransB, const int M, const int N, const int K,
-	const float alpha, const float* A, const int offA, const float* B,
-	const int offB, const float beta, float* C, const int offC) {
+		const CBLAS_TRANSPOSE TransA,
+		const CBLAS_TRANSPOSE TransB, const int M, const int N, const int K,
+		const float alpha, const float* A, const int offA, const float* B,
+		const int offB, const float beta, float* C, const int offC) {
 	cl_event event;
 	clblasTranspose transA =
-		(TransA == CblasNoTrans) ? clblasNoTrans : clblasTrans;
+			(TransA == CblasNoTrans) ? clblasNoTrans : clblasTrans;
 	clblasTranspose transB =
-		(TransB == CblasNoTrans) ? clblasNoTrans : clblasTrans;
+			(TransB == CblasNoTrans) ? clblasNoTrans : clblasTrans;
 	int lda = (TransA == CblasNoTrans) ? K : M;
 	int ldb = (TransB == CblasNoTrans) ? N : K;
 	int ldc = N;
 	CLBLAS_CHECK(
-		clblasSgemm(amdDevice.col, transB, transA, N, M, K, (cl_float) alpha,
-			(cl_mem) B, offB, ldb, (cl_mem) A, offA, lda, (cl_float) beta, (cl_mem) C,
-			offC, ldc, 1, queue, 0, NULL, &event));
+			clblasSgemm(amdDevice.col, transB, transA, N, M, K, (cl_float) alpha,
+					(cl_mem) B, offB, ldb, (cl_mem) A, offA, lda, (cl_float) beta,
+					(cl_mem) C,
+					offC, ldc, 1, queue, 0, NULL, &event));
 	return event;
 }
 
-template<>
+template <>
 cl_event caffe_gpu_gemm<double>(cl_command_queue *queue,
-	const CBLAS_TRANSPOSE TransA,
-	const CBLAS_TRANSPOSE TransB, const int M, const int N, const int K,
-	const double alpha, const double* A, const int offA, const double* B,
-	const int offB, const double beta, double* C, const int offC) {
+		const CBLAS_TRANSPOSE TransA,
+		const CBLAS_TRANSPOSE TransB, const int M, const int N, const int K,
+		const double alpha, const double* A, const int offA, const double* B,
+		const int offB, const double beta, double* C, const int offC) {
 	cl_event event;
 	clblasTranspose transA =
-		(TransA == CblasNoTrans) ? clblasNoTrans : clblasTrans;
+			(TransA == CblasNoTrans) ? clblasNoTrans : clblasTrans;
 	clblasTranspose transB =
-		(TransB == CblasNoTrans) ? clblasNoTrans : clblasTrans;
+			(TransB == CblasNoTrans) ? clblasNoTrans : clblasTrans;
 	int lda = (TransA == CblasNoTrans) ? K : M;
 	int ldb = (TransB == CblasNoTrans) ? N : K;
 	int ldc = N;
 	CLBLAS_CHECK(
-		clblasDgemm(amdDevice.col, transB, transA, N, M, K, (cl_float) alpha,
-			(cl_mem) B, offB, ldb, (cl_mem) A, offA, lda, (cl_float) beta, (cl_mem) C,
-			offC, ldc, 1, queue, 0, NULL, &event));
+			clblasDgemm(amdDevice.col, transB, transA, N, M, K, (cl_float) alpha,
+					(cl_mem) B, offB, ldb, (cl_mem) A, offA, lda, (cl_float) beta,
+					(cl_mem) C,
+					offC, ldc, 1, queue, 0, NULL, &event));
 	return event;
 }
 
-template<>
+template <>
 void caffe_cpu_gemv<float>(const CBLAS_TRANSPOSE TransA, const int M,
-	const int N, const float alpha, const float* A, const float* x,
-	const float beta, float* y) {
+		const int N, const float alpha, const float* A, const float* x,
+		const float beta, float* y) {
 	cblas_sgemv(CblasRowMajor, TransA, M, N, alpha, A, N, x, 1, beta, y, 1);
 }
 
-template<>
+template <>
 void caffe_cpu_gemv<double>(const CBLAS_TRANSPOSE TransA, const int M,
-	const int N, const double alpha, const double* A, const double* x,
-	const double beta, double* y) {
+		const int N, const double alpha, const double* A, const double* x,
+		const double beta, double* y) {
 	cblas_dgemv(CblasRowMajor, TransA, M, N, alpha, A, N, x, 1, beta, y, 1);
 }
 
-template<>
+template <>
 void caffe_gpu_gemv<float>(const CBLAS_TRANSPOSE TransA, const int M,
-	const int N, const float alpha, const float* A, size_t offA, int lda,
-	const float* x, size_t offx, const float beta, int incx,
-	float* y, size_t offy, int incy) {
+		const int N, const float alpha, const float* A, size_t offA, int lda,
+		const float* x, size_t offx, const float beta, int incx,
+		float* y, size_t offy, int incy) {
 	clblasTranspose transA =
-		(TransA == CblasNoTrans) ? clblasNoTrans : clblasTrans;
+			(TransA == CblasNoTrans) ? clblasNoTrans : clblasTrans;
 	CLBLAS_CHECK(clblasSgemv(amdDevice.row, transA,
-		M, N, (cl_float) alpha, (cl_mem) A, offA, lda,
-		(cl_mem) x, offx, incx, (cl_float) beta,
-		(cl_mem) y, offy, incy,
-		1, &(amdDevice.CommandQueue), 0, NULL, NULL));
+			M, N, (cl_float) alpha, (cl_mem) A, offA, lda,
+			(cl_mem) x, offx, incx, (cl_float) beta,
+			(cl_mem) y, offy, incy,
+			1, &(amdDevice.CommandQueue), 0, NULL, NULL));
 }
 
-template<>
+template <>
 void caffe_gpu_gemv<double>(const CBLAS_TRANSPOSE TransA, const int M,
-	const int N, const double alpha, const double* A, size_t offA, int lda,
-	const double* x, size_t offx, const double beta, int incx,
-	double* y, size_t offy, int incy) {
+		const int N, const double alpha, const double* A, size_t offA, int lda,
+		const double* x, size_t offx, const double beta, int incx,
+		double* y, size_t offy, int incy) {
 	clblasTranspose transA =
-		(TransA == CblasNoTrans) ? clblasNoTrans : clblasTrans;
+			(TransA == CblasNoTrans) ? clblasNoTrans : clblasTrans;
 	CLBLAS_CHECK(
-		clblasDgemv(amdDevice.row, transA, M, N, (cl_double) alpha, (cl_mem) A,
-			offA, lda, (cl_mem) x, offx, incx, (cl_double) beta, (cl_mem) y, offy,
-			incy, 1, &(amdDevice.CommandQueue), 0, NULL, NULL));
+			clblasDgemv(amdDevice.row, transA, M, N, (cl_double) alpha, (cl_mem) A,
+					offA, lda, (cl_mem) x, offx, incx, (cl_double) beta, (cl_mem) y, offy,
+					incy, 1, &(amdDevice.CommandQueue), 0, NULL, NULL));
 
 }
 
-template<>
+template <>
 void caffe_gpu_gemv<float>(const CBLAS_TRANSPOSE TransA, const int M,
-	const int N, const float alpha, const float* A, const float* x,
-	const float beta, float* y) {
+		const int N, const float alpha, const float* A, const float* x,
+		const float beta, float* y) {
 	clblasTranspose transA =
-		(TransA == CblasNoTrans) ? clblasNoTrans : clblasTrans;
+			(TransA == CblasNoTrans) ? clblasNoTrans : clblasTrans;
 	CLBLAS_CHECK(clblasSgemv(amdDevice.row, transA,
-		M, N, (cl_float) alpha, (cl_mem) A, 0, N,
-		(cl_mem) x, 0, 1, (cl_float) beta,
-		(cl_mem) y, 0, 1,
-		1, &(amdDevice.CommandQueue), 0, NULL, NULL));
+			M, N, (cl_float) alpha, (cl_mem) A, 0, N,
+			(cl_mem) x, 0, 1, (cl_float) beta,
+			(cl_mem) y, 0, 1,
+			1, &(amdDevice.CommandQueue), 0, NULL, NULL));
 }
 
-template<>
+template <>
 void caffe_gpu_gemv<double>(const CBLAS_TRANSPOSE TransA, const int M,
-	const int N, const double alpha, const double* A, const double* x,
-	const double beta, double* y) {
+		const int N, const double alpha, const double* A, const double* x,
+		const double beta, double* y) {
 	clblasTranspose transA =
-		(TransA == CblasNoTrans) ? clblasNoTrans : clblasTrans;
+			(TransA == CblasNoTrans) ? clblasNoTrans : clblasTrans;
 	CLBLAS_CHECK(
-		clblasDgemv(amdDevice.row, transA, M, N, (cl_double) alpha, (cl_mem) A, 0,
-			N, (cl_mem) x, 0, 1, (cl_double) beta, (cl_mem) y, 0, 1, 1,
-			&(amdDevice.CommandQueue), 0, NULL, NULL));
+			clblasDgemv(amdDevice.row, transA, M, N, (cl_double) alpha, (cl_mem) A, 0,
+					N, (cl_mem) x, 0, 1, (cl_double) beta, (cl_mem) y, 0, 1, 1,
+					&(amdDevice.CommandQueue), 0, NULL, NULL));
 }
 
-template<>
+template <>
 void caffe_axpy<float>(const int N, const float alpha, const float* X,
-	float* Y) {
+		float* Y) {
 	cblas_saxpy(N, alpha, X, 1, Y, 1);
 }
 
-template<>
+template <>
 void caffe_axpy<double>(const int N, const double alpha, const double* X,
-	double* Y) {
+		double* Y) {
 	cblas_daxpy(N, alpha, X, 1, Y, 1);
 }
 
-template<>
+template <>
 void caffe_gpu_axpy<float>(const int N, const float alpha, const float* X,
-	float* Y) {
+		float* Y) {
 	CLBLAS_CHECK(
-		clblasSaxpy(N, alpha, (cl_mem) X, 0, 1, (cl_mem) Y, 0, 1, 1,
-			&(amdDevice.CommandQueue), 0, NULL, NULL));
+			clblasSaxpy(N, alpha, (cl_mem) X, 0, 1, (cl_mem) Y, 0, 1, 1,
+					&(amdDevice.CommandQueue), 0, NULL, NULL));
 }
 
-template<>
+template <>
 void caffe_gpu_axpy<double>(const int N, const double alpha, const double* X,
-	double* Y) {
+		double* Y) {
 	CLBLAS_CHECK(
-		clblasDaxpy(N, alpha, (cl_mem) X, 0, 1, (cl_mem) Y, 0, 1, 1,
-			&(amdDevice.CommandQueue), 0, NULL, NULL));
+			clblasDaxpy(N, alpha, (cl_mem) X, 0, 1, (cl_mem) Y, 0, 1, 1,
+					&(amdDevice.CommandQueue), 0, NULL, NULL));
 }
 
-template<>
+template <>
 void caffe_gpu_sgnbit<float>(const int n, const float* x, float* y)
-	{
+		{
 }
 
-template<>
+template <>
 void caffe_gpu_sgnbit<double>(const int n, const double* x, double* y)
-	{
+		{
 }
 
-template<>
+template <>
 void caffe_gpu_abs<float>(const int n, const float* x, float* y)
-	{
+		{
 	caffe_gpu_abs_ocl(n, x, y);
 }
 
-template<>
+template <>
 void caffe_gpu_abs<double>(const int n, const double* x, double* y)
-	{
+		{
 	caffe_gpu_abs_ocl(n, x, y);
 }
 
-template<>
+template <>
 void caffe_set(const int N, const float alpha, float* Y) {
 	if (alpha == 0) {
 		memset(Y, 0, sizeof(float) * N);
@@ -309,7 +315,7 @@ void caffe_set(const int N, const float alpha, float* Y) {
 	}
 }
 
-template<>
+template <>
 void caffe_set(const int N, const double alpha, double* Y) {
 	if (alpha == 0) {
 		memset(Y, 0, sizeof(double) * N);
@@ -320,35 +326,35 @@ void caffe_set(const int N, const double alpha, double* Y) {
 	}
 }
 
-template<>
+template <>
 void caffe_add_scalar(const int N, const float alpha, float* Y) {
 	for (int i = 0; i < N; ++i) {
 		Y[i] += alpha;
 	}
 }
 
-template<>
+template <>
 void caffe_add_scalar(const int N, const double alpha, double* Y) {
 	for (int i = 0; i < N; ++i) {
 		Y[i] += alpha;
 	}
 }
 
-template<>
+template <>
 void caffe_copy<float>(const int N, const float* X, float* Y) {
 	cblas_scopy(N, X, 1, Y, 1);
 }
 
-template<>
+template <>
 void caffe_copy<double>(const int N, const double* X, double* Y) {
 	cblas_dcopy(N, X, 1, Y, 1);
 }
 
 //template <typename Dtype>
 void caffe_gpu_memcpy(const size_t N, const void *X, void *Y)
-	{
+		{
 	clEnqueueReadBuffer(amdDevice.CommandQueue, (cl_mem) X, CL_TRUE, 0, N, Y, 0,
-		NULL, NULL);
+			NULL, NULL);
 // OCL_CHECK(clEnqueueCopyBuffer(amdDevice.CommandQueue, (cl_mem)X, (cl_mem)Y, 0, 0, N, 0, NULL, NULL));
 }
 /*
@@ -357,166 +363,168 @@ void caffe_gpu_memcpy(const size_t N, const void *X, void *Y)
  template void caffe_gpu_memcpy<int>(const size_t N, const int* X, int* Y);
  template void caffe_gpu_memcpy<unsigned int>(const size_t N, const unsigned int* X, unsigned int* Y);
  */
-template<>
+template <>
 void caffe_gpu_memcpy<float>(const size_t N, const float* X, float* Y)
-	{
+		{
 	OCL_CHECK(
-		clEnqueueCopyBuffer(amdDevice.CommandQueue, (cl_mem) X, (cl_mem) Y, 0, 0, N,
-			0, NULL, NULL));
+			clEnqueueCopyBuffer(amdDevice.CommandQueue, (cl_mem) X, (cl_mem) Y, 0, 0,
+					N,
+					0, NULL, NULL));
 }
 
-template<>
+template <>
 void caffe_gpu_memcpy<double>(const size_t N, const double* X, double* Y)
-	{
+		{
 	OCL_CHECK(
-		clEnqueueCopyBuffer(amdDevice.CommandQueue, (cl_mem) X, (cl_mem) Y, 0, 0, N,
-			0, NULL, NULL));
+			clEnqueueCopyBuffer(amdDevice.CommandQueue, (cl_mem) X, (cl_mem) Y, 0, 0,
+					N,
+					0, NULL, NULL));
 }
 
-template<>
+template <>
 void caffe_gpu_copy<float>(const int N, const float* X, float* Y) {
 	if (X != Y) {
 		CLBLAS_CHECK(
-			clblasScopy(N, (cl_mem) X, 0, 1, (cl_mem) Y, 0, 1, 1,
-				&(amdDevice.CommandQueue), 0, NULL, NULL));
+				clblasScopy(N, (cl_mem) X, 0, 1, (cl_mem) Y, 0, 1, 1,
+						&(amdDevice.CommandQueue), 0, NULL, NULL));
 	}
 }
 
-template<>
+template <>
 void caffe_gpu_copy<double>(const int N, const double* X, double* Y) {
 	if (X != Y) {
 		CLBLAS_CHECK(
-			clblasDcopy(N, (cl_mem) X, 0, 1, (cl_mem) Y, 0, 1, 1,
-				&(amdDevice.CommandQueue), 0, NULL, NULL));
+				clblasDcopy(N, (cl_mem) X, 0, 1, (cl_mem) Y, 0, 1, 1,
+						&(amdDevice.CommandQueue), 0, NULL, NULL));
 	}
 }
 
-template<>
+template <>
 void caffe_scal<float>(const int N, const float alpha, float *X) {
 	cblas_sscal(N, alpha, X, 1);
 }
 
-template<>
+template <>
 void caffe_scal<double>(const int N, const double alpha, double *X) {
 	cblas_dscal(N, alpha, X, 1);
 }
 
-template<>
+template <>
 void caffe_gpu_scal<float>(const int N, const float alpha, float *X) {
 	CLBLAS_CHECK(
-		clblasSscal(N, alpha, (cl_mem) X, 0, 1, 1, &(amdDevice.CommandQueue), 0,
-			NULL, NULL));
+			clblasSscal(N, alpha, (cl_mem) X, 0, 1, 1, &(amdDevice.CommandQueue), 0,
+					NULL, NULL));
 }
 
-template<>
+template <>
 void caffe_gpu_scal<double>(const int N, const double alpha, double *X) {
 	CLBLAS_CHECK(
-		clblasDscal(N, alpha, (cl_mem) X, 0, 1, 1, &(amdDevice.CommandQueue), 0,
-			NULL, NULL));
+			clblasDscal(N, alpha, (cl_mem) X, 0, 1, 1, &(amdDevice.CommandQueue), 0,
+					NULL, NULL));
 }
 
-template<>
+template <>
 void caffe_gpu_axpby<float>(const int N, const float alpha, const float* X,
-	const float beta, float* Y) {
+		const float beta, float* Y) {
 	caffe_gpu_scal<float>(N, beta, Y);
 	caffe_gpu_axpy<float>(N, alpha, X, Y);
 }
 
-template<>
+template <>
 void caffe_gpu_axpby<double>(const int N, const double alpha, const double* X,
-	const double beta, double* Y) {
+		const double beta, double* Y) {
 	caffe_gpu_scal<double>(N, beta, Y);
 	caffe_gpu_axpy<double>(N, alpha, X, Y);
 }
 
-template<>
+template <>
 void caffe_cpu_axpby<float>(const int N, const float alpha, const float* X,
-	const float beta, float* Y) {
+		const float beta, float* Y) {
 	cblas_saxpby(N, alpha, X, 1, beta, Y, 1);
 }
 
-template<>
+template <>
 void caffe_cpu_axpby<double>(const int N, const double alpha, const double* X,
-	const double beta, double* Y) {
+		const double beta, double* Y) {
 	cblas_daxpby(N, alpha, X, 1, beta, Y, 1);
 }
 
-template<>
+template <>
 void caffe_add<float>(const int n, const float* a, const float* b,
-	float* y) {
+		float* y) {
 	vsAdd(n, a, b, y);
 }
 
-template<>
+template <>
 void caffe_add<double>(const int n, const double* a, const double* b,
-	double* y) {
+		double* y) {
 	vdAdd(n, a, b, y);
 }
 
-template<>
+template <>
 void caffe_sub<float>(const int n, const float* a, const float* b,
-	float* y) {
+		float* y) {
 	vsSub(n, a, b, y);
 }
 
-template<>
+template <>
 void caffe_sub<double>(const int n, const double* a, const double* b,
-	double* y) {
+		double* y) {
 	vdSub(n, a, b, y);
 }
 
-template<>
+template <>
 void caffe_mul<float>(const int n, const float* a, const float* b,
-	float* y) {
+		float* y) {
 	vsMul(n, a, b, y);
 }
 
-template<>
+template <>
 void caffe_mul<double>(const int n, const double* a, const double* b,
-	double* y) {
+		double* y) {
 	vdMul(n, a, b, y);
 }
 
-template<>
+template <>
 void caffe_div<float>(const int n, const float* a, const float* b,
-	float* y) {
+		float* y) {
 	vsDiv(n, a, b, y);
 }
 
-template<>
+template <>
 void caffe_div<double>(const int n, const double* a, const double* b,
-	double* y) {
+		double* y) {
 	vdDiv(n, a, b, y);
 }
 
-template<>
+template <>
 void caffe_powx<float>(const int n, const float* a, const float b,
-	float* y) {
+		float* y) {
 	vsPowx(n, a, b, y);
 }
 
-template<>
+template <>
 void caffe_powx<double>(const int n, const double* a, const double b,
-	double* y) {
+		double* y) {
 	vdPowx(n, a, b, y);
 }
 
-template<>
+template <>
 void caffe_sqr<float>(const int n, const float* a, float* y) {
 	vsSqr(n, a, y);
 }
 
-template<>
+template <>
 void caffe_sqr<double>(const int n, const double* a, double* y) {
 	vdSqr(n, a, y);
 }
 
-template<>
+template <>
 void caffe_exp<float>(const int n, const float* a, float* y) {
 	vsExp(n, a, y);
 }
 
-template<>
+template <>
 void caffe_exp<double>(const int n, const double* a, double* y) {
 	vdExp(n, a, y);
 }
@@ -525,10 +533,10 @@ unsigned int caffe_rng_rand() {
 	return (*caffe_rng())();
 }
 
-template<typename Dtype>
+template <typename Dtype>
 Dtype caffe_nextafter(const Dtype b) {
 	return boost::math::nextafter < Dtype > (
-		b, std::numeric_limits < Dtype > ::max());
+			b, std::numeric_limits < Dtype > ::max());
 }
 
 template
@@ -537,13 +545,13 @@ float caffe_nextafter(const float b);
 template
 double caffe_nextafter(const double b);
 
-template<typename Dtype>
+template <typename Dtype>
 void caffe_rng_uniform(const int n, const Dtype a, const Dtype b, Dtype* r) {
 	CHECK_GE(n, 0);
 	CHECK(r);
 	CHECK_LE(a, b);
 	boost::uniform_real < Dtype
-		> random_distribution(a, caffe_nextafter<Dtype>(b));
+			> random_distribution(a, caffe_nextafter<Dtype>(b));
 	boost::variate_generator<caffe::rng_t*, boost::uniform_real<Dtype> >
 	variate_generator(caffe_rng(), random_distribution);
 	for (int i = 0; i < n; ++i) {
@@ -555,15 +563,15 @@ void caffe_rng_uniform(const int n, const Dtype a, const Dtype b, Dtype* r) {
 
 template
 void caffe_rng_uniform<float>(const int n, const float a, const float b,
-	float* r);
+		float* r);
 
 template
 void caffe_rng_uniform<double>(const int n, const double a, const double b,
-	double* r);
+		double* r);
 
-template<typename Dtype>
+template <typename Dtype>
 void caffe_rng_gaussian(const int n, const Dtype a,
-	const Dtype sigma, Dtype* r) {
+		const Dtype sigma, Dtype* r) {
 	CHECK_GE(n, 0);
 	CHECK(r);
 	CHECK_GT(sigma, 0);
@@ -579,13 +587,13 @@ void caffe_rng_gaussian(const int n, const Dtype a,
 
 template
 void caffe_rng_gaussian<float>(const int n, const float mu,
-	const float sigma, float* r);
+		const float sigma, float* r);
 
 template
 void caffe_rng_gaussian<double>(const int n, const double mu,
-	const double sigma, double* r);
+		const double sigma, double* r);
 
-template<typename Dtype>
+template <typename Dtype>
 void caffe_rng_bernoulli(const int n, const Dtype p, int* r) {
 	CHECK_GE(n, 0);
 	CHECK(r);
@@ -605,7 +613,7 @@ void caffe_rng_bernoulli<double>(const int n, const double p, int* r);
 template
 void caffe_rng_bernoulli<float>(const int n, const float p, int* r);
 
-template<typename Dtype>
+template <typename Dtype>
 void caffe_rng_bernoulli(const int n, const Dtype p, unsigned int* r) {
 	CHECK_GE(n, 0);
 	CHECK(r);
@@ -625,104 +633,104 @@ void caffe_rng_bernoulli<double>(const int n, const double p, unsigned int* r);
 template
 void caffe_rng_bernoulli<float>(const int n, const float p, unsigned int* r);
 //
-template<>
+template <>
 float caffe_cpu_dot<float>(const int n, const float* x, const float* y) {
 	return cblas_sdot(n, x, 1, y, 1);
 }
 
-template<>
+template <>
 double caffe_cpu_dot<double>(const int n, const double* x, const double* y) {
 	return cblas_ddot(n, x, 1, y, 1);
 }
 
-template<>
+template <>
 void caffe_gpu_dot<float>(const int n, const float* x, const float* y,
-	float* out) {
+		float* out) {
 	cl_mem scratchBuff = clCreateBuffer(amdDevice.Context, CL_MEM_READ_WRITE,
-		(n * sizeof(float)), NULL, NULL);
+			(n * sizeof(float)), NULL, NULL);
 	cl_mem d_out = clCreateBuffer(amdDevice.Context, CL_MEM_READ_WRITE,
-		(1 * sizeof(float)), NULL, NULL);
+			(1 * sizeof(float)), NULL, NULL);
 	clblasSdot(n, d_out, 0, (cl_mem) x, 0, 1, (cl_mem) y, 0, 1, scratchBuff, 1,
-		&(amdDevice.CommandQueue), 0, NULL, NULL);
+			&(amdDevice.CommandQueue), 0, NULL, NULL);
 	clEnqueueReadBuffer(amdDevice.CommandQueue, d_out, CL_TRUE, 0, sizeof(float),
-		out, 0, NULL, NULL);
+			out, 0, NULL, NULL);
 	clReleaseMemObject(scratchBuff);
 	clReleaseMemObject(d_out);
 }
 
-template<>
+template <>
 void caffe_gpu_dot<double>(const int n, const double* x, const double* y,
-	double * out) {
+		double * out) {
 	//need to pass in scratchBuff
 	//AMDBLAS_CHECK(clAmdBlasDdot(n, out, 0, x, 0, 1, y, 0, 1, scratch_buf, 1, &(amdDevice.CommandQueue), 0, NULL, NULL));
 	cl_mem scratchBuff = clCreateBuffer(amdDevice.Context, CL_MEM_READ_WRITE,
-		(n * sizeof(double)), NULL, NULL);
+			(n * sizeof(double)), NULL, NULL);
 	cl_mem d_out = clCreateBuffer(amdDevice.Context, CL_MEM_READ_WRITE,
-		(1 * sizeof(double)), NULL, NULL);
+			(1 * sizeof(double)), NULL, NULL);
 	clblasDdot(n, d_out, 0, (cl_mem) x, 0, 1, (cl_mem) y, 0, 1, scratchBuff, 1,
-		&(amdDevice.CommandQueue), 0, NULL, NULL);
+			&(amdDevice.CommandQueue), 0, NULL, NULL);
 	clEnqueueReadBuffer(amdDevice.CommandQueue, d_out, CL_TRUE, 0, sizeof(double),
-		out, 0, NULL, NULL);
+			out, 0, NULL, NULL);
 	clReleaseMemObject(scratchBuff);
 	clReleaseMemObject(d_out);
 }
 
-template<>
+template <>
 int caffe_cpu_hamming_distance<float>(const int n, const float* x,
-	const float* y) {
+		const float* y) {
 	int dist = 0;
 	for (int i = 0; i < n; ++i) {
 		dist += __builtin_popcount(static_cast<uint32_t>(x[i]) ^
-			static_cast<uint32_t>(y[i]));
+				static_cast<uint32_t>(y[i]));
 	}
 	return dist;
 }
 
-template<>
+template <>
 int caffe_cpu_hamming_distance<double>(const int n, const double* x,
-	const double* y) {
+		const double* y) {
 	int dist = 0;
 	for (int i = 0; i < n; ++i) {
 		dist += __builtin_popcountl(static_cast<uint64_t>(x[i]) ^
-			static_cast<uint64_t>(y[i]));
+				static_cast<uint64_t>(y[i]));
 	}
 	return dist;
 }
 
-template<>
+template <>
 float caffe_cpu_asum<float>(const int n, const float* x) {
 	return cblas_sasum(n, x, 1);
 }
 
-template<>
+template <>
 double caffe_cpu_asum<double>(const int n, const double* x) {
 	return cblas_dasum(n, x, 1);
 }
 
-template<>
+template <>
 void caffe_gpu_asum<float>(const int n, const float* x, float* y) {
 	cl_mem scratchBuff = clCreateBuffer(amdDevice.Context, CL_MEM_READ_WRITE,
-		(n * sizeof(cl_float)), NULL, NULL);
+			(n * sizeof(cl_float)), NULL, NULL);
 	cl_mem d_y = clCreateBuffer(amdDevice.Context, CL_MEM_READ_WRITE,
-		(1 * sizeof(cl_float)), NULL, NULL);
+			(1 * sizeof(cl_float)), NULL, NULL);
 	clblasSasum(n, d_y, 0, (cl_mem) x, 0, 1, scratchBuff, 1,
-		&(amdDevice.CommandQueue), 0, NULL, NULL);
+			&(amdDevice.CommandQueue), 0, NULL, NULL);
 	clEnqueueReadBuffer(amdDevice.CommandQueue, d_y, CL_TRUE, 0, sizeof(float), y,
-		0, NULL, NULL);
+			0, NULL, NULL);
 	clReleaseMemObject(scratchBuff);
 	clReleaseMemObject(d_y);
 }
 
-template<>
+template <>
 void caffe_gpu_asum<double>(const int n, const double* x, double* y) {
 	cl_mem scratchBuff = clCreateBuffer(amdDevice.Context, CL_MEM_READ_WRITE,
-		(n * sizeof(cl_double)), NULL, NULL);
+			(n * sizeof(cl_double)), NULL, NULL);
 	cl_mem d_y = clCreateBuffer(amdDevice.Context, CL_MEM_READ_WRITE,
-		(1 * sizeof(cl_double)), NULL, NULL);
+			(1 * sizeof(cl_double)), NULL, NULL);
 	clblasDasum(n, d_y, 0, (cl_mem) x, 0, 1, scratchBuff, 1,
-		&(amdDevice.CommandQueue), 0, NULL, NULL);
+			&(amdDevice.CommandQueue), 0, NULL, NULL);
 	clEnqueueReadBuffer(amdDevice.CommandQueue, d_y, CL_TRUE, 0, sizeof(double),
-		y, 0, NULL, NULL);
+			y, 0, NULL, NULL);
 	clReleaseMemObject(scratchBuff);
 	clReleaseMemObject(d_y);
 }
@@ -735,195 +743,195 @@ INSTANTIATE_CAFFE_CPU_UNARY_FUNC (sign);
 INSTANTIATE_CAFFE_CPU_UNARY_FUNC (sgnbit);
 INSTANTIATE_CAFFE_CPU_UNARY_FUNC (fabs);
 
-template<>
+template <>
 void caffe_cpu_scale<float>(const int n, const float alpha, const float *x,
-	float* y) {
+		float* y) {
 	cblas_scopy(n, x, 1, y, 1);
 	cblas_sscal(n, alpha, y, 1);
 }
 
-template<>
+template <>
 void caffe_cpu_scale<double>(const int n, const double alpha, const double *x,
-	double* y) {
+		double* y) {
 	cblas_dcopy(n, x, 1, y, 1);
 	cblas_dscal(n, alpha, y, 1);
 }
 
-template<>
+template <>
 void caffe_gpu_scale<float>(const int n, const float alpha, const float *x,
-	float* y) {
+		float* y) {
 	caffe_gpu_copy(n, x, y);
 	caffe_gpu_scal(n, alpha, y);
 }
 
-template<>
+template <>
 void caffe_gpu_scale<double>(const int n, const double alpha, const double *x,
-	double* y) {
+		double* y) {
 	caffe_gpu_copy(n, x, y);
 	caffe_gpu_scal(n, alpha, y);
 }
 
-template<typename Dtype>
+template <typename Dtype>
 void set_kernel(const int n, const Dtype alpha, Dtype* y) {
 }
 
-template<>
+template <>
 void caffe_gpu_set<float>(const int N, const float alpha, float* Y) {
 	ocl_memset(Y, alpha, N);
 }
 
-template<>
+template <>
 void caffe_gpu_set<double>(const int N, const double alpha, double* Y) {
 	ocl_memset(Y, alpha, N);
 }
 
-template<>
+template <>
 void caffe_gpu_add_scalar(const int N, const float alpha, float* Y) {
 	kernel_add_scalar(N, alpha, Y);
 }
 
-template<>
+template <>
 void caffe_gpu_add_scalar(const int N, const double alpha, double* Y) {
 	kernel_add_scalar(N, alpha, Y);
 }
 
-template<>
+template <>
 void caffe_gpu_exp<float>(const int N, const float* a, float* y) {
 	kernel_exp(N, a, y);
 }
 
-template<>
+template <>
 void caffe_gpu_exp<double>(const int N, const double* a, double* y) {
 	kernel_exp(N, a, y);
 }
 
-template<>
+template <>
 void caffe_gpu_sign<float>(const int N, const float *X, float *Y) {
 	caffe_gpu_sign_ocl(N, X, Y);
 }
 
-template<>
+template <>
 void caffe_gpu_sign<double>(const int N, const double *X, double *Y) {
 	caffe_gpu_sign_ocl(N, X, Y);
 }
 
-template<>
+template <>
 void caffe_gpu_sub<float>(const int N, const float* a, const float* b,
-	float* y) {
+		float* y) {
 	// NOLINT_NEXT_LINE(whitespace/operators)
 	kernel_sub(N, a, b, y);
 }
 
-template<>
+template <>
 void caffe_gpu_sub<double>(const int N, const double* a, const double* b,
-	double* y) {
+		double* y) {
 	// NOLINT_NEXT_LINE(whitespace/operators)
 	kernel_sub(N, a, b, y);
 }
 
-template<>
+template <>
 void caffe_gpu_mul<float>(const int N, const float* a,
-	const float* b, float* y) {
+		const float* b, float* y) {
 	kernel_mul(N, a, b, y);
 }
 
-template<>
+template <>
 void caffe_gpu_mul<double>(const int N, const double* a,
-	const double* b, double* y) {
+		const double* b, double* y) {
 	kernel_mul(N, a, b, y);
 }
 
-template<>
+template <>
 void caffe_gpu_div<float>(const int N, const float* a,
-	const float* b, float* y) {
+		const float* b, float* y) {
 	kernel_div(N, a, b, y);
 }
 
-template<>
+template <>
 void caffe_gpu_div<double>(const int N, const double* a,
-	const double* b, double* y) {
+		const double* b, double* y) {
 	kernel_div(N, a, b, y);
 }
 
-template<>
+template <>
 void caffe_gpu_powx<float>(const int N, const float* a,
-	const float alpha, float* y) {
+		const float alpha, float* y) {
 	// NOLINT_NEXT_LINE(whitespace/operators)
 	kernel_powx(N, a, alpha, y);
 }
 
-template<>
+template <>
 void caffe_gpu_powx<double>(const int N, const double* a,
-	const double alpha, double* y) {
+		const double alpha, double* y) {
 	// NOLINT_NEXT_LINE(whitespace/operators)
 	kernel_powx(N, a, alpha, y);
 }
 
 void popc_kernel(const int n, const float* a,
-	const float* b, uint8_t* y) {
+		const float* b, uint8_t* y) {
 }
 
 void popcll_kernel(const int n, const double* a,
-	const double* b, uint8_t* y) {
+		const double* b, uint8_t* y) {
 }
 
-template<>
+template <>
 uint32_t caffe_gpu_hamming_distance<float>(const int n, const float* x,
-	const float* y) {
+		const float* y) {
 	return 0;
 }
 
-template<>
+template <>
 uint32_t caffe_gpu_hamming_distance<double>(const int n, const double* x,
-	const double* y) {
+		const double* y) {
 	return 0;
 }
 
 void caffe_gpu_rng_uniform(const int n, unsigned int* r) {
 }
 
-template<>
+template <>
 void caffe_gpu_rng_uniform<float>(const int n, const float a, const float b,
-	float* r) {
+		float* r) {
 }
-template<>
+template <>
 void caffe_gpu_rng_uniform<double>(const int n, const double a, const double b,
-	double* r) {
+		double* r) {
 }
 
-template<>
+template <>
 void caffe_gpu_rng_gaussian(const int n, const float mu, const float sigma,
-	float* r) {
+		float* r) {
 }
 
-template<>
+template <>
 void caffe_gpu_rng_gaussian(const int n, const double mu, const double sigma,
-	double* r) {
+		double* r) {
 }
 
-template<>
+template <>
 void caffe_gpu_log<float>(const int N, const float* a, float* y) {
 	// NOLINT_NEXT_LINE(whitespace/operators)
 	kernel_log(N, a, y);
 }
 
-template<>
+template <>
 void caffe_gpu_log<double>(const int N, const double* a, double* y) {
 	// NOLINT_NEXT_LINE(whitespace/operators)
 	kernel_log(N, a, y);
 }
 
-template<>
+template <>
 void caffe_log<float>(const int n, const float* a, float* y) {
 	vsLn(n, a, y);
 }
 
-template<>
+template <>
 void caffe_log<double>(const int n, const double* a, double* y) {
 	vdLn(n, a, y);
 }
 
-template<typename Dtype>
+template <typename Dtype>
 void caffe_copy(const int N, const Dtype* X, Dtype* Y) {
 	if (X != Y) {
 		if (Caffe::mode() == Caffe::GPU) {
@@ -941,47 +949,47 @@ void caffe_copy(const int N, const Dtype* X, Dtype* Y) {
 
 template void caffe_copy<int>(const int N, const int* X, int* Y);
 template void caffe_copy<unsigned int>(const int N, const unsigned int* X,
-	unsigned int* Y);
+		unsigned int* Y);
 template void caffe_copy<float>(const int N, const float* X, float* Y);
 template void caffe_copy<double>(const int N, const double* X, double* Y);
 
-template<>
+template <>
 void caffe_abs<float>(const int n, const float* a, float* y) {
 	vsAbs(n, a, y);
 }
 
-template<>
+template <>
 void caffe_abs<double>(const int n, const double* a, double* y) {
 	vdAbs(n, a, y);
 }
 
-template<>
+template <>
 void caffe_gpu_add<float>(const int N, const float* a, const float* b,
-	float* y) {
+		float* y) {
 	// NOLINT_NEXT_LINE(whitespace/operators)
 	kernel_add(N, a, b, y);
 }
 
-template<>
+template <>
 void caffe_gpu_add<double>(const int N, const double* a, const double* b,
-	double* y) {
+		double* y) {
 	// NOLINT_NEXT_LINE(whitespace/operators)
 	kernel_add(N, a, b, y);
 }
 
-template<>
+template <>
 float caffe_cpu_strided_dot<float>(const int n, const float* x, const int incx,
-	const float* y, const int incy) {
+		const float* y, const int incy) {
 	return cblas_sdot(n, x, incx, y, incy);
 }
 
-template<>
+template <>
 double caffe_cpu_strided_dot<double>(const int n, const double* x,
-	const int incx, const double* y, const int incy) {
+		const int incx, const double* y, const int incy) {
 	return cblas_ddot(n, x, incx, y, incy);
 }
 
-template<typename Dtype>
+template <typename Dtype>
 void caffe_set(const int N, const Dtype alpha, Dtype* Y) {
 	if (alpha == 0) {
 		memset(Y, 0, sizeof(Dtype) * N);  // NOLINT(caffe/alt_fn)

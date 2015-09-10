@@ -47,9 +47,9 @@ enum r123_enum_threefry32x4
 };
 
 inline uint32_t RotL_32(uint32_t x, unsigned int N)
-	__attribute__((always_inline));
+		__attribute__((always_inline));
 inline uint32_t RotL_32(uint32_t x, unsigned int N)
-	{
+		{
 	return (x << (N & 31)) | (x >> ((32 - N) & 31));
 }
 
@@ -58,10 +58,10 @@ typedef struct r123array4x32 threefry4x32_key_t;
 typedef struct r123array4x32 threefry4x32_ukey_t;
 
 inline threefry4x32_ctr_t threefry4x32_R(unsigned int Nrounds,
-	threefry4x32_ctr_t in, threefry4x32_key_t k) __attribute__((always_inline));
+		threefry4x32_ctr_t in, threefry4x32_key_t k) __attribute__((always_inline));
 inline threefry4x32_ctr_t threefry4x32_R(unsigned int Nrounds,
-	threefry4x32_ctr_t in, threefry4x32_key_t k)
-	{
+		threefry4x32_ctr_t in, threefry4x32_key_t k)
+		{
 	threefry4x32_ctr_t X;
 	uint32_t ks[4 + 1];
 	int i;
@@ -95,7 +95,7 @@ inline threefry4x32_ctr_t threefry4x32_R(unsigned int Nrounds,
 	X.v[2] += ks[2];
 	X.v[3] += ks[3];
 	if (Nrounds > 0)
-		{
+			{
 		X.v[0] += X.v[1];
 		X.v[1] = RotL_32(X.v[1], R_32x4_0_0);
 		X.v[1] ^= X.v[0];
@@ -802,13 +802,13 @@ inline threefry4x32_ctr_t threefry4x32_R(unsigned int Nrounds,
 
 template <class T>
 __kernel void PRNG_threefry4x32(
-	__global uint4 *randomnumber,
-	threefry4x32_ctr_t ctr_i,
-	T inf,
-	T sup,
-	T threshold,
-	uint nrounds,
-	uint numrandom
+		__global uint4 *randomnumber,
+		threefry4x32_ctr_t ctr_i,
+		T inf,
+		T sup,
+		T threshold,
+		uint nrounds,
+		uint numrandom
 ) {
 	size_t gdx = get_global_id(0);
 

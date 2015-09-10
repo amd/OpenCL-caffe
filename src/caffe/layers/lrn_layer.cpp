@@ -8,9 +8,9 @@
 
 namespace caffe {
 
-template<typename Dtype>
+template <typename Dtype>
 void LRNLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
-	const vector<Blob<Dtype>*>& top) {
+		const vector<Blob<Dtype>*>& top) {
 	size_ = this->layer_param_.lrn_param().local_size();
 	CHECK_EQ(size_ % 2, 1) << "LRN only supports odd values for local_size";
 	pre_pad_ = (size_ - 1) / 2;
@@ -18,7 +18,7 @@ void LRNLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
 	beta_ = this->layer_param_.lrn_param().beta();
 	k_ = this->layer_param_.lrn_param().k();
 	if (this->layer_param_.lrn_param().norm_region() ==
-		LRNParameter_NormRegion_WITHIN_CHANNEL) {
+			LRNParameter_NormRegion_WITHIN_CHANNEL) {
 		// Set up split_layer_ to use inputs in the numerator and denominator.
 		split_top_vec_.clear();
 		split_top_vec_.push_back(&product_input_);
@@ -40,7 +40,7 @@ void LRNLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
 		pool_top_vec_.push_back(&pool_output_);
 		LayerParameter pool_param;
 		pool_param.mutable_pooling_param()->set_pool(
-			PoolingParameter_PoolMethod_AVE);
+				PoolingParameter_PoolMethod_AVE);
 		pool_param.mutable_pooling_param()->set_pad(pre_pad_);
 		pool_param.mutable_pooling_param()->set_kernel_size(size_);
 		pool_layer_.reset(new PoolingLayer<Dtype>(pool_param));
@@ -68,33 +68,33 @@ void LRNLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
 	}
 }
 
-template<typename Dtype>
+template <typename Dtype>
 void LRNLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top) {
-  CHECK_EQ(4, bottom[0]->num_axes()) << "Input must have 4 axes, "
-      << "corresponding to (num, channels, height, width)";
-  num_ = bottom[0]->num();
-  channels_ = bottom[0]->channels();
-  height_ = bottom[0]->height();
-  width_ = bottom[0]->width();
-  switch (this->layer_param_.lrn_param().norm_region()) {
-  case LRNParameter_NormRegion_ACROSS_CHANNELS:
-    top[0]->Reshape(num_, channels_, height_, width_);
-    scale_.Reshape(num_, channels_, height_, width_);
-    break;
-  case LRNParameter_NormRegion_WITHIN_CHANNEL:
-    split_layer_->Reshape(bottom, split_top_vec_);
-    square_layer_->Reshape(square_bottom_vec_, square_top_vec_);
-    pool_layer_->Reshape(square_top_vec_, pool_top_vec_);
-    power_layer_->Reshape(pool_top_vec_, power_top_vec_);
-    product_layer_->Reshape(product_bottom_vec_, top);
-    break;
-  }
+		const vector<Blob<Dtype>*>& top) {
+	CHECK_EQ(4, bottom[0]->num_axes()) << "Input must have 4 axes, "
+			<< "corresponding to (num, channels, height, width)";
+	num_ = bottom[0]->num();
+	channels_ = bottom[0]->channels();
+	height_ = bottom[0]->height();
+	width_ = bottom[0]->width();
+	switch (this->layer_param_.lrn_param().norm_region()) {
+		case LRNParameter_NormRegion_ACROSS_CHANNELS:
+			top[0]->Reshape(num_, channels_, height_, width_);
+			scale_.Reshape(num_, channels_, height_, width_);
+			break;
+		case LRNParameter_NormRegion_WITHIN_CHANNEL:
+			split_layer_->Reshape(bottom, split_top_vec_);
+			square_layer_->Reshape(square_bottom_vec_, square_top_vec_);
+			pool_layer_->Reshape(square_top_vec_, pool_top_vec_);
+			power_layer_->Reshape(pool_top_vec_, power_top_vec_);
+			product_layer_->Reshape(product_bottom_vec_, top);
+			break;
+	}
 }
 
-template<typename Dtype>
+template <typename Dtype>
 void LRNLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
-	const vector<Blob<Dtype>*>& top) {
+		const vector<Blob<Dtype>*>& top) {
 	switch (this->layer_param_.lrn_param().norm_region()) {
 		case LRNParameter_NormRegion_ACROSS_CHANNELS:
 			CrossChannelForward_cpu(bottom, top);
@@ -107,9 +107,9 @@ void LRNLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 	}
 }
 
-template<typename Dtype>
+template <typename Dtype>
 void LRNLayer<Dtype>::CrossChannelForward_cpu(
-	const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
+		const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
 	const Dtype* bottom_data = bottom[0]->cpu_data();
 	Dtype* top_data = top[0]->mutable_cpu_data();
 	Dtype* scale_data = scale_.mutable_cpu_data();
@@ -125,27 +125,27 @@ void LRNLayer<Dtype>::CrossChannelForward_cpu(
 	for (int n = 0; n < num_; ++n) {
 		// compute the padded square
 		caffe_sqr(channels_ * height_ * width_,
-			bottom_data + bottom[0]->offset(n),
-			padded_square_data + padded_square.offset(0, pre_pad_));
+				bottom_data + bottom[0]->offset(n),
+				padded_square_data + padded_square.offset(0, pre_pad_));
 		// Create the first channel scale
 		for (int c = 0; c < size_; ++c) {
 			caffe_axpy < Dtype > (height_ * width_, alpha_over_size,
-				padded_square_data + padded_square.offset(0, c),
-				scale_data + scale_.offset(n, 0));
+					padded_square_data + padded_square.offset(0, c),
+					scale_data + scale_.offset(n, 0));
 		}
 		for (int c = 1; c < channels_; ++c) {
 			// copy previous scale
 			caffe_copy < Dtype > (height_ * width_,
-				scale_data + scale_.offset(n, c - 1),
-				scale_data + scale_.offset(n, c));
+					scale_data + scale_.offset(n, c - 1),
+					scale_data + scale_.offset(n, c));
 			// add head
 			caffe_axpy < Dtype > (height_ * width_, alpha_over_size,
-				padded_square_data + padded_square.offset(0, c + size_ - 1),
-				scale_data + scale_.offset(n, c));
+					padded_square_data + padded_square.offset(0, c + size_ - 1),
+					scale_data + scale_.offset(n, c));
 			// subtract tail
 			caffe_axpy < Dtype > (height_ * width_, -alpha_over_size,
-				padded_square_data + padded_square.offset(0, c - 1),
-				scale_data + scale_.offset(n, c));
+					padded_square_data + padded_square.offset(0, c - 1),
+					scale_data + scale_.offset(n, c));
 		}
 	}
 
@@ -154,9 +154,9 @@ void LRNLayer<Dtype>::CrossChannelForward_cpu(
 	caffe_mul < Dtype > (scale_.count(), top_data, bottom_data, top_data);
 }
 
-template<typename Dtype>
+template <typename Dtype>
 void LRNLayer<Dtype>::WithinChannelForward(
-	const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
+		const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
 	split_layer_->Forward(bottom, split_top_vec_);
 	square_layer_->Forward(square_bottom_vec_, square_top_vec_);
 	pool_layer_->Forward(square_top_vec_, pool_top_vec_);
@@ -164,9 +164,9 @@ void LRNLayer<Dtype>::WithinChannelForward(
 	product_layer_->Forward(product_bottom_vec_, top);
 }
 
-template<typename Dtype>
+template <typename Dtype>
 void LRNLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
-	const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
+		const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
 	switch (this->layer_param_.lrn_param().norm_region()) {
 		case LRNParameter_NormRegion_ACROSS_CHANNELS:
 			CrossChannelBackward_cpu(top, propagate_down, bottom);
@@ -179,10 +179,10 @@ void LRNLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
 	}
 }
 
-template<typename Dtype>
+template <typename Dtype>
 void LRNLayer<Dtype>::CrossChannelBackward_cpu(
-	const vector<Blob<Dtype>*>& top, const vector<bool>& propagate_down,
-	const vector<Blob<Dtype>*>& bottom) {
+		const vector<Blob<Dtype>*>& top, const vector<bool>& propagate_down,
+		const vector<Blob<Dtype>*>& bottom) {
 	const Dtype* top_diff = top[0]->cpu_diff();
 	const Dtype* top_data = top[0]->cpu_data();
 	const Dtype* bottom_data = bottom[0]->cpu_data();
@@ -206,82 +206,82 @@ void LRNLayer<Dtype>::CrossChannelBackward_cpu(
 		int block_offset = scale_.offset(n);
 		// first, compute diff_i * y_i / s_i
 		caffe_mul < Dtype > (channels_ * height_ * width_,
-			top_diff + block_offset, top_data + block_offset,
-			padded_ratio_data + padded_ratio.offset(0, inverse_pre_pad));
+				top_diff + block_offset, top_data + block_offset,
+				padded_ratio_data + padded_ratio.offset(0, inverse_pre_pad));
 		caffe_div < Dtype > (channels_ * height_ * width_,
-			padded_ratio_data + padded_ratio.offset(0, inverse_pre_pad),
-			scale_data + block_offset,
-			padded_ratio_data + padded_ratio.offset(0, inverse_pre_pad));
+				padded_ratio_data + padded_ratio.offset(0, inverse_pre_pad),
+				scale_data + block_offset,
+				padded_ratio_data + padded_ratio.offset(0, inverse_pre_pad));
 		// Now, compute the accumulated ratios and the bottom diff
 		caffe_set(accum_ratio.count(), Dtype(0), accum_ratio_data);
 		for (int c = 0; c < size_ - 1; ++c) {
 			caffe_axpy < Dtype > (height_ * width_, 1.,
-				padded_ratio_data + padded_ratio.offset(0, c), accum_ratio_data);
+					padded_ratio_data + padded_ratio.offset(0, c), accum_ratio_data);
 		}
 		for (int c = 0; c < channels_; ++c) {
 			caffe_axpy < Dtype > (height_ * width_, 1.,
-				padded_ratio_data + padded_ratio.offset(0, c + size_ - 1),
-				accum_ratio_data);
+					padded_ratio_data + padded_ratio.offset(0, c + size_ - 1),
+					accum_ratio_data);
 			// compute bottom diff
 			caffe_mul < Dtype > (height_ * width_,
-				bottom_data + top[0]->offset(n, c),
-				accum_ratio_data, accum_ratio_times_bottom);
+					bottom_data + top[0]->offset(n, c),
+					accum_ratio_data, accum_ratio_times_bottom);
 			caffe_axpy < Dtype > (height_ * width_, -cache_ratio_value,
-				accum_ratio_times_bottom, bottom_diff + top[0]->offset(n, c));
+					accum_ratio_times_bottom, bottom_diff + top[0]->offset(n, c));
 			caffe_axpy < Dtype > (height_ * width_, -1.,
-				padded_ratio_data + padded_ratio.offset(0, c), accum_ratio_data);
+					padded_ratio_data + padded_ratio.offset(0, c), accum_ratio_data);
 		}
 	}
 }
 
-template<typename Dtype>
+template <typename Dtype>
 void LRNLayer<Dtype>::WithinChannelBackward(
-	const vector<Blob<Dtype>*>& top, const vector<bool>& propagate_down,
-	const vector<Blob<Dtype>*>& bottom) {
+		const vector<Blob<Dtype>*>& top, const vector<bool>& propagate_down,
+		const vector<Blob<Dtype>*>& bottom) {
 	if (propagate_down[0]) {
 		vector<bool> product_propagate_down(2, true);
 		product_layer_->Backward(top, product_propagate_down, product_bottom_vec_);
 		power_layer_->Backward(power_top_vec_, propagate_down, pool_top_vec_);
 		pool_layer_->Backward(pool_top_vec_, propagate_down, square_top_vec_);
 		square_layer_->Backward(square_top_vec_, propagate_down,
-			square_bottom_vec_);
+				square_bottom_vec_);
 		split_layer_->Backward(split_top_vec_, propagate_down, bottom);
 	}
 }
 
-template<typename Dtype>
+template <typename Dtype>
 void LRNLayer<Dtype>::CrossChannelForward_gpu(
-    const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
-  // First, compute scale
-  const Dtype* bottom_data = bottom[0]->gpu_data();
-  Dtype* top_data = top[0]->mutable_gpu_data();
-  Dtype* scale_data = scale_.mutable_gpu_data();
-  // We will launch one kernel for each pixel location, and have the kernel
-  // go through all the channels.
-  int n_threads = num_ * height_ * width_;
-  // NOLINT_NEXT_LINE(whitespace/operators)
-  LRNFillScale(n_threads, bottom_data, num_, channels_, height_, width_, size_,
-      alpha_ / size_, k_, scale_data);
-  n_threads = bottom[0]->count();
-  // NOLINT_NEXT_LINE(whitespace/operators)
-  LRNComputeOutput(n_threads, bottom_data, scale_data, -beta_, top_data);
+		const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
+	// First, compute scale
+	const Dtype* bottom_data = bottom[0]->gpu_data();
+	Dtype* top_data = top[0]->mutable_gpu_data();
+	Dtype* scale_data = scale_.mutable_gpu_data();
+	// We will launch one kernel for each pixel location, and have the kernel
+	// go through all the channels.
+	int n_threads = num_ * height_ * width_;
+	// NOLINT_NEXT_LINE(whitespace/operators)
+	LRNFillScale(n_threads, bottom_data, num_, channels_, height_, width_, size_,
+			alpha_ / size_, k_, scale_data);
+	n_threads = bottom[0]->count();
+	// NOLINT_NEXT_LINE(whitespace/operators)
+	LRNComputeOutput(n_threads, bottom_data, scale_data, -beta_, top_data);
 }
 
-template<typename Dtype>
+template <typename Dtype>
 void LRNLayer<Dtype>::CrossChannelBackward_gpu(
-    const vector<Blob<Dtype>*>& top, const vector<bool>& propagate_down,
-    const vector<Blob<Dtype>*>& bottom) {
-  int n_threads = num_ * height_ * width_;
-  // NOLINT_NEXT_LINE(whitespace/operators)
-  LRNComputeDiff(n_threads, bottom[0]->gpu_data(), top[0]->gpu_data(),
-      scale_.gpu_data(), top[0]->gpu_diff(), num_, channels_, height_, width_,
-      size_, -beta_, Dtype(2. * alpha_ * beta_ / size_),
-      bottom[0]->mutable_gpu_diff());
+		const vector<Blob<Dtype>*>& top, const vector<bool>& propagate_down,
+		const vector<Blob<Dtype>*>& bottom) {
+	int n_threads = num_ * height_ * width_;
+	// NOLINT_NEXT_LINE(whitespace/operators)
+	LRNComputeDiff(n_threads, bottom[0]->gpu_data(), top[0]->gpu_data(),
+			scale_.gpu_data(), top[0]->gpu_diff(), num_, channels_, height_, width_,
+			size_, -beta_, Dtype(2. * alpha_ * beta_ / size_),
+			bottom[0]->mutable_gpu_diff());
 }
 
-template<typename Dtype>
+template <typename Dtype>
 void LRNLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
-	const vector<Blob<Dtype>*>& top) {
+		const vector<Blob<Dtype>*>& top) {
 	switch (this->layer_param_.lrn_param().norm_region()) {
 		case LRNParameter_NormRegion_ACROSS_CHANNELS:
 			CrossChannelForward_gpu(bottom, top);
@@ -294,9 +294,9 @@ void LRNLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 	}
 }
 
-template<typename Dtype>
+template <typename Dtype>
 void LRNLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
-	const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
+		const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
 	switch (this->layer_param_.lrn_param().norm_region()) {
 		case LRNParameter_NormRegion_ACROSS_CHANNELS:
 			CrossChannelBackward_gpu(top, propagate_down, bottom);

@@ -14,7 +14,7 @@ namespace caffe {
  * Requires implementation of ApplyUpdate to compute a parameter update
  * given the current state of the Net parameters.
  */
-template<typename Dtype>
+template <typename Dtype>
 class Solver {
 	public:
 		explicit Solver(const SolverParameter& param);
@@ -78,15 +78,17 @@ class Solver {
  * @brief Optimizes the parameters of a Net using
  *        stochastic gradient descent (SGD) with momentum.
  */
-template<typename Dtype>
+template <typename Dtype>
 class SGDSolver: public Solver<Dtype> {
 	public:
 		explicit SGDSolver(const SolverParameter& param)
-			: Solver<Dtype>(param) {
+		:
+				Solver<Dtype>(param) {
 			PreSolve();
 		}
 		explicit SGDSolver(const string& param_file)
-			: Solver<Dtype>(param_file) {
+		:
+				Solver<Dtype>(param_file) {
 			PreSolve();
 		}
 
@@ -117,14 +119,16 @@ class SGDSolver: public Solver<Dtype> {
 		DISABLE_COPY_AND_ASSIGN (SGDSolver);
 };
 
-template<typename Dtype>
+template <typename Dtype>
 class NesterovSolver: public SGDSolver<Dtype> {
 	public:
 		explicit NesterovSolver(const SolverParameter& param)
-			: SGDSolver<Dtype>(param) {
+		:
+				SGDSolver<Dtype>(param) {
 		}
 		explicit NesterovSolver(const string& param_file)
-			: SGDSolver<Dtype>(param_file) {
+		:
+				SGDSolver<Dtype>(param_file) {
 		}
 
 	protected:
@@ -137,15 +141,17 @@ class NesterovSolver: public SGDSolver<Dtype> {
 		DISABLE_COPY_AND_ASSIGN (NesterovSolver);
 };
 
-template<typename Dtype>
+template <typename Dtype>
 class AdaGradSolver: public SGDSolver<Dtype> {
 	public:
 		explicit AdaGradSolver(const SolverParameter& param)
-			: SGDSolver<Dtype>(param) {
+		:
+				SGDSolver<Dtype>(param) {
 			constructor_sanity_check();
 		}
 		explicit AdaGradSolver(const string& param_file)
-			: SGDSolver<Dtype>(param_file) {
+		:
+				SGDSolver<Dtype>(param_file) {
 			constructor_sanity_check();
 		}
 
@@ -153,7 +159,7 @@ class AdaGradSolver: public SGDSolver<Dtype> {
 		virtual void ComputeUpdateValue(int param_id, Dtype rate);
 		void constructor_sanity_check() {
 			CHECK_EQ(0, this->param_.momentum())
-				<< "Momentum cannot be used with AdaGrad.";
+					<< "Momentum cannot be used with AdaGrad.";
 		}
 
 		void ocl_setup();
@@ -162,7 +168,7 @@ class AdaGradSolver: public SGDSolver<Dtype> {
 		DISABLE_COPY_AND_ASSIGN (AdaGradSolver);
 };
 
-template<typename Dtype>
+template <typename Dtype>
 Solver<Dtype>* GetSolver(const SolverParameter& param) {
 	SolverParameter_SolverType type = param.solver_type();
 

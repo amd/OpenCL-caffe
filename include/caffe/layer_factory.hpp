@@ -47,10 +47,10 @@
 
 namespace caffe {
 
-template<typename Dtype>
+template <typename Dtype>
 class Layer;
 
-template<typename Dtype>
+template <typename Dtype>
 class LayerRegistry {
 	public:
 		typedef shared_ptr<Layer<Dtype> > (*Creator)(const LayerParameter&);
@@ -65,7 +65,7 @@ class LayerRegistry {
 		static void AddCreator(const string& type, Creator creator) {
 			CreatorRegistry& registry = Registry();
 			CHECK_EQ(registry.count(type), 0)
-				<< "Layer type " << type << " already registered.";
+					<< "Layer type " << type << " already registered.";
 			registry[type] = creator;
 		}
 
@@ -75,7 +75,7 @@ class LayerRegistry {
 			const string& type = param.type();
 			CreatorRegistry& registry = Registry();
 			CHECK_EQ(registry.count(type), 1) << "Unknown layer type: " << type
-				<< " (known types: " << LayerTypeList() << ")";
+					<< " (known types: " << LayerTypeList() << ")";
 			return registry[type](param);
 		}
 
@@ -89,7 +89,7 @@ class LayerRegistry {
 			CreatorRegistry& registry = Registry();
 			string layer_types;
 			for (typename CreatorRegistry::iterator iter = registry.begin();
-				iter != registry.end(); ++iter) {
+					iter != registry.end(); ++iter) {
 				if (iter != registry.begin()) {
 					layer_types += ", ";
 				}
@@ -99,11 +99,11 @@ class LayerRegistry {
 		}
 };
 
-template<typename Dtype>
+template <typename Dtype>
 class LayerRegisterer {
 	public:
 		LayerRegisterer(const string& type,
-			shared_ptr<Layer<Dtype> > (*creator)(const LayerParameter&)) {
+				shared_ptr<Layer<Dtype> > (*creator)(const LayerParameter&)) {
 			// LOG(INFO) << "Registering layer type: " << type;
 			LayerRegistry<Dtype>::AddCreator(type, creator);
 		}

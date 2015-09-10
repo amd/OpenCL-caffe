@@ -10,18 +10,18 @@
 
 namespace caffe {
 
-template<typename Dtype>
+template <typename Dtype>
 void MultinomialLogisticLossLayer<Dtype>::Reshape(
-	const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
+		const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
 	LossLayer < Dtype > ::Reshape(bottom, top);
 	CHECK_EQ(bottom[1]->channels(), 1);
 	CHECK_EQ(bottom[1]->height(), 1);
 	CHECK_EQ(bottom[1]->width(), 1);
 }
 
-template<typename Dtype>
+template <typename Dtype>
 void MultinomialLogisticLossLayer<Dtype>::Forward_cpu(
-	const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
+		const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
 	const Dtype* bottom_data = bottom[0]->cpu_data();
 	const Dtype* bottom_label = bottom[1]->cpu_data();
 	int num = bottom[0]->num();
@@ -30,19 +30,19 @@ void MultinomialLogisticLossLayer<Dtype>::Forward_cpu(
 	for (int i = 0; i < num; ++i) {
 		int label = static_cast<int>(bottom_label[i]);
 		Dtype prob = std::max(
-			bottom_data[i * dim + label], Dtype(kLOG_THRESHOLD));
+				bottom_data[i * dim + label], Dtype(kLOG_THRESHOLD));
 		loss -= log(prob);
 	}
 	top[0]->mutable_cpu_data()[0] = loss / num;
 }
 
-template<typename Dtype>
+template <typename Dtype>
 void MultinomialLogisticLossLayer<Dtype>::Backward_cpu(
-	const vector<Blob<Dtype>*>& top, const vector<bool>& propagate_down,
-	const vector<Blob<Dtype>*>& bottom) {
+		const vector<Blob<Dtype>*>& top, const vector<bool>& propagate_down,
+		const vector<Blob<Dtype>*>& bottom) {
 	if (propagate_down[1]) {
 		LOG(FATAL) << this->type()
-			<< " Layer cannot backpropagate to label inputs.";
+				<< " Layer cannot backpropagate to label inputs.";
 	}
 	if (propagate_down[0]) {
 		const Dtype* bottom_data = bottom[0]->cpu_data();
@@ -55,7 +55,7 @@ void MultinomialLogisticLossLayer<Dtype>::Backward_cpu(
 		for (int i = 0; i < num; ++i) {
 			int label = static_cast<int>(bottom_label[i]);
 			Dtype prob = std::max(
-				bottom_data[i * dim + label], Dtype(kLOG_THRESHOLD));
+					bottom_data[i * dim + label], Dtype(kLOG_THRESHOLD));
 			bottom_diff[i * dim + label] = scale / prob;
 		}
 	}

@@ -14,7 +14,7 @@ void LevelDB::Open(const string& source, Mode mode) {
 	options.create_if_missing = mode != READ;
 	leveldb::Status status = leveldb::DB::Open(options, source, &db_);
 	CHECK(status.ok()) << "Failed to open leveldb " << source
-		<< std::endl << status.ToString();
+			<< std::endl << status.ToString();
 	LOG(INFO) << "Opened leveldb " << source;
 }
 

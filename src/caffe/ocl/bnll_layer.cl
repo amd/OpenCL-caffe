@@ -38,7 +38,7 @@ template __attribute__((mangled_name(BNLLForward_double))) __kernel void BNLLFor
 
 template <class T>
 __kernel void BNLLBackward(const int n, __global const T* in_diff,
-	__global const T* in_data, __global T* out_diff) {
+		__global const T* in_data, __global T* out_diff) {
 	int index = get_global_id(0);
 	if (index < n) {
 		T expval = exp(min(in_data[index], T(kBNLL_THRESHOLD)));
@@ -47,6 +47,6 @@ __kernel void BNLLBackward(const int n, __global const T* in_diff,
 }
 
 template __attribute__((mangled_name(BNLLBackward_float))) __kernel void BNLLBackward(const int n, __global const float* in_diff,
-	__global const float* in_data, __global float* out_diff);
+		__global const float* in_data, __global float* out_diff);
 template __attribute__((mangled_name(BNLLBackward_double))) __kernel void BNLLBackward(const int n, __global const double* in_diff,
-	__global const double* in_data, __global double* out_diff);
+		__global const double* in_data, __global double* out_diff);

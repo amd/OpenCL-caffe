@@ -94,11 +94,11 @@ template __attribute__((mangled_name(im2col_opt_double))) __kernel void im2col_o
 
 template <class T>
 __kernel void im2col_gpu_kernel(const int n, __global const T* data_im, const int img_offset,
-	const int height, const int width, const int kernel_h, const int kernel_w,
-	const int pad_h, const int pad_w,
-	const int stride_h, const int stride_w,
-	const int height_col, const int width_col,
-	__global T* data_col, const int col_offset) {
+		const int height, const int width, const int kernel_h, const int kernel_w,
+		const int pad_h, const int pad_w,
+		const int stride_h, const int stride_w,
+		const int height_col, const int width_col,
+		__global T* data_col, const int col_offset) {
 	data_im = data_im + img_offset;
 	data_col = data_col + col_offset;
 
@@ -128,22 +128,22 @@ __kernel void im2col_gpu_kernel(const int n, __global const T* data_im, const in
 }
 
 template __attribute__((mangled_name(im2col_gpu_kernel_float))) void im2col_gpu_kernel<float>(const int n, __global const float* data_im,
-	const int img_offset, const int height, const int width, const int kernel_h, const int kernel_w,
-	const int pad_h, const int pad_w, const int stride_h, const int stride_w,
-	const int height_col, const int width_col, __global float* data_col, const int col_offset);
+		const int img_offset, const int height, const int width, const int kernel_h, const int kernel_w,
+		const int pad_h, const int pad_w, const int stride_h, const int stride_w,
+		const int height_col, const int width_col, __global float* data_col, const int col_offset);
 template __attribute__((mangled_name(im2col_gpu_kernel_double))) void im2col_gpu_kernel<double>(const int n, __global const double* data_im,
-	const int img_offset, const int height, const int width, const int kernel_h, const int kernel_w,
-	const int pad_h, const int pad_w, const int stride_h, const int stride_w,
-	const int height_col, const int width_col, __global double* data_col, const int col_offset);
+		const int img_offset, const int height, const int width, const int kernel_h, const int kernel_w,
+		const int pad_h, const int pad_w, const int stride_h, const int stride_w,
+		const int height_col, const int width_col, __global double* data_col, const int col_offset);
 
 template <class T>
 __kernel void col2im_gpu_kernel(const int n, __global const T* data_col, const int col_offset,
-	const int height, const int width, const int channels,
-	const int patch_h, const int patch_w,
-	const int pad_h, const int pad_w,
-	const int stride_h, const int stride_w,
-	const int height_col, const int width_col,
-	__global T* data_im, const int img_offset) {
+		const int height, const int width, const int channels,
+		const int patch_h, const int patch_w,
+		const int pad_h, const int pad_w,
+		const int stride_h, const int stride_w,
+		const int height_col, const int width_col,
+		__global T* data_im, const int img_offset) {
 	data_col = data_col + col_offset;
 	data_im = data_im + img_offset;
 	int index = get_global_id(0);
@@ -172,14 +172,14 @@ __kernel void col2im_gpu_kernel(const int n, __global const T* data_col, const i
 }
 
 template __attribute__((mangled_name(col2im_gpu_kernel_float))) __kernel void col2im_gpu_kernel(const int n, __global const float* data_col, const int col_offset,
-	const int height, const int width, const int channels,
-	const int patch_h, const int patch_w,const int pad_h, const int pad_w,
-	const int stride_h, const int stride_w,const int height_col, const int width_col,
-	__global float* data_im, const int img_offset);
+		const int height, const int width, const int channels,
+		const int patch_h, const int patch_w,const int pad_h, const int pad_w,
+		const int stride_h, const int stride_w,const int height_col, const int width_col,
+		__global float* data_im, const int img_offset);
 template __attribute__((mangled_name(col2im_gpu_kernel_double))) __kernel void col2im_gpu_kernel(const int n, __global const double* data_col,
-	const int col_offset, const int height, const int width, const int channels,
-	const int patch_h, const int patch_w, const int pad_h, const int pad_w,
-	const int stride_h, const int stride_w, const int height_col, const int width_col, __global double* data_im, const int img_offset);
+		const int col_offset, const int height, const int width, const int channels,
+		const int patch_h, const int patch_w, const int pad_h, const int pad_w,
+		const int stride_h, const int stride_w, const int height_col, const int width_col, __global double* data_im, const int img_offset);
 
 template <class T>
 __kernel void col2im(const int n, __global T* data_col, const int col_offset, const int height, const int width, const int channels, const int ksize, const int pad, const int stride, const int height_col, const int width_col, __global T* data_im, const int img_offset) {

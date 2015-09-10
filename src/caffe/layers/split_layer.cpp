@@ -6,9 +6,9 @@
 
 namespace caffe {
 
-template<typename Dtype>
+template <typename Dtype>
 void SplitLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
-	const vector<Blob<Dtype>*>& top) {
+		const vector<Blob<Dtype>*>& top) {
 	count_ = bottom[0]->count();
 	for (int i = 0; i < top.size(); ++i) {
 		// Do not allow in-place computation in the SplitLayer.  Instead, share data
@@ -17,25 +17,25 @@ void SplitLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
 		// blob of the first split output with the input, but this seems to cause
 		// some strange effects in practice...)
 		CHECK_NE(top[i], bottom[0]) << this->type() << " Layer does not "
-			"allow in-place computation.";
+				"allow in-place computation.";
 		top[i]->ReshapeLike(*bottom[0]);
 		CHECK_EQ(count_, top[i]->count());
 	}
 	gpu_add_kernel = clCreateKernel(amdDevice.Program, "caffe_gpu_add_float",
-		NULL);
+			NULL);
 }
 
-template<typename Dtype>
+template <typename Dtype>
 void SplitLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
-	const vector<Blob<Dtype>*>& top) {
+		const vector<Blob<Dtype>*>& top) {
 	for (int i = 0; i < top.size(); ++i) {
 		top[i]->ShareData(*bottom[0]);
 	}
 }
 
-template<typename Dtype>
+template <typename Dtype>
 void SplitLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
-	const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
+		const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
 	if (!propagate_down[0]) {
 		return;
 	}
@@ -44,7 +44,7 @@ void SplitLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
 		return;
 	}
 	caffe_add(count_, top[0]->cpu_diff(), top[1]->cpu_diff(),
-		bottom[0]->mutable_cpu_diff());
+			bottom[0]->mutable_cpu_diff());
 	// Add remaining top blob diffs.
 	for (int i = 2; i < top.size(); ++i) {
 		const Dtype* top_diff = top[i]->cpu_diff();
@@ -53,17 +53,17 @@ void SplitLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
 	}
 }
 
-template<typename Dtype>
+template <typename Dtype>
 void SplitLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
-	const vector<Blob<Dtype>*>& top) {
+		const vector<Blob<Dtype>*>& top) {
 	for (int i = 0; i < top.size(); ++i) {
 		top[i]->ShareData(*bottom[0]);
 	}
 }
 
-template<typename Dtype>
+template <typename Dtype>
 void SplitLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
-	const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
+		const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
 	if (!propagate_down[0]) {
 		return;
 	}
@@ -72,7 +72,7 @@ void SplitLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
 		return;
 	}
 	caffe_gpu_add(count_, top[0]->gpu_diff(), top[1]->gpu_diff(),
-		bottom[0]->mutable_gpu_diff());
+			bottom[0]->mutable_gpu_diff());
 	// Add remaining top blob diffs.
 	for (int i = 2; i < top.size(); ++i) {
 		const Dtype* top_diff = top[i]->gpu_diff();

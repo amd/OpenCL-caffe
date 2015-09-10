@@ -41,7 +41,7 @@ __kernel void PReLUBackward(const int count, const int channels, const int dim, 
 	if(index < count) {
 		int c = (index / dim) % channels / div_factor;
 		out_diff[index] = in_diff[index] * ((in_data[index] > 0)
-			+ (in_data[index] <= 0) * slope_data[c]);
+				+ (in_data[index] <= 0) * slope_data[c]);
 	}
 }
 template __attribute__ ((mangled_name(PReLUBackward_float))) __kernel void PReLUBackward(const int count, const int channels, const int dim, __global float* in_diff, __global float* in_data, __global float* out_diff, __global float* slope_data, const int div_factor);

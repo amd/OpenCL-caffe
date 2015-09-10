@@ -14,7 +14,8 @@ namespace db {
 class LevelDBCursor: public Cursor {
 	public:
 		explicit LevelDBCursor(leveldb::Iterator* iter)
-			: iter_(iter) {
+		:
+				iter_(iter) {
 			SeekToFirst();
 		}
 		~LevelDBCursor() {
@@ -43,7 +44,8 @@ class LevelDBCursor: public Cursor {
 class LevelDBTransaction: public Transaction {
 	public:
 		explicit LevelDBTransaction(leveldb::DB* db)
-			: db_(db) {
+		:
+				db_(db) {
 			CHECK_NOTNULL(db_);
 		}
 		virtual void Put(const string& key, const string& value) {
@@ -52,7 +54,7 @@ class LevelDBTransaction: public Transaction {
 		virtual void Commit() {
 			leveldb::Status status = db_->Write(leveldb::WriteOptions(), &batch_);
 			CHECK(status.ok()) << "Failed to write batch to leveldb "
-				<< std::endl << status.ToString();
+					<< std::endl << status.ToString();
 		}
 
 	private:
@@ -65,7 +67,8 @@ class LevelDBTransaction: public Transaction {
 class LevelDB: public DB {
 	public:
 		LevelDB()
-			: db_(NULL) {
+		:
+				db_(NULL) {
 		}
 		virtual ~LevelDB() {
 			Close();

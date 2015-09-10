@@ -78,7 +78,7 @@ __kernel void LRNFillScale(const int nthreads, __global T* in, const int num, co
 		}
 	}
 }
-template __attribute__((mangled_name(LRNFillScale_float))) __kernel void LRNFillScale (const int nthreads, __global float* in, const int num, const int channels, const int height, const int width, const int size, const float alpha_over_size, const float k,  __global float* scale);
+template __attribute__((mangled_name(LRNFillScale_float))) __kernel void LRNFillScale (const int nthreads, __global float* in, const int num, const int channels, const int height, const int width, const int size, const float alpha_over_size, const float k, __global float* scale);
 template __attribute__((mangled_name(LRNFillScale_double))) __kernel void LRNFillScale (const int nthreads, __global double* in, const int num, const int channels, const int height, const int width, const int size, const double alpha_over_size, const double k, __global double* scale);
 
 template <class T>

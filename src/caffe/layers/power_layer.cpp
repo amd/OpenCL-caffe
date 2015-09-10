@@ -9,9 +9,9 @@
 
 namespace caffe {
 
-template<typename Dtype>
+template <typename Dtype>
 void PowerLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
-	const vector<Blob<Dtype>*>& top) {
+		const vector<Blob<Dtype>*>& top) {
 	NeuronLayer < Dtype > ::LayerSetUp(bottom, top);
 	power_ = this->layer_param_.power_param().power();
 	scale_ = this->layer_param_.power_param().scale();
@@ -20,9 +20,9 @@ void PowerLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
 }
 
 // Compute y = (shift + scale * x)^power
-template<typename Dtype>
+template <typename Dtype>
 void PowerLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
-	const vector<Blob<Dtype>*>& top) {
+		const vector<Blob<Dtype>*>& top) {
 	Dtype* top_data = top[0]->mutable_cpu_data();
 	const int count = bottom[0]->count();
 	// Special case where we can ignore the input: scale or power is 0.
@@ -44,10 +44,10 @@ void PowerLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 	}
 }
 
-template<typename Dtype>
+template <typename Dtype>
 void PowerLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
-	const vector<bool>& propagate_down,
-	const vector<Blob<Dtype>*>& bottom) {
+		const vector<bool>& propagate_down,
+		const vector<Blob<Dtype>*>& bottom) {
 	if (propagate_down[0]) {
 		Dtype* bottom_diff = bottom[0]->mutable_cpu_diff();
 		const int count = bottom[0]->count();
@@ -63,7 +63,7 @@ void PowerLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
 				//     -> dy/dx = 2 * scale * (shift + scale * x)
 				//              = diff_scale * shift + diff_scale * scale * x
 				caffe_cpu_axpby(count, diff_scale_ * scale_, bottom_data,
-					Dtype(0), bottom_diff);
+						Dtype(0), bottom_diff);
 				if (shift_ != Dtype(0)) {
 					caffe_add_scalar(count, diff_scale_ * shift_, bottom_diff);
 				}
@@ -96,9 +96,9 @@ void PowerLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
 	}
 }
 
-template<typename Dtype>
+template <typename Dtype>
 void PowerLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
-	const vector<Blob<Dtype>*>& top) {
+		const vector<Blob<Dtype>*>& top) {
 	Dtype* top_data = top[0]->mutable_gpu_data();
 	const int count = bottom[0]->count();
 	// Special case where we can ignore the input: scale or power is 0.
@@ -120,9 +120,9 @@ void PowerLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 	}
 }
 
-template<typename Dtype>
+template <typename Dtype>
 void PowerLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
-	const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
+		const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
 	if (propagate_down[0]) {
 		Dtype* bottom_diff = bottom[0]->mutable_gpu_diff();
 		const int count = bottom[0]->count();
@@ -138,7 +138,7 @@ void PowerLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
 				//     -> dy/dx = 2 * scale * (shift + scale * x)
 				//              = diff_scale * shift + diff_scale * scale * x
 				caffe_gpu_axpby(count, diff_scale_ * scale_, bottom_data,
-					Dtype(0), bottom_diff);
+						Dtype(0), bottom_diff);
 				if (shift_ != Dtype(0)) {
 					caffe_gpu_add_scalar(count, diff_scale_ * shift_, bottom_diff);
 				}

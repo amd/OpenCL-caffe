@@ -13,7 +13,7 @@ namespace caffe {
  * @brief Applies common transformations to the input data, such as
  * scaling, mirroring, substracting the image mean...
  */
-template<typename Dtype>
+template <typename Dtype>
 class DataTransformer {
 	public:
 		explicit DataTransformer(const TransformationParameter& param, Phase phase);
@@ -49,7 +49,7 @@ class DataTransformer {
 		 *    set_cpu_data() is used. See memory_layer.cpp for an example.
 		 */
 		void Transform(const vector<Datum> & datum_vector,
-			Blob<Dtype>* transformed_blob);
+				Blob<Dtype>* transformed_blob);
 
 		/**
 		 * @brief Applies the transformation defined in the data layer's
@@ -62,7 +62,7 @@ class DataTransformer {
 		 *    set_cpu_data() is used. See memory_layer.cpp for an example.
 		 */
 		void Transform(const vector<cv::Mat> & mat_vector,
-			Blob<Dtype>* transformed_blob);
+				Blob<Dtype>* transformed_blob);
 
 		/**
 		 * @brief Applies the transformation defined in the data layer's

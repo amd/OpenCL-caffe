@@ -16,14 +16,14 @@
 
 namespace caffe {
 
-template<typename Dtype>
+template <typename Dtype>
 DataLayer<Dtype>::~DataLayer<Dtype>() {
 	this->JoinPrefetchThread();
 }
 
-template<typename Dtype>
+template <typename Dtype>
 void DataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& bottom,
-	const vector<Blob<Dtype>*>& top) {
+		const vector<Blob<Dtype>*>& top) {
 	// Initialize DB
 	db_.reset(db::GetDB(this->layer_param_.data_param().backend()));
 	db_->Open(this->layer_param_.data_param().source(), db::READ);
@@ -32,7 +32,7 @@ void DataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& bottom,
 	// Check if we should randomly skip a few data points
 	if (this->layer_param_.data_param().rand_skip()) {
 		unsigned int skip = caffe_rng_rand() %
-			this->layer_param_.data_param().rand_skip();
+				this->layer_param_.data_param().rand_skip();
 		LOG(INFO) << "Skipping first " << skip << " data points.";
 		while (skip-- > 0) {
 			cursor_->Next();
@@ -51,8 +51,8 @@ void DataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& bottom,
 	this->prefetch_data_.set_data_layer();
 
 	LOG(INFO) << "output data size: " << top[0]->num() << ","
-		<< top[0]->channels() << "," << top[0]->height() << ","
-		<< top[0]->width();
+			<< top[0]->channels() << "," << top[0]->height() << ","
+			<< top[0]->width();
 	// label
 	if (this->output_labels_) {
 		vector<int> label_shape(1, this->layer_param_.data_param().batch_size());
@@ -63,7 +63,7 @@ void DataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& bottom,
 }
 
 // This function is used to create a thread that prefetches the data.
-template<typename Dtype>
+template <typename Dtype>
 void DataLayer<Dtype>::InternalThreadEntry() {
 	CPUTimer batch_timer;
 	batch_timer.Start();

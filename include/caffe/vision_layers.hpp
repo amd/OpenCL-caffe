@@ -20,17 +20,18 @@ namespace caffe {
  * @brief Abstract base class that factors out the BLAS code common to
  *        ConvolutionLayer and DeconvolutionLayer.
  */
-template<typename Dtype>
+template <typename Dtype>
 class BaseConvolutionLayer: public Layer<Dtype> {
 	public:
 		explicit BaseConvolutionLayer(const LayerParameter& param)
-			: Layer<Dtype>(param) {
+		:
+				Layer<Dtype>(param) {
 		}
 		virtual ~BaseConvolutionLayer();
 		virtual void LayerSetUp(const vector<Blob<Dtype>*>& bottom,
-			const vector<Blob<Dtype>*>& top);
+				const vector<Blob<Dtype>*>& top);
 		virtual void Reshape(const vector<Blob<Dtype>*>& bottom,
-			const vector<Blob<Dtype>*>& top);
+				const vector<Blob<Dtype>*>& top);
 
 		virtual inline int MinBottomBlobs() const {
 			return 1;
@@ -47,31 +48,31 @@ class BaseConvolutionLayer: public Layer<Dtype> {
 		// The last argument in forward_cpu_gemm is so that we can skip the im2col if
 		// we just called weight_cpu_gemm with the same input.
 		void forward_cpu_gemm(const Dtype* input, const Dtype* weights,
-			Dtype* output, bool skip_im2col = false);
+				Dtype* output, bool skip_im2col = false);
 		void forward_cpu_bias(Dtype* output, const Dtype* bias);
 		void backward_cpu_gemm(const Dtype* input, const Dtype* weights,
-			Dtype* output);
+				Dtype* output);
 		void weight_cpu_gemm(const Dtype* input, const Dtype* output, Dtype*
-			weights);
+				weights);
 		void backward_cpu_bias(Dtype* bias, const Dtype* input);
 		//opencl related setup
 		void ocl_setup();
 
 #ifndef CPU_ONLY
 		void forward_gpu_gemm(const Dtype* col_input, const Dtype* weights,
-			Dtype* output, bool skip_im2col = false);
+				Dtype* output, bool skip_im2col = false);
 		void forward_gpu_gemm_opt(const Dtype* col_input, const Dtype* weights,
-			Dtype* output, bool skip_im2col = false);
+				Dtype* output, bool skip_im2col = false);
 		void forward_gpu_bias(Dtype* output, const Dtype* bias);
 		void forward_gpu_bias_opt(Dtype* output, const Dtype* bias);
 		void backward_gpu_gemm(const Dtype* input, const Dtype* weights,
-			Dtype* col_output);
+				Dtype* col_output);
 		void backward_gpu_gemm_opt(const Dtype* input, const Dtype* weights,
-			Dtype* col_output);
+				Dtype* col_output);
 		void weight_gpu_gemm(const Dtype* col_input, const Dtype* output, Dtype*
-			weights);
+				weights);
 		void weight_gpu_gemm_opt(const Dtype* col_input, const Dtype* output, Dtype*
-			weights);
+				weights);
 		void backward_gpu_bias(Dtype* bias, const Dtype* input);
 		#endif
 
@@ -97,44 +98,44 @@ class BaseConvolutionLayer: public Layer<Dtype> {
 		// wrap im2col/col2im so we don't have to remember the (long) argument lists
 		inline void conv_im2col_cpu(const Dtype* data, Dtype* col_buff) {
 			im2col_cpu(data, conv_in_channels_, conv_in_height_, conv_in_width_,
-				kernel_h_, kernel_w_, pad_h_, pad_w_, stride_h_, stride_w_, col_buff);
+					kernel_h_, kernel_w_, pad_h_, pad_w_, stride_h_, stride_w_, col_buff);
 		}
 		inline void conv_col2im_cpu(const Dtype* col_buff, Dtype* data) {
 			col2im_cpu(col_buff, conv_in_channels_, conv_in_height_, conv_in_width_,
-				kernel_h_, kernel_w_, pad_h_, pad_w_, stride_h_, stride_w_, data);
+					kernel_h_, kernel_w_, pad_h_, pad_w_, stride_h_, stride_w_, data);
 		}
 #ifndef CPU_ONLY
 		inline void conv_im2col_gpu(const Dtype* data, Dtype* col_buff) {
 			im2col_gpu(data, bottom_offset_, conv_in_channels_, conv_in_height_,
-				conv_in_width_,
-				kernel_h_, kernel_w_, pad_h_, pad_w_, stride_h_, stride_w_, col_buff,
-				0);
+					conv_in_width_,
+					kernel_h_, kernel_w_, pad_h_, pad_w_, stride_h_, stride_w_, col_buff,
+					0);
 		}
 		inline void conv_col2im_gpu(const Dtype* col_buff, Dtype* data) {
 			col2im_gpu(col_buff, 0, conv_in_channels_, conv_in_height_,
-				conv_in_width_,
-				kernel_h_, kernel_w_, pad_h_, pad_w_, stride_h_, stride_w_, data,
-				bottom_offset_);
+					conv_in_width_,
+					kernel_h_, kernel_w_, pad_h_, pad_w_, stride_h_, stride_w_, data,
+					bottom_offset_);
 		}
 	protected:
 		inline void conv_im2col_gpu_opt(const Dtype* data) {
 			im2col_gpu_opt(data, bottom_offset_, conv_in_channels_, conv_in_height_,
-				conv_in_width_,
-				kernel_w_, pad_w_, stride_h_, (Dtype*) transMem, 0, opt_num2);
+					conv_in_width_,
+					kernel_w_, pad_w_, stride_h_, (Dtype*) transMem, 0, opt_num2);
 		}
 		inline void conv_col2im_gpu_opt(Dtype* data) {
 			col2im_gpu_opt((Dtype*) transMem, 0, conv_in_channels_, conv_in_height_,
-				conv_in_width_,
-				kernel_h_, pad_h_, stride_w_, data, bottom_offset_, opt_num2);
+					conv_in_width_,
+					kernel_h_, pad_h_, stride_w_, data, bottom_offset_, opt_num2);
 		}
 	private:
 		inline void conv_transform_gpu(const Dtype* temp_buffer, Dtype* top_data) {
 			transform_gpu((Dtype*) temp_buffer, top_data, top_offset_, N_,
-				M_ * opt_num2, opt_num2);
+					M_ * opt_num2, opt_num2);
 		}
 		inline void conv_transpose_gpu(const Dtype* data) {
 			opttrans(data, top_offset_, 1, M_ * group_, N_, (Dtype*) subTopMem, 0,
-				opt_num2);
+					opt_num2);
 		}
 	protected:
 		inline void gpu_memset(Dtype* data, Dtype value, int count) {
@@ -182,7 +183,7 @@ class BaseConvolutionLayer: public Layer<Dtype> {
  *   be filtered. col2im restores the output spatial structure by rolling up
  *   the output channel N' columns of the output matrix.
  */
-template<typename Dtype>
+template <typename Dtype>
 class ConvolutionLayer: public BaseConvolutionLayer<Dtype> {
 	public:
 		/**
@@ -214,7 +215,8 @@ class ConvolutionLayer: public BaseConvolutionLayer<Dtype> {
 		 *    kernels + stream parallelism) engines.
 		 */
 		explicit ConvolutionLayer(const LayerParameter& param)
-			: BaseConvolutionLayer<Dtype>(param) {
+		:
+				BaseConvolutionLayer<Dtype>(param) {
 		}
 
 		virtual inline const char* type() const {
@@ -223,26 +225,26 @@ class ConvolutionLayer: public BaseConvolutionLayer<Dtype> {
 
 	protected:
 		virtual void Forward_cpu(const vector<Blob<Dtype>*>& bottom,
-			const vector<Blob<Dtype>*>& top);
+				const vector<Blob<Dtype>*>& top);
 		virtual void Forward_gpu(const vector<Blob<Dtype>*>& bottom,
-			const vector<Blob<Dtype>*>& top);
+				const vector<Blob<Dtype>*>& top);
 		virtual void Backward_cpu(const vector<Blob<Dtype>*>& top,
-			const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
+				const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
 		virtual void Backward_gpu(const vector<Blob<Dtype>*>& top,
-			const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
+				const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
 		virtual inline bool reverse_dimensions() {
 			return false;
 		}
 		virtual void compute_output_shape();
 
 		virtual void Forward_gpu_org(const vector<Blob<Dtype>*>& bottom,
-			const vector<Blob<Dtype>*>& top);
+				const vector<Blob<Dtype>*>& top);
 		virtual void Backward_gpu_org(const vector<Blob<Dtype>*>& top,
-			const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
+				const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
 		virtual void Forward_gpu_opt2(const vector<Blob<Dtype>*>& bottom,
-			const vector<Blob<Dtype>*>& top);
+				const vector<Blob<Dtype>*>& top);
 		virtual void Backward_gpu_opt2(const vector<Blob<Dtype>*>& top,
-			const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
+				const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
 };
 
 /**
@@ -259,11 +261,12 @@ class ConvolutionLayer: public BaseConvolutionLayer<Dtype> {
  *   padding is removed from the output rather than added to the input, and
  *   stride results in upsampling rather than downsampling).
  */
-template<typename Dtype>
+template <typename Dtype>
 class DeconvolutionLayer: public BaseConvolutionLayer<Dtype> {
 	public:
 		explicit DeconvolutionLayer(const LayerParameter& param)
-			: BaseConvolutionLayer<Dtype>(param) {
+		:
+				BaseConvolutionLayer<Dtype>(param) {
 		}
 
 		virtual inline const char* type() const {
@@ -272,13 +275,13 @@ class DeconvolutionLayer: public BaseConvolutionLayer<Dtype> {
 
 	protected:
 		virtual void Forward_cpu(const vector<Blob<Dtype>*>& bottom,
-			const vector<Blob<Dtype>*>& top);
+				const vector<Blob<Dtype>*>& top);
 		virtual void Forward_gpu(const vector<Blob<Dtype>*>& bottom,
-			const vector<Blob<Dtype>*>& top);
+				const vector<Blob<Dtype>*>& top);
 		virtual void Backward_cpu(const vector<Blob<Dtype>*>& top,
-			const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
+				const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
 		virtual void Backward_gpu(const vector<Blob<Dtype>*>& top,
-			const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
+				const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
 		virtual inline bool reverse_dimensions() {
 			return true;
 		}
@@ -306,16 +309,16 @@ class CuDNNConvolutionLayer : public ConvolutionLayer<Dtype> {
 	explicit CuDNNConvolutionLayer(const LayerParameter& param)
 	: ConvolutionLayer<Dtype>(param), handles_setup_(false) {}
 	virtual void LayerSetUp(const vector<Blob<Dtype>*>& bottom,
-		const vector<Blob<Dtype>*>& top);
+			const vector<Blob<Dtype>*>& top);
 	virtual void Reshape(const vector<Blob<Dtype>*>& bottom,
-		const vector<Blob<Dtype>*>& top);
+			const vector<Blob<Dtype>*>& top);
 	virtual ~CuDNNConvolutionLayer();
 
 	protected:
 	virtual void Forward_gpu(const vector<Blob<Dtype>*>& bottom,
-		const vector<Blob<Dtype>*>& top);
+			const vector<Blob<Dtype>*>& top);
 	virtual void Backward_gpu(const vector<Blob<Dtype>*>& top,
-		const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
+			const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
 
 	bool handles_setup_;
 	cudnnHandle_t* handle_;
@@ -337,16 +340,17 @@ class CuDNNConvolutionLayer : public ConvolutionLayer<Dtype> {
  *
  * TODO(dox): thorough documentation for Forward, Backward, and proto params.
  */
-template<typename Dtype>
+template <typename Dtype>
 class Im2colLayer: public Layer<Dtype> {
 	public:
 		explicit Im2colLayer(const LayerParameter& param)
-			: Layer<Dtype>(param) {
+		:
+				Layer<Dtype>(param) {
 		}
 		virtual void LayerSetUp(const vector<Blob<Dtype>*>& bottom,
-			const vector<Blob<Dtype>*>& top);
+				const vector<Blob<Dtype>*>& top);
 		virtual void Reshape(const vector<Blob<Dtype>*>& bottom,
-			const vector<Blob<Dtype>*>& top);
+				const vector<Blob<Dtype>*>& top);
 
 		virtual inline const char* type() const {
 			return "Im2col";
@@ -360,13 +364,13 @@ class Im2colLayer: public Layer<Dtype> {
 
 	protected:
 		virtual void Forward_cpu(const vector<Blob<Dtype>*>& bottom,
-			const vector<Blob<Dtype>*>& top);
+				const vector<Blob<Dtype>*>& top);
 		virtual void Forward_gpu(const vector<Blob<Dtype>*>& bottom,
-			const vector<Blob<Dtype>*>& top);
+				const vector<Blob<Dtype>*>& top);
 		virtual void Backward_cpu(const vector<Blob<Dtype>*>& top,
-			const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
+				const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
 		virtual void Backward_gpu(const vector<Blob<Dtype>*>& top,
-			const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
+				const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
 
 		int kernel_h_, kernel_w_;
 		int stride_h_, stride_w_;
@@ -376,8 +380,8 @@ class Im2colLayer: public Layer<Dtype> {
 };
 
 // Forward declare PoolingLayer and SplitLayer for use in LRNLayer.
-template<typename Dtype> class PoolingLayer;
-template<typename Dtype> class SplitLayer;
+template <typename Dtype> class PoolingLayer;
+template <typename Dtype> class SplitLayer;
 
 /**
  * @brief Normalize the input in a local region across or within feature maps.
@@ -385,73 +389,81 @@ template<typename Dtype> class SplitLayer;
  * TODO(dox): thorough documentation for Forward, Backward, and proto params.
  */
 template <typename Dtype>
-class LRNLayer : public Layer<Dtype> {
- public:
-  explicit LRNLayer(const LayerParameter& param)
-      : Layer<Dtype>(param) {}
-  virtual void LayerSetUp(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top);
-  virtual void Reshape(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top);
+class LRNLayer: public Layer<Dtype> {
+	public:
+		explicit LRNLayer(const LayerParameter& param)
+		:
+				Layer<Dtype>(param) {
+		}
+		virtual void LayerSetUp(const vector<Blob<Dtype>*>& bottom,
+				const vector<Blob<Dtype>*>& top);
+		virtual void Reshape(const vector<Blob<Dtype>*>& bottom,
+				const vector<Blob<Dtype>*>& top);
 
-  virtual inline const char* type() const { return "LRN"; }
-  virtual inline int ExactNumBottomBlobs() const { return 1; }
-  virtual inline int ExactNumTopBlobs() const { return 1; }
+		virtual inline const char* type() const {
+			return "LRN";
+		}
+		virtual inline int ExactNumBottomBlobs() const {
+			return 1;
+		}
+		virtual inline int ExactNumTopBlobs() const {
+			return 1;
+		}
 
- protected:
-  virtual void Forward_cpu(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top);
-  virtual void Forward_gpu(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top);
-  virtual void Backward_cpu(const vector<Blob<Dtype>*>& top,
-      const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
-  virtual void Backward_gpu(const vector<Blob<Dtype>*>& top,
-      const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
+	protected:
+		virtual void Forward_cpu(const vector<Blob<Dtype>*>& bottom,
+				const vector<Blob<Dtype>*>& top);
+		virtual void Forward_gpu(const vector<Blob<Dtype>*>& bottom,
+				const vector<Blob<Dtype>*>& top);
+		virtual void Backward_cpu(const vector<Blob<Dtype>*>& top,
+				const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
+		virtual void Backward_gpu(const vector<Blob<Dtype>*>& top,
+				const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
 
-  virtual void CrossChannelForward_cpu(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top);
-  virtual void CrossChannelForward_gpu(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top);
-  virtual void WithinChannelForward(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top);
-  virtual void CrossChannelBackward_cpu(const vector<Blob<Dtype>*>& top,
-      const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
-  virtual void CrossChannelBackward_gpu(const vector<Blob<Dtype>*>& top,
-      const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
-  virtual void WithinChannelBackward(const vector<Blob<Dtype>*>& top,
-      const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
+		virtual void CrossChannelForward_cpu(const vector<Blob<Dtype>*>& bottom,
+				const vector<Blob<Dtype>*>& top);
+		virtual void CrossChannelForward_gpu(const vector<Blob<Dtype>*>& bottom,
+				const vector<Blob<Dtype>*>& top);
+		virtual void WithinChannelForward(const vector<Blob<Dtype>*>& bottom,
+				const vector<Blob<Dtype>*>& top);
+		virtual void CrossChannelBackward_cpu(const vector<Blob<Dtype>*>& top,
+				const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
+		virtual void CrossChannelBackward_gpu(const vector<Blob<Dtype>*>& top,
+				const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
+		virtual void WithinChannelBackward(const vector<Blob<Dtype>*>& top,
+				const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
 
-  int size_;
-  int pre_pad_;
-  Dtype alpha_;
-  Dtype beta_;
-  Dtype k_;
-  int num_;
-  int channels_;
-  int height_;
-  int width_;
+		int size_;
+		int pre_pad_;
+		Dtype alpha_;
+		Dtype beta_;
+		Dtype k_;
+		int num_;
+		int channels_;
+		int height_;
+		int width_;
 
-  // Fields used for normalization ACROSS_CHANNELS
-  // scale_ stores the intermediate summing results
-  Blob<Dtype> scale_;
+		// Fields used for normalization ACROSS_CHANNELS
+		// scale_ stores the intermediate summing results
+		Blob<Dtype> scale_;
 
-  // Fields used for normalization WITHIN_CHANNEL
-  shared_ptr<SplitLayer<Dtype> > split_layer_;
-  vector<Blob<Dtype>*> split_top_vec_;
-  shared_ptr<PowerLayer<Dtype> > square_layer_;
-  Blob<Dtype> square_input_;
-  Blob<Dtype> square_output_;
-  vector<Blob<Dtype>*> square_bottom_vec_;
-  vector<Blob<Dtype>*> square_top_vec_;
-  shared_ptr<PoolingLayer<Dtype> > pool_layer_;
-  Blob<Dtype> pool_output_;
-  vector<Blob<Dtype>*> pool_top_vec_;
-  shared_ptr<PowerLayer<Dtype> > power_layer_;
-  Blob<Dtype> power_output_;
-  vector<Blob<Dtype>*> power_top_vec_;
-  shared_ptr<EltwiseLayer<Dtype> > product_layer_;
-  Blob<Dtype> product_input_;
-  vector<Blob<Dtype>*> product_bottom_vec_;
+		// Fields used for normalization WITHIN_CHANNEL
+		shared_ptr<SplitLayer<Dtype> > split_layer_;
+		vector<Blob<Dtype>*> split_top_vec_;
+		shared_ptr<PowerLayer<Dtype> > square_layer_;
+		Blob<Dtype> square_input_;
+		Blob<Dtype> square_output_;
+		vector<Blob<Dtype>*> square_bottom_vec_;
+		vector<Blob<Dtype>*> square_top_vec_;
+		shared_ptr<PoolingLayer<Dtype> > pool_layer_;
+		Blob<Dtype> pool_output_;
+		vector<Blob<Dtype>*> pool_top_vec_;
+		shared_ptr<PowerLayer<Dtype> > power_layer_;
+		Blob<Dtype> power_output_;
+		vector<Blob<Dtype>*> power_top_vec_;
+		shared_ptr<EltwiseLayer<Dtype> > product_layer_;
+		Blob<Dtype> product_input_;
+		vector<Blob<Dtype>*> product_bottom_vec_;
 
 };
 
@@ -460,16 +472,17 @@ class LRNLayer : public Layer<Dtype> {
  *
  * TODO(dox): thorough documentation for Forward, Backward, and proto params.
  */
-template<typename Dtype>
+template <typename Dtype>
 class PoolingLayer: public Layer<Dtype> {
 	public:
 		explicit PoolingLayer(const LayerParameter& param)
-			: Layer<Dtype>(param) {
+		:
+				Layer<Dtype>(param) {
 		}
 		virtual void LayerSetUp(const vector<Blob<Dtype>*>& bottom,
-			const vector<Blob<Dtype>*>& top);
+				const vector<Blob<Dtype>*>& top);
 		virtual void Reshape(const vector<Blob<Dtype>*>& bottom,
-			const vector<Blob<Dtype>*>& top);
+				const vector<Blob<Dtype>*>& top);
 
 		virtual inline const char* type() const {
 			return "Pooling";
@@ -484,18 +497,18 @@ class PoolingLayer: public Layer<Dtype> {
 		// others can only output the pooled inputs.
 		virtual inline int MaxTopBlobs() const {
 			return (this->layer_param_.pooling_param().pool() ==
-				PoolingParameter_PoolMethod_MAX) ? 2 : 1;
+					PoolingParameter_PoolMethod_MAX) ? 2 : 1;
 		}
 
 	protected:
 		virtual void Forward_cpu(const vector<Blob<Dtype>*>& bottom,
-			const vector<Blob<Dtype>*>& top);
+				const vector<Blob<Dtype>*>& top);
 		virtual void Forward_gpu(const vector<Blob<Dtype>*>& bottom,
-			const vector<Blob<Dtype>*>& top);
+				const vector<Blob<Dtype>*>& top);
 		virtual void Backward_cpu(const vector<Blob<Dtype>*>& top,
-			const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
+				const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
 		virtual void Backward_gpu(const vector<Blob<Dtype>*>& top,
-			const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
+				const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
 
 		int kernel_h_, kernel_w_;
 		int stride_h_, stride_w_;
@@ -520,9 +533,9 @@ class CuDNNPoolingLayer : public PoolingLayer<Dtype> {
 	explicit CuDNNPoolingLayer(const LayerParameter& param)
 	: PoolingLayer<Dtype>(param), handles_setup_(false) {}
 	virtual void LayerSetUp(const vector<Blob<Dtype>*>& bottom,
-		const vector<Blob<Dtype>*>& top);
+			const vector<Blob<Dtype>*>& top);
 	virtual void Reshape(const vector<Blob<Dtype>*>& bottom,
-		const vector<Blob<Dtype>*>& top);
+			const vector<Blob<Dtype>*>& top);
 	virtual ~CuDNNPoolingLayer();
 	// Currently, cuDNN does not support the extra top blob.
 	virtual inline int MinTopBlobs() const {return -1;}
@@ -530,9 +543,9 @@ class CuDNNPoolingLayer : public PoolingLayer<Dtype> {
 
 	protected:
 	virtual void Forward_gpu(const vector<Blob<Dtype>*>& bottom,
-		const vector<Blob<Dtype>*>& top);
+			const vector<Blob<Dtype>*>& top);
 	virtual void Backward_gpu(const vector<Blob<Dtype>*>& top,
-		const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
+			const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
 
 	bool handles_setup_;
 	cudnnHandle_t handle_;
@@ -548,16 +561,17 @@ class CuDNNPoolingLayer : public PoolingLayer<Dtype> {
  *        so that the result vector of different sized
  *        images are of the same size.
  */
-template<typename Dtype>
+template <typename Dtype>
 class SPPLayer: public Layer<Dtype> {
 	public:
 		explicit SPPLayer(const LayerParameter& param)
-			: Layer<Dtype>(param) {
+		:
+				Layer<Dtype>(param) {
 		}
 		virtual void LayerSetUp(const vector<Blob<Dtype>*>& bottom,
-			const vector<Blob<Dtype>*>& top);
+				const vector<Blob<Dtype>*>& top);
 		virtual void Reshape(const vector<Blob<Dtype>*>& bottom,
-			const vector<Blob<Dtype>*>& top);
+				const vector<Blob<Dtype>*>& top);
 
 		virtual inline const char* type() const {
 			return "SPP";
@@ -572,18 +586,18 @@ class SPPLayer: public Layer<Dtype> {
 		// others can only output the pooled inputs.
 		virtual inline int MaxTopBlobs() const {
 			return (this->layer_param_.pooling_param().pool() ==
-				PoolingParameter_PoolMethod_MAX) ? 2 : 1;
+					PoolingParameter_PoolMethod_MAX) ? 2 : 1;
 		}
 
 	protected:
 		virtual void Forward_cpu(const vector<Blob<Dtype>*>& bottom,
-			const vector<Blob<Dtype>*>& top);
+				const vector<Blob<Dtype>*>& top);
 		virtual void Backward_cpu(const vector<Blob<Dtype>*>& top,
-			const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
+				const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
 		// calculates the kernel and stride dimensions for the pooling layer,
 		// returns a correctly configured LayerParameter for a PoolingLayer
 		virtual LayerParameter GetPoolingParam(const int pyramid_level,
-			const int bottom_h, const int bottom_w, const SPPParameter spp_param);
+				const int bottom_h, const int bottom_w, const SPPParameter spp_param);
 
 		int pyramid_height_;
 		int bottom_h_, bottom_w_;

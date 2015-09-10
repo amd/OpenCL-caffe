@@ -75,7 +75,7 @@ template __attribute__ ((mangled_name(softmax_div_double))) __kernel void softma
 
 template <class T>
 __kernel void kernel_channel_max(const int num, const int channels,
-	const int spatial_dim, __global const T* data, __global T* out) {
+		const int spatial_dim, __global const T* data, __global T* out) {
 	int index = get_global_id(0);
 	if(index < num * spatial_dim) {
 		int n = index / spatial_dim;
@@ -89,14 +89,14 @@ __kernel void kernel_channel_max(const int num, const int channels,
 }
 
 template __attribute__ ((mangled_name(kernel_channel_max_float))) __kernel void kernel_channel_max(const int num, const int channels,
-	const int spatial_dim, __global const float* data, __global float* out);
+		const int spatial_dim, __global const float* data, __global float* out);
 template __attribute__ ((mangled_name(kernel_channel_max_double))) __kernel void kernel_channel_max(const int num, const int channels,
-	const int spatial_dim, __global const double* data, __global double* out);
+		const int spatial_dim, __global const double* data, __global double* out);
 
 template <class T>
 __kernel void kernel_channel_subtract(const int count,
-	const int num, const int channels,
-	const int spatial_dim, __global const T* channel_max, __global T* data) {
+		const int num, const int channels,
+		const int spatial_dim, __global const T* channel_max, __global T* data) {
 	int index = get_global_id(0);
 	if(index < count) {
 		int n = index / channels / spatial_dim;
@@ -109,7 +109,7 @@ template __attribute__ ((mangled_name(kernel_channel_subtract_double))) __kernel
 
 template <class T>
 __kernel void kernel_channel_sum(const int num, const int channels,
-	const int spatial_dim, __global const T* data, __global T* channel_sum) {
+		const int spatial_dim, __global const T* data, __global T* channel_sum) {
 	int index = get_global_id(0);
 	if(index < num * spatial_dim) {
 		int n = index / spatial_dim;
@@ -123,14 +123,14 @@ __kernel void kernel_channel_sum(const int num, const int channels,
 }
 
 template __attribute__ ((mangled_name(kernel_channel_sum_float))) __kernel void kernel_channel_sum(const int num, const int channels,
-	const int spatial_dim, __global const float* data, __global float* channel_sum);
+		const int spatial_dim, __global const float* data, __global float* channel_sum);
 template __attribute__ ((mangled_name(kernel_channel_sum_double))) __kernel void kernel_channel_sum(const int num, const int channels,
-	const int spatial_dim, __global const double* data, __global double* channel_sum);
+		const int spatial_dim, __global const double* data, __global double* channel_sum);
 
 template <class T>
 __kernel void kernel_channel_div(const int count,
-	const int num, const int channels,
-	const int spatial_dim, __global const T* channel_sum, __global T* data) {
+		const int num, const int channels,
+		const int spatial_dim, __global const T* channel_sum, __global T* data) {
 	int index = get_global_id(0);
 	if(index < count) {
 		int n = index / channels / spatial_dim;
@@ -140,16 +140,16 @@ __kernel void kernel_channel_div(const int count,
 }
 
 template __attribute__ ((mangled_name(kernel_channel_div_float))) __kernel void kernel_channel_div(const int count,
-	const int num, const int channels,
-	const int spatial_dim, __global const float* channel_sum, __global float* data);
+		const int num, const int channels,
+		const int spatial_dim, __global const float* channel_sum, __global float* data);
 template __attribute__ ((mangled_name(kernel_channel_div_double))) __kernel void kernel_channel_div(const int count,
-	const int num, const int channels,
-	const int spatial_dim, __global const double* channel_sum, __global double* data);
+		const int num, const int channels,
+		const int spatial_dim, __global const double* channel_sum, __global double* data);
 
 template <class T>
 __kernel void kernel_channel_dot(const int num, const int channels,
-	const int spatial_dim, __global const T* data_1, __global const T* data_2,
-	__global T* channel_dot) {
+		const int spatial_dim, __global const T* data_1, __global const T* data_2,
+		__global T* channel_dot) {
 	int index = get_global_id(0);
 	if(index < num * spatial_dim) {
 		int n = index / spatial_dim;
@@ -157,15 +157,15 @@ __kernel void kernel_channel_dot(const int num, const int channels,
 		T dot = 0;
 		for (int c = 0; c < channels; ++c) {
 			dot += (data_1[(n * channels + c) * spatial_dim + s]
-				* data_2[(n * channels + c) * spatial_dim + s]);
+					* data_2[(n * channels + c) * spatial_dim + s]);
 		}
 		channel_dot[index] = dot;
 	}
 }
 
 template __attribute__ ((mangled_name(kernel_channel_dot_float))) __kernel void kernel_channel_dot(const int num, const int channels,
-	const int spatial_dim, __global const float* data_1, __global const float* data_2,
-	__global float* channel_dot);
+		const int spatial_dim, __global const float* data_1, __global const float* data_2,
+		__global float* channel_dot);
 template __attribute__ ((mangled_name(kernel_channel_dot_double))) __kernel void kernel_channel_dot(const int num, const int channels,
-	const int spatial_dim, __global const double* data_1, __global const double* data_2,
-	__global double* channel_dot);
+		const int spatial_dim, __global const double* data_1, __global const double* data_2,
+		__global double* channel_dot);

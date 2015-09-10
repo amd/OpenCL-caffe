@@ -20,7 +20,7 @@ namespace caffe {
  *
  * TODO(dox): more thorough description.
  */
-template<typename Dtype>
+template <typename Dtype>
 class Net {
 	public:
 		explicit Net(const NetParameter& param);
@@ -51,7 +51,7 @@ class Net {
 		Dtype ForwardTo(int end);
 		/// @brief Run forward using a set of bottom blobs, and return the result.
 		const vector<Blob<Dtype>*>& Forward(const vector<Blob<Dtype>*> & bottom,
-			Dtype* loss = NULL);
+				Dtype* loss = NULL);
 		/**
 		 * @brief Run forward using a serialized BlobProtoVector and return the
 		 *        result as a serialized BlobProtoVector
@@ -189,7 +189,7 @@ class Net {
 		const shared_ptr<Blob<Dtype> > blob_by_name(const string& blob_name) const;
 		bool has_layer(const string& layer_name) const;
 		const shared_ptr<Layer<Dtype> > layer_by_name(
-			const string& layer_name) const;
+				const string& layer_name) const;
 
 		void set_debug_info(const bool value) {
 			debug_info_ = value;
@@ -201,24 +201,24 @@ class Net {
 		 *        phase, level, and stage.
 		 */
 		static void FilterNet(const NetParameter& param,
-			NetParameter* param_filtered);
+				NetParameter* param_filtered);
 		/// @brief return whether NetState state meets NetStateRule rule
 		static bool StateMeetsRule(const NetState& state, const NetStateRule& rule,
-			const string& layer_name);
+				const string& layer_name);
 
 	protected:
 		// Helpers for Init.
 		/// @brief Append a new input or top blob to the net.
 		void AppendTop(const NetParameter& param, const int layer_id,
-			const int top_id, set<string>* available_blobs,
-			map<string, int>* blob_name_to_idx);
+				const int top_id, set<string>* available_blobs,
+				map<string, int>* blob_name_to_idx);
 		/// @brief Append a new bottom blob to the net.
 		int AppendBottom(const NetParameter& param, const int layer_id,
-			const int bottom_id, set<string>* available_blobs,
-			map<string, int>* blob_name_to_idx);
+				const int bottom_id, set<string>* available_blobs,
+				map<string, int>* blob_name_to_idx);
 		/// @brief Append a new parameter blob to the net.
 		void AppendParam(const NetParameter& param, const int layer_id,
-			const int param_id);
+				const int param_id);
 
 		/// @brief Helper for displaying debug info in Forward about input Blobs.
 		void InputDebugInfo(const int layer_id);

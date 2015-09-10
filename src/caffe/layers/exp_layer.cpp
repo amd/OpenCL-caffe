@@ -7,9 +7,9 @@
 
 namespace caffe {
 
-template<typename Dtype>
+template <typename Dtype>
 void ExpLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
-	const vector<Blob<Dtype>*>& top) {
+		const vector<Blob<Dtype>*>& top) {
 	NeuronLayer < Dtype > ::LayerSetUp(bottom, top);
 	const Dtype base = this->layer_param_.exp_param().base();
 	if (base != Dtype(-1)) {
@@ -19,18 +19,18 @@ void ExpLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
 	// Otherwise, calculate its log explicitly.
 	const Dtype log_base = (base == Dtype(-1)) ? Dtype(1) : log(base);
 	CHECK(!isnan(log_base))
-		<< "NaN result: log(base) = log(" << base << ") = " << log_base;
+			<< "NaN result: log(base) = log(" << base << ") = " << log_base;
 	CHECK(!isinf(log_base))
-		<< "Inf result: log(base) = log(" << base << ") = " << log_base;
+			<< "Inf result: log(base) = log(" << base << ") = " << log_base;
 	const Dtype input_scale = this->layer_param_.exp_param().scale();
 	const Dtype input_shift = this->layer_param_.exp_param().shift();
 	inner_scale_ = log_base * input_scale;
 	outer_scale_ = (input_shift == Dtype(0)) ? Dtype(1) : pow(base, input_shift);
 }
 
-template<typename Dtype>
+template <typename Dtype>
 void ExpLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
-	const vector<Blob<Dtype>*>& top) {
+		const vector<Blob<Dtype>*>& top) {
 	const int count = bottom[0]->count();
 	const Dtype* bottom_data = bottom[0]->cpu_data();
 	Dtype* top_data = top[0]->mutable_cpu_data();
@@ -45,9 +45,9 @@ void ExpLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 	}
 }
 
-template<typename Dtype>
+template <typename Dtype>
 void ExpLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
-	const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
+		const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
 	if (!propagate_down[0]) {
 		return;
 	}
@@ -61,9 +61,9 @@ void ExpLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
 	}
 }
 
-template<typename Dtype>
+template <typename Dtype>
 void ExpLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
-	const vector<Blob<Dtype>*>& top) {
+		const vector<Blob<Dtype>*>& top) {
 	const int count = bottom[0]->count();
 	const Dtype* bottom_data = bottom[0]->gpu_data();
 	Dtype* top_data = top[0]->mutable_gpu_data();
@@ -78,9 +78,9 @@ void ExpLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 	}
 }
 
-template<typename Dtype>
+template <typename Dtype>
 void ExpLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
-	const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
+		const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
 	if (!propagate_down[0]) {
 		return;
 	}

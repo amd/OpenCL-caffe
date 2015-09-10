@@ -7,16 +7,16 @@
 
 namespace caffe {
 
-template<typename Dtype>
+template <typename Dtype>
 void EltwiseLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
-	const vector<Blob<Dtype>*>& top) {
+		const vector<Blob<Dtype>*>& top) {
 	CHECK(this->layer_param().eltwise_param().coeff_size() == 0
-		|| this->layer_param().eltwise_param().coeff_size() == bottom.size()) <<
-		"Eltwise Layer takes one coefficient per bottom blob.";
+			|| this->layer_param().eltwise_param().coeff_size() == bottom.size()) <<
+			"Eltwise Layer takes one coefficient per bottom blob.";
 	CHECK(!(this->layer_param().eltwise_param().operation()
-		== EltwiseParameter_EltwiseOp_PROD
-		&& this->layer_param().eltwise_param().coeff_size())) <<
-		"Eltwise layer only takes coefficients for summation.";
+			== EltwiseParameter_EltwiseOp_PROD
+			&& this->layer_param().eltwise_param().coeff_size())) <<
+			"Eltwise layer only takes coefficients for summation.";
 	op_ = this->layer_param_.eltwise_param().operation();
 	// Blob-wise coefficients for the elementwise operation.
 	coeffs_ = vector < Dtype > (bottom.size(), 1);
@@ -28,23 +28,23 @@ void EltwiseLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
 	stable_prod_grad_ = this->layer_param_.eltwise_param().stable_prod_grad();
 }
 
-template<typename Dtype>
+template <typename Dtype>
 void EltwiseLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
-	const vector<Blob<Dtype>*>& top) {
+		const vector<Blob<Dtype>*>& top) {
 	for (int i = 1; i < bottom.size(); ++i) {
 		CHECK(bottom[i]->shape() == bottom[0]->shape());
 	}
 	top[0]->ReshapeLike(*bottom[0]);
 	// If max operation, we will initialize the vector index part.
 	if (this->layer_param_.eltwise_param().operation() ==
-		EltwiseParameter_EltwiseOp_MAX && top.size() == 1) {
+			EltwiseParameter_EltwiseOp_MAX && top.size() == 1) {
 		max_idx_.Reshape(bottom[0]->shape());
 	}
 }
 
-template<typename Dtype>
+template <typename Dtype>
 void EltwiseLayer<Dtype>::Forward_cpu(
-	const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
+		const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
 	int* mask = NULL;
 	const Dtype* bottom_data_a = NULL;
 	const Dtype* bottom_data_b = NULL;
@@ -97,9 +97,9 @@ void EltwiseLayer<Dtype>::Forward_cpu(
 	}
 }
 
-template<typename Dtype>
+template <typename Dtype>
 void EltwiseLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
-	const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
+		const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
 	const int* mask = NULL;
 	const int count = top[0]->count();
 	const Dtype* top_data = top[0]->cpu_data();
@@ -121,7 +121,7 @@ void EltwiseLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
 								initialized = true;
 							} else {
 								caffe_mul(count, bottom[j]->cpu_data(), bottom_diff,
-									bottom_diff);
+										bottom_diff);
 							}
 						}
 					} else {
@@ -153,16 +153,16 @@ void EltwiseLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
 	}
 }
 
-template<typename Dtype>
+template <typename Dtype>
 void EltwiseLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
-	const vector<Blob<Dtype>*>& top) {
+		const vector<Blob<Dtype>*>& top) {
 	int* mask = NULL;
 	const int count = top[0]->count();
 	Dtype* top_data = top[0]->mutable_gpu_data();
 	switch (op_) {
 		case EltwiseParameter_EltwiseOp_PROD:
 			caffe_gpu_mul(count, bottom[0]->gpu_data(), bottom[1]->gpu_data(),
-				top_data);
+					top_data);
 			for (int i = 2; i < bottom.size(); ++i) {
 				caffe_gpu_mul(count, top_data, bottom[i]->gpu_data(), top_data);
 			}
@@ -178,11 +178,11 @@ void EltwiseLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 			mask = max_idx_.mutable_gpu_data();
 			// NOLINT_NEXT_LINE(whitespace/operators)
 			MaxForward(count, bottom[0]->gpu_data(), bottom[1]->gpu_data(), 0,
-				top_data, mask);
+					top_data, mask);
 			for (int i = 2; i < bottom.size(); ++i) {
 				// NOLINT_NEXT_LINE(whitespace/operators)
 				MaxForward(count, top_data, bottom[i]->gpu_data(), i - 1, top_data,
-					mask);
+						mask);
 			}
 			break;
 		default:
@@ -190,9 +190,9 @@ void EltwiseLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 	}
 }
 
-template<typename Dtype>
+template <typename Dtype>
 void EltwiseLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
-	const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
+		const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
 	const int* mask = NULL;
 	const int count = top[0]->count();
 	const Dtype* top_data = top[0]->gpu_data();
@@ -214,7 +214,7 @@ void EltwiseLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
 								initialized = true;
 							} else {
 								caffe_gpu_mul(count, bottom[j]->gpu_data(), bottom_diff,
-									bottom_diff);
+										bottom_diff);
 							}
 						}
 					} else {

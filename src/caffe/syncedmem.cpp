@@ -38,8 +38,8 @@ namespace caffe {
 SyncedMemory::~SyncedMemory() {
 	if (cpu_ptr_ && own_cpu_data_) {
 		OCL_CHECK(
-			clEnqueueUnmapMemObject(amdDevice.CommandQueue, (cl_mem) gpu_cache_ptr_,
-				cpu_ptr_, 0, NULL, NULL));
+				clEnqueueUnmapMemObject(amdDevice.CommandQueue, (cl_mem) gpu_cache_ptr_,
+						cpu_ptr_, 0, NULL, NULL));
 		clFinish(amdDevice.CommandQueue);
 	}
 	if (gpu_cache_ptr_ && own_cpu_data_) {
@@ -62,11 +62,12 @@ inline void SyncedMemory::to_cpu() {
 	switch (head_) {
 		case UNINITIALIZED:
 			gpu_cache_ptr_ = clCreateBuffer(amdDevice.Context, CL_MEM_ALLOC_HOST_PTR,
-				size_, NULL, NULL);
+					size_, NULL, NULL);
 			//}
 			cpu_ptr_ = clEnqueueMapBuffer(amdDevice.CommandQueue,
-				(cl_mem) gpu_cache_ptr_, CL_TRUE, CL_MAP_READ | CL_MAP_WRITE, 0, size_,
-				0, NULL, NULL, NULL);
+					(cl_mem) gpu_cache_ptr_, CL_TRUE, CL_MAP_READ | CL_MAP_WRITE, 0,
+					size_,
+					0, NULL, NULL, NULL);
 			memset(cpu_ptr_, 0, size_);
 			head_ = HEAD_AT_CPU;
 			own_cpu_data_ = true;
@@ -75,15 +76,15 @@ inline void SyncedMemory::to_cpu() {
 #ifndef CPU_ONLY
 			if (cpu_ptr_ == NULL) {
 				gpu_cache_ptr_ = clCreateBuffer(amdDevice.Context,
-					CL_MEM_ALLOC_HOST_PTR, size_, NULL, NULL);
+						CL_MEM_ALLOC_HOST_PTR, size_, NULL, NULL);
 				cpu_ptr_ = clEnqueueMapBuffer(amdDevice.CommandQueue,
-					(cl_mem) gpu_cache_ptr_, CL_TRUE, CL_MAP_READ | CL_MAP_WRITE, 0,
-					size_, 0, NULL, NULL, NULL);
+						(cl_mem) gpu_cache_ptr_, CL_TRUE, CL_MAP_READ | CL_MAP_WRITE, 0,
+						size_, 0, NULL, NULL, NULL);
 				own_cpu_data_ = true;
 			}
 			OCL_CHECK(
-				clEnqueueCopyBuffer(amdDevice.CommandQueue, (cl_mem) gpu_ptr_,
-					(cl_mem) gpu_cache_ptr_, 0, 0, size_, 0, NULL, NULL));
+					clEnqueueCopyBuffer(amdDevice.CommandQueue, (cl_mem) gpu_ptr_,
+							(cl_mem) gpu_cache_ptr_, 0, 0, size_, 0, NULL, NULL));
 			clFinish(amdDevice.CommandQueue);
 			head_ = SYNCED;
 #else
@@ -105,7 +106,7 @@ inline void SyncedMemory::to_gpu() {
 	switch (head_) {
 		case UNINITIALIZED: {
 			cl_mem tmpMem = clCreateBuffer(amdDevice.Context, CL_MEM_READ_WRITE,
-				size_, NULL, NULL);
+					size_, NULL, NULL);
 			if (NULL == tmpMem) {
 				fprintf(stderr, "Failed to create memory object\n");
 				break;
@@ -118,15 +119,15 @@ inline void SyncedMemory::to_gpu() {
 		case HEAD_AT_CPU: {
 			if (gpu_ptr_ == NULL) {
 				cl_mem tmpMem = clCreateBuffer(amdDevice.Context, CL_MEM_READ_WRITE,
-					size_, NULL, NULL);
+						size_, NULL, NULL);
 				if (NULL == tmpMem) {
 					fprintf(stderr, "Failed to create memory object\n");
 				}
 				gpu_ptr_ = (void*) tmpMem;
 			}
 			OCL_CHECK(
-				clEnqueueCopyBuffer(amdDevice.CommandQueue, (cl_mem) gpu_cache_ptr_,
-					(cl_mem) gpu_ptr_, 0, 0, size_, 0, NULL, NULL));
+					clEnqueueCopyBuffer(amdDevice.CommandQueue, (cl_mem) gpu_cache_ptr_,
+							(cl_mem) gpu_ptr_, 0, 0, size_, 0, NULL, NULL));
 			clFinish(amdDevice.CommandQueue);
 			head_ = SYNCED;
 #ifdef Track_data_transfer

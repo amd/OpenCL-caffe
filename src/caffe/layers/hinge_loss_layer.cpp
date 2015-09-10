@@ -10,9 +10,9 @@
 
 namespace caffe {
 
-template<typename Dtype>
+template <typename Dtype>
 void HingeLossLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
-	const vector<Blob<Dtype>*>& top) {
+		const vector<Blob<Dtype>*>& top) {
 	const Dtype* bottom_data = bottom[0]->cpu_data();
 	Dtype* bottom_diff = bottom[0]->mutable_cpu_diff();
 	const Dtype* label = bottom[1]->cpu_data();
@@ -27,7 +27,7 @@ void HingeLossLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 	for (int i = 0; i < num; ++i) {
 		for (int j = 0; j < dim; ++j) {
 			bottom_diff[i * dim + j] = std::max(
-				Dtype(0), 1 + bottom_diff[i * dim + j]);
+					Dtype(0), 1 + bottom_diff[i * dim + j]);
 		}
 	}
 	Dtype* loss = top[0]->mutable_cpu_data();
@@ -43,12 +43,12 @@ void HingeLossLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 	}
 }
 
-template<typename Dtype>
+template <typename Dtype>
 void HingeLossLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
-	const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
+		const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
 	if (propagate_down[1]) {
 		LOG(FATAL) << this->type()
-			<< " Layer cannot backpropagate to label inputs.";
+				<< " Layer cannot backpropagate to label inputs.";
 	}
 	if (propagate_down[0]) {
 		Dtype* bottom_diff = bottom[0]->mutable_cpu_diff();

@@ -10,19 +10,18 @@
 
 namespace caffe {
 
-template<typename Dtype>
+template <typename Dtype>
 void DropoutLayer<Dtype>::ocl_setup(int bottom_count) {
 	MaskMem = clCreateBuffer(amdDevice.Context, CL_MEM_READ_WRITE,
-		bottom_count * sizeof(int), NULL, NULL);
+			bottom_count * sizeof(int), NULL, NULL);
 }
 
-template<typename Dtype>
+template <typename Dtype>
 DropoutLayer<Dtype>::~DropoutLayer() {
 	OCL_CHECK (clReleaseMemObject(MaskMem) );
-	}
-template<typename Dtype>
+	}template <typename Dtype>
 void DropoutLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
-	const vector<Blob<Dtype>*>& top) {
+		const vector<Blob<Dtype>*>& top) {
 	NeuronLayer < Dtype > ::LayerSetUp(bottom, top);
 	threshold_ = this->layer_param_.dropout_param().dropout_ratio();
 	DCHECK(threshold_ > 0.);
@@ -32,18 +31,18 @@ void DropoutLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
 	ocl_setup(bottom[0]->count());
 }
 
-template<typename Dtype>
+template <typename Dtype>
 void DropoutLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
-	const vector<Blob<Dtype>*>& top) {
+		const vector<Blob<Dtype>*>& top) {
 	NeuronLayer < Dtype > ::Reshape(bottom, top);
 	// Set up the cache for random number generation
 	rand_vec_.Reshape(bottom[0]->num(), bottom[0]->channels(),
-		bottom[0]->height(), bottom[0]->width());
+			bottom[0]->height(), bottom[0]->width());
 }
 
-template<typename Dtype>
+template <typename Dtype>
 void DropoutLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
-	const vector<Blob<Dtype>*>& top) {
+		const vector<Blob<Dtype>*>& top) {
 	const Dtype* bottom_data = bottom[0]->cpu_data();
 	Dtype* top_data = top[0]->mutable_cpu_data();
 	unsigned int* mask = rand_vec_.mutable_cpu_data();
@@ -59,10 +58,10 @@ void DropoutLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 	}
 }
 
-template<typename Dtype>
+template <typename Dtype>
 void DropoutLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
-	const vector<bool>& propagate_down,
-	const vector<Blob<Dtype>*>& bottom) {
+		const vector<bool>& propagate_down,
+		const vector<Blob<Dtype>*>& bottom) {
 	if (propagate_down[0]) {
 		const Dtype* top_diff = top[0]->cpu_diff();
 		Dtype* bottom_diff = bottom[0]->mutable_cpu_diff();
@@ -78,9 +77,9 @@ void DropoutLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
 	}
 }
 
-template<typename Dtype>
+template <typename Dtype>
 void DropoutLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
-	const vector<Blob<Dtype>*>& top) {
+		const vector<Blob<Dtype>*>& top) {
 	const Dtype* bottom_data = bottom[0]->gpu_data();
 	Dtype* top_data = top[0]->mutable_gpu_data();
 	const int count = bottom[0]->count();
@@ -95,26 +94,26 @@ void DropoutLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 		DropoutForward(count, bottom_data, (int*)MaskMem, (Dtype)scale_, top_data);
 #else
 		caffe_gpu_bernoulli((int*) MaskMem, count, (Dtype) 0., (Dtype) 1.,
-			threshold_);
+				threshold_);
 		DropoutForward(count, bottom_data, (int*) MaskMem, (Dtype) scale_,
-			top_data);
+				top_data);
 #endif
 	} else {
 		caffe_gpu_copy(count, bottom_data, top_data);
 	}
 }
 
-template<typename Dtype>
+template <typename Dtype>
 void DropoutLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
-	const vector<bool>& propagate_down,
-	const vector<Blob<Dtype>*>& bottom) {
+		const vector<bool>& propagate_down,
+		const vector<Blob<Dtype>*>& bottom) {
 	if (propagate_down[0]) {
 		const Dtype* top_diff = top[0]->gpu_diff();
 		Dtype* bottom_diff = bottom[0]->mutable_gpu_diff();
 		if (this->phase_ == TRAIN) {
 			const int count = bottom[0]->count();
 			DropoutBackward(count, top_diff, (int*) MaskMem, uint_thres_,
-				(Dtype) scale_, bottom_diff);
+					(Dtype) scale_, bottom_diff);
 		} else {
 			caffe_gpu_copy(top[0]->count(), top_diff, bottom_diff);
 		}

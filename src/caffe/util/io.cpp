@@ -68,7 +68,7 @@ void WriteProtoToBinaryFile(const Message& proto, const char* filename) {
 }
 
 cv::Mat ReadImageToCVMat(const string& filename,
-	const int height, const int width, const bool is_color) {
+		const int height, const int width, const bool is_color) {
 	cv::Mat cv_img;
 	int cv_read_flag = (is_color ? CV_LOAD_IMAGE_COLOR :
 																	CV_LOAD_IMAGE_GRAYSCALE);
@@ -86,12 +86,12 @@ cv::Mat ReadImageToCVMat(const string& filename,
 }
 
 cv::Mat ReadImageToCVMat(const string& filename,
-	const int height, const int width) {
+		const int height, const int width) {
 	return ReadImageToCVMat(filename, height, width, true);
 }
 
 cv::Mat ReadImageToCVMat(const string& filename,
-	const bool is_color) {
+		const bool is_color) {
 	return ReadImageToCVMat(filename, 0, 0, is_color);
 }
 
@@ -100,7 +100,7 @@ cv::Mat ReadImageToCVMat(const string& filename) {
 }
 // Do the file extension and encoding match?
 static bool matchExt(const std::string & fn,
-	std::string en) {
+		std::string en) {
 	size_t p = fn.rfind('.');
 	std::string ext = p != fn.npos ? fn.substr(p) : fn;
 	std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
@@ -112,18 +112,18 @@ static bool matchExt(const std::string & fn,
 	return false;
 }
 bool ReadImageToDatum(const string& filename, const int label,
-	const int height, const int width, const bool is_color,
-	const std::string & encoding, Datum* datum) {
+		const int height, const int width, const bool is_color,
+		const std::string & encoding, Datum* datum) {
 	cv::Mat cv_img = ReadImageToCVMat(filename, height, width, is_color);
 	if (cv_img.data) {
 		if (encoding.size()) {
 			if ((cv_img.channels() == 3) == is_color && !height && !width &&
-				matchExt(filename, encoding))
+					matchExt(filename, encoding))
 				return ReadFileToDatum(filename, label, datum);
 			std::vector < uchar > buf;
 			cv::imencode("." + encoding, cv_img, buf);
 			datum->set_data(std::string(reinterpret_cast<char*>(&buf[0]),
-				buf.size()));
+					buf.size()));
 			datum->set_label(label);
 			datum->set_encoded(true);
 			return true;
@@ -137,7 +137,7 @@ bool ReadImageToDatum(const string& filename, const int label,
 }
 
 bool ReadFileToDatum(const string& filename, const int label,
-	Datum* datum) {
+		Datum* datum) {
 	std::streampos size;
 
 	fstream file(filename.c_str(), ios::in | ios::binary | ios::ate);
@@ -229,13 +229,13 @@ void CVMatToDatum(const cv::Mat& cv_img, Datum* datum) {
 }
 
 // Verifies format of data stored in HDF5 file and reshapes blob accordingly.
-template<typename Dtype>
+template <typename Dtype>
 void hdf5_load_nd_dataset_helper(
-	hid_t file_id, const char* dataset_name_, int min_dim, int max_dim,
-	Blob<Dtype>* blob) {
+		hid_t file_id, const char* dataset_name_, int min_dim, int max_dim,
+		Blob<Dtype>* blob) {
 	// Verify that the dataset exists.
 	CHECK(H5LTfind_dataset(file_id, dataset_name_))
-		<< "Failed to find HDF5 dataset " << dataset_name_;
+			<< "Failed to find HDF5 dataset " << dataset_name_;
 	// Verify that the number of dimensions is in the accepted range.
 	herr_t status;
 	int ndims;
@@ -248,7 +248,7 @@ void hdf5_load_nd_dataset_helper(
 	std::vector < hsize_t > dims(ndims);
 	H5T_class_t class_;
 	status = H5LTget_dataset_info(
-		file_id, dataset_name_, dims.data(), &class_, NULL);
+			file_id, dataset_name_, dims.data(), &class_, NULL);
 	CHECK_GE(status, 0) << "Failed to get dataset info for " << dataset_name_;
 	CHECK_EQ(class_, H5T_FLOAT) << "Expected float or double data";
 
@@ -259,47 +259,47 @@ void hdf5_load_nd_dataset_helper(
 	blob->Reshape(blob_dims);
 }
 
-template<>
+template <>
 void hdf5_load_nd_dataset<float>(hid_t file_id, const char* dataset_name_,
-	int min_dim, int max_dim, Blob<float>* blob) {
+		int min_dim, int max_dim, Blob<float>* blob) {
 	hdf5_load_nd_dataset_helper(file_id, dataset_name_, min_dim, max_dim, blob);
 	herr_t status = H5LTread_dataset_float(
-		file_id, dataset_name_, blob->mutable_cpu_data());
+			file_id, dataset_name_, blob->mutable_cpu_data());
 	CHECK_GE(status, 0) << "Failed to read float dataset " << dataset_name_;
 }
 
-template<>
+template <>
 void hdf5_load_nd_dataset<double>(hid_t file_id, const char* dataset_name_,
-	int min_dim, int max_dim, Blob<double>* blob) {
+		int min_dim, int max_dim, Blob<double>* blob) {
 	hdf5_load_nd_dataset_helper(file_id, dataset_name_, min_dim, max_dim, blob);
 	herr_t status = H5LTread_dataset_double(
-		file_id, dataset_name_, blob->mutable_cpu_data());
+			file_id, dataset_name_, blob->mutable_cpu_data());
 	CHECK_GE(status, 0) << "Failed to read double dataset " << dataset_name_;
 }
 
-template<>
+template <>
 void hdf5_save_nd_dataset<float>(
-	const hid_t file_id, const string& dataset_name, const Blob<float>& blob) {
+		const hid_t file_id, const string& dataset_name, const Blob<float>& blob) {
 	hsize_t dims[HDF5_NUM_DIMS];
 	dims[0] = blob.num();
 	dims[1] = blob.channels();
 	dims[2] = blob.height();
 	dims[3] = blob.width();
 	herr_t status = H5LTmake_dataset_float(
-		file_id, dataset_name.c_str(), HDF5_NUM_DIMS, dims, blob.cpu_data());
+			file_id, dataset_name.c_str(), HDF5_NUM_DIMS, dims, blob.cpu_data());
 	CHECK_GE(status, 0) << "Failed to make float dataset " << dataset_name;
 }
 
-template<>
+template <>
 void hdf5_save_nd_dataset<double>(
-	const hid_t file_id, const string& dataset_name, const Blob<double>& blob) {
+		const hid_t file_id, const string& dataset_name, const Blob<double>& blob) {
 	hsize_t dims[HDF5_NUM_DIMS];
 	dims[0] = blob.num();
 	dims[1] = blob.channels();
 	dims[2] = blob.height();
 	dims[3] = blob.width();
 	herr_t status = H5LTmake_dataset_double(
-		file_id, dataset_name.c_str(), HDF5_NUM_DIMS, dims, blob.cpu_data());
+			file_id, dataset_name.c_str(), HDF5_NUM_DIMS, dims, blob.cpu_data());
 	CHECK_GE(status, 0) << "Failed to make double dataset " << dataset_name;
 }
 

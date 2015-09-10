@@ -9,9 +9,9 @@
 
 namespace caffe {
 
-template<typename Dtype>
+template <typename Dtype>
 void SoftmaxWithLossLayer<Dtype>::LayerSetUp(
-	const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
+		const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
 	LossLayer < Dtype > ::LayerSetUp(bottom, top);
 	LayerParameter softmax_param(this->layer_param_);
 	softmax_param.set_type("Softmax");
@@ -23,7 +23,7 @@ void SoftmaxWithLossLayer<Dtype>::LayerSetUp(
 	softmax_layer_->SetUp(softmax_bottom_vec_, softmax_top_vec_);
 
 	has_ignore_label_ =
-		this->layer_param_.loss_param().has_ignore_label();
+			this->layer_param_.loss_param().has_ignore_label();
 	if (has_ignore_label_) {
 		ignore_label_ = this->layer_param_.loss_param().ignore_label();
 	}
@@ -32,40 +32,40 @@ void SoftmaxWithLossLayer<Dtype>::LayerSetUp(
 	ocl_setup();
 }
 
-template<typename Dtype>
+template <typename Dtype>
 void SoftmaxWithLossLayer<Dtype>::ocl_setup() {
 	d_loss = clCreateBuffer(amdDevice.Context, CL_MEM_ALLOC_HOST_PTR,
-		sizeof(Dtype), NULL, NULL);
+			sizeof(Dtype), NULL, NULL);
 
 }
 
-template<typename Dtype>
+template <typename Dtype>
 SoftmaxWithLossLayer<Dtype>::~SoftmaxWithLossLayer() {
 }
 
-template<typename Dtype>
+template <typename Dtype>
 void SoftmaxWithLossLayer<Dtype>::Reshape(
-	const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
+		const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
 	LossLayer < Dtype > ::Reshape(bottom, top);
 	softmax_layer_->Reshape(softmax_bottom_vec_, softmax_top_vec_);
 	softmax_axis_ =
-		bottom[0]->CanonicalAxisIndex(this->layer_param_.softmax_param().axis());
+			bottom[0]->CanonicalAxisIndex(this->layer_param_.softmax_param().axis());
 	outer_num_ = bottom[0]->count(0, softmax_axis_);
 	inner_num_ = bottom[0]->count(softmax_axis_ + 1);
 	CHECK_EQ(outer_num_ * inner_num_, bottom[1]->count())
-		<< "Number of labels must match number of predictions; "
-		<< "e.g., if softmax axis == 1 and prediction shape is (N, C, H, W), "
-		<< "label count (number of labels) must be N*H*W, "
-		<< "with integer values in {0, 1, ..., C-1}.";
+			<< "Number of labels must match number of predictions; "
+			<< "e.g., if softmax axis == 1 and prediction shape is (N, C, H, W), "
+			<< "label count (number of labels) must be N*H*W, "
+			<< "with integer values in {0, 1, ..., C-1}.";
 	if (top.size() >= 2) {
 		// softmax output
 		top[1]->ReshapeLike(*bottom[0]);
 	}
 }
 
-template<typename Dtype>
+template <typename Dtype>
 void SoftmaxWithLossLayer<Dtype>::Forward_cpu(
-	const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
+		const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
 	// The forward pass computes the softmax prob values.
 	softmax_layer_->Forward(softmax_bottom_vec_, softmax_top_vec_);
 	const Dtype* prob_data = prob_.cpu_data();
@@ -82,7 +82,7 @@ void SoftmaxWithLossLayer<Dtype>::Forward_cpu(
 			DCHECK_GE(label_value, 0);
 			DCHECK_LT(label_value, prob_.shape(softmax_axis_));
 			loss -= log(std::max(prob_data[i * dim + label_value * inner_num_ + j],
-				Dtype(FLT_MIN)));
+					Dtype(FLT_MIN)));
 			++count;
 		}
 	}
@@ -96,12 +96,12 @@ void SoftmaxWithLossLayer<Dtype>::Forward_cpu(
 	}
 }
 
-template<typename Dtype>
+template <typename Dtype>
 void SoftmaxWithLossLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
-	const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
+		const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
 	if (propagate_down[1]) {
 		LOG(FATAL) << this->type()
-			<< " Layer cannot backpropagate to label inputs.";
+				<< " Layer cannot backpropagate to label inputs.";
 	}
 	if (propagate_down[0]) {
 		Dtype* bottom_diff = bottom[0]->mutable_cpu_diff();
@@ -133,9 +133,9 @@ void SoftmaxWithLossLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
 	}
 }
 
-template<typename Dtype>
+template <typename Dtype>
 void SoftmaxWithLossLayer<Dtype>::Forward_gpu(
-	const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
+		const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
 	softmax_layer_->Forward(softmax_bottom_vec_, softmax_top_vec_);
 	const Dtype* prob_data = prob_.gpu_data();
 	const Dtype* label = bottom[1]->gpu_data();
@@ -150,7 +150,7 @@ void SoftmaxWithLossLayer<Dtype>::Forward_gpu(
 	Dtype* counts = prob_.mutable_gpu_diff();
 	// NOLINT_NEXT_LINE(whitespace/operators)
 	SoftmaxLossForwardGPU < Dtype > (nthreads, prob_data, label, loss_data,
-		outer_num_, dim, inner_num_, has_ignore_label_, ignore_label_, counts);
+			outer_num_, dim, inner_num_, has_ignore_label_, ignore_label_, counts);
 	Dtype loss;
 	caffe_gpu_asum(nthreads, loss_data, &loss);
 	if (normalize_) {
@@ -167,12 +167,12 @@ void SoftmaxWithLossLayer<Dtype>::Forward_gpu(
 	}
 }
 
-template<typename Dtype>
+template <typename Dtype>
 void SoftmaxWithLossLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
-	const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
+		const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
 	if (propagate_down[1]) {
 		LOG(FATAL) << this->type()
-			<< " Layer cannot backpropagate to label inputs.";
+				<< " Layer cannot backpropagate to label inputs.";
 	}
 	if (propagate_down[0]) {
 		Dtype* bottom_diff = bottom[0]->mutable_gpu_diff();
@@ -188,7 +188,7 @@ void SoftmaxWithLossLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
 		Dtype* counts = prob_.mutable_gpu_diff();
 		// NOLINT_NEXT_LINE(whitespace/operators)
 		SoftmaxLossBackwardGPU < Dtype > (nthreads, top_data, label, bottom_diff,
-			outer_num_, dim, inner_num_, has_ignore_label_, ignore_label_, counts);
+				outer_num_, dim, inner_num_, has_ignore_label_, ignore_label_, counts);
 		const Dtype loss_weight = top[0]->cpu_diff()[0];
 		if (normalize_) {
 			Dtype count;

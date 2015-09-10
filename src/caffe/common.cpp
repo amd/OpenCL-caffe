@@ -91,7 +91,7 @@ void* Caffe::RNG::generator() {
 
 Caffe::Caffe()
 {
-        amdDevice.Init();
+	amdDevice.Init();
 	cl_int err = clblasSetup();
 	if (err != CL_SUCCESS) {
 		LOG(ERROR) << "clBLAS setup failed " << err;
@@ -121,10 +121,12 @@ void Caffe::DeviceQuery() {
 class Caffe::RNG::Generator {
 	public:
 		Generator()
-			: rng_(new caffe::rng_t(cluster_seedgen())) {
+		:
+				rng_(new caffe::rng_t(cluster_seedgen())) {
 		}
 		explicit Generator(unsigned int seed)
-			: rng_(new caffe::rng_t(seed)) {
+		:
+				rng_(new caffe::rng_t(seed)) {
 		}
 		caffe::rng_t* rng() {
 			return rng_.get();
@@ -134,11 +136,13 @@ class Caffe::RNG::Generator {
 };
 
 Caffe::RNG::RNG()
-	: generator_(new Generator()) {
+:
+		generator_(new Generator()) {
 }
 
 Caffe::RNG::RNG(unsigned int seed)
-	: generator_(new Generator(seed)) {
+:
+		generator_(new Generator(seed)) {
 }
 
 Caffe::RNG& Caffe::RNG::operator=(const RNG& other) {

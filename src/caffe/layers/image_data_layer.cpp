@@ -15,22 +15,22 @@
 
 namespace caffe {
 
-template<typename Dtype>
+template <typename Dtype>
 ImageDataLayer<Dtype>::~ImageDataLayer<Dtype>() {
 	this->JoinPrefetchThread();
 }
 
-template<typename Dtype>
+template <typename Dtype>
 void ImageDataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& bottom,
-	const vector<Blob<Dtype>*>& top) {
+		const vector<Blob<Dtype>*>& top) {
 	const int new_height = this->layer_param_.image_data_param().new_height();
 	const int new_width = this->layer_param_.image_data_param().new_width();
 	const bool is_color = this->layer_param_.image_data_param().is_color();
 	string root_folder = this->layer_param_.image_data_param().root_folder();
 
 	CHECK((new_height == 0 && new_width == 0) ||
-		(new_height > 0 && new_width > 0)) << "Current implementation requires "
-		"new_height and new_width to be set at the same time.";
+			(new_height > 0 && new_width > 0)) << "Current implementation requires "
+			"new_height and new_width to be set at the same time.";
 	// Read the file with filenames and labels
 	const string& source = this->layer_param_.image_data_param().source();
 	LOG(INFO) << "Opening file " << source;
@@ -54,14 +54,14 @@ void ImageDataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& bottom,
 	// Check if we would need to randomly skip a few data points
 	if (this->layer_param_.image_data_param().rand_skip()) {
 		unsigned int skip = caffe_rng_rand() %
-			this->layer_param_.image_data_param().rand_skip();
+				this->layer_param_.image_data_param().rand_skip();
 		LOG(INFO) << "Skipping first " << skip << " data points.";
 		CHECK_GT(lines_.size(), skip) << "Not enough points to skip";
 		lines_id_ = skip;
 	}
 	// Read an image, and use it to initialize the top blob.
 	cv::Mat cv_img = ReadImageToCVMat(root_folder + lines_[lines_id_].first,
-		new_height, new_width, is_color);
+			new_height, new_width, is_color);
 	// Use data_transformer to infer the expected blob shape from a cv_image.
 	vector<int> top_shape = this->data_transformer_->InferBlobShape(cv_img);
 	this->transformed_data_.Reshape(top_shape);
@@ -72,23 +72,23 @@ void ImageDataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& bottom,
 	top[0]->ReshapeLike(this->prefetch_data_);
 
 	LOG(INFO) << "output data size: " << top[0]->num() << ","
-		<< top[0]->channels() << "," << top[0]->height() << ","
-		<< top[0]->width();
+			<< top[0]->channels() << "," << top[0]->height() << ","
+			<< top[0]->width();
 	// label
 	vector<int> label_shape(1, batch_size);
 	top[1]->Reshape(label_shape);
 	this->prefetch_label_.Reshape(label_shape);
 }
 
-template<typename Dtype>
+template <typename Dtype>
 void ImageDataLayer<Dtype>::ShuffleImages() {
 	caffe::rng_t* prefetch_rng =
-		static_cast<caffe::rng_t*>(prefetch_rng_->generator());
+			static_cast<caffe::rng_t*>(prefetch_rng_->generator());
 	shuffle(lines_.begin(), lines_.end(), prefetch_rng);
 }
 
 // This function is used to create a thread that prefetches the data.
-template<typename Dtype>
+template <typename Dtype>
 void ImageDataLayer<Dtype>::InternalThreadEntry() {
 	CPUTimer batch_timer;
 	batch_timer.Start();
@@ -107,7 +107,7 @@ void ImageDataLayer<Dtype>::InternalThreadEntry() {
 	// Reshape according to the first image of each batch
 	// on single input batches allows for inputs of varying dimension.
 	cv::Mat cv_img = ReadImageToCVMat(root_folder + lines_[lines_id_].first,
-		new_height, new_width, is_color);
+			new_height, new_width, is_color);
 	// Use data_transformer to infer the expected blob shape from a cv_img.
 	vector<int> top_shape = this->data_transformer_->InferBlobShape(cv_img);
 	this->transformed_data_.Reshape(top_shape);
@@ -125,7 +125,7 @@ void ImageDataLayer<Dtype>::InternalThreadEntry() {
 		timer.Start();
 		CHECK_GT(lines_size, lines_id_);
 		cv::Mat cv_img = ReadImageToCVMat(root_folder + lines_[lines_id_].first,
-			new_height, new_width, is_color);
+				new_height, new_width, is_color);
 		CHECK(cv_img.data) << "Could not load " << lines_[lines_id_].first;
 		read_time += timer.MicroSeconds();
 		timer.Start();
