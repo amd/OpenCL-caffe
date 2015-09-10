@@ -578,11 +578,9 @@ void caffe_rng_gaussian(const int n, const Dtype a,
 	boost::normal_distribution < Dtype > random_distribution(a, sigma);
 	boost::variate_generator<caffe::rng_t*, boost::normal_distribution<Dtype> >
 	variate_generator(caffe_rng(), random_distribution);
-	//variate_generator(37, random_distribution);
 	for (int i = 0; i < n; ++i) {
 		r[i] = variate_generator();
 	}
-	//LOG(INFO) << "caffe_rng_guassian";
 }
 
 template
@@ -892,21 +890,24 @@ void caffe_gpu_rng_uniform(const int n, unsigned int* r) {
 
 template <>
 void caffe_gpu_rng_uniform<float>(const int n, const float a, const float b,
-		float* r) {
+                                  float* r) {
+	caffe_gpu_uniform(r, n, a, b);	// r is a cl_mem object
 }
 template <>
 void caffe_gpu_rng_uniform<double>(const int n, const double a, const double b,
-		double* r) {
+                                   double* r) {
+	caffe_gpu_uniform(r, n, a, b);  // r is a cl_mem object
 }
 
 template <>
-void caffe_gpu_rng_gaussian(const int n, const float mu, const float sigma,
-		float* r) {
+void caffe_gpu_rng_gaussian<float>(const int n, const float mu, const float sigma,
+	caffe_gpu_gaussian(r, n, mu, sigma);  // r is a cl_mem object
 }
 
 template <>
-void caffe_gpu_rng_gaussian(const int n, const double mu, const double sigma,
-		double* r) {
+void caffe_gpu_rng_gaussian<double>(const int n, const double mu, const double sigma,
+                            double* r) {
+	caffe_gpu_gaussian(r, n, mu, sigma);  // r is a cl_mem object
 }
 
 template <>

@@ -216,7 +216,13 @@ void caffe_gpu_bernoulli(int* a, const unsigned int n, Dtype inf, Dtype sup,
 		Dtype threshold);
 
 template <typename Dtype>
-void caffe_gpu_abs_ocl(const int N, const Dtype* X, Dtype * Y);
+void caffe_gpu_uniform(Dtype* a, const unsigned int n, Dtype inf, Dtype sup);
+
+template <typename Dtype>
+void caffe_gpu_gaussian(Dtype* a, const unsigned int n, Dtype E, Dtype V);
+
+template <typename Dtype>
+void caffe_gpu_abs_ocl(const int N,  const Dtype* X, Dtype * Y );
 
 template <typename Dtype>
 void caffe_gpu_sign_ocl(const int N, const Dtype* X, Dtype * Y);
