@@ -901,6 +901,7 @@ void caffe_gpu_rng_uniform<double>(const int n, const double a, const double b,
 
 template <>
 void caffe_gpu_rng_gaussian<float>(const int n, const float mu, const float sigma,
+                                  float* r) {
 	caffe_gpu_gaussian(r, n, mu, sigma);  // r is a cl_mem object
 }
 
