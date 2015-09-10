@@ -77,6 +77,23 @@ void DropoutLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
 	}
 }
 
+#define CHECK_GLOBAL_INT_MEM_DATA(global_mem, count, num, marker)\
+do{ \
+  int *global_mem_cpu = new int[count]; \
+  clEnqueueReadBuffer(amdDevice.CommandQueue, (cl_mem)global_mem, \
+              CL_TRUE, 0, sizeof(int)*count, global_mem_cpu,0, NULL, NULL); \
+  size_t sample_interval = count/num; \
+  if(sample_interval == 0){ \
+     sample_interval=1; \
+  } \
+  printf("%s: ", marker); \
+  for(int i=0; i<count; i+=sample_interval){ \
+      printf("%d  ", global_mem_cpu[i]); \
+  } \
+  printf("\n\n"); \
+  delete []global_mem_cpu; \
+}while(0)
+
 template <typename Dtype>
 void DropoutLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 		const vector<Blob<Dtype>*>& top) {
@@ -101,6 +118,7 @@ void DropoutLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 	} else {
 		caffe_gpu_copy(count, bottom_data, top_data);
 	}
+CHECK_GLOBAL_INT_MEM_DATA((int*)MaskMem, bottom[0]->count(), 20, "Mask");
 }
 
 template <typename Dtype>
@@ -117,6 +135,8 @@ void DropoutLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
 		} else {
 			caffe_gpu_copy(top[0]->count(), top_diff, bottom_diff);
 		}
+               CHECK_GLOBAL_INT_MEM_DATA((int*)MaskMem, bottom[0]->count(), 20, "Mask");
+               CHECK_GLOBAL_MEM_DATA(bottom_diff, bottom[0]->count(), 20, "bottom_diff");
 	}
 }
 

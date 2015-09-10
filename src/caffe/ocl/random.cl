@@ -788,6 +788,37 @@ template __attribute__((mangled_name(RNGUniform_float))) __kernel void PRNG_thre
 
 template __attribute__((mangled_name(RNGUniform_double))) __kernel void PRNG_threefry4x32_uniform(__global float4 *randomnumber, threefry4x32_ctr_t ctr_i, double inf, double sup, uint nrounds, uint numrandonm);
 
+
+__kernel void PRNG_threefry4x32_uint_uniform(
+        __global uint4 *randomnumber,
+        threefry4x32_ctr_t ctr_i,
+        uint inf,
+        uint sup,
+        uint nrounds,
+        uint numrandom
+){
+        size_t  gdx = get_global_id(0);
+
+        threefry4x32_ctr_t      ctr = ctr_i; 
+        threefry4x32_ukey_t ukey;
+
+        ukey.v[0] = ukey.v[1] = ukey.v[2] = ukey.v[3] = gdx;
+
+        threefry4x32_ctr_t  random4;
+
+        if ( gdx < numrandom )
+        {
+                random4 = threefry4x32_R(nrounds, ctr, ukey);
+                uint4 frnd;
+                frnd.x =  random4.v[0] % (sup - inf) + inf;
+                frnd.y =  random4.v[1] % (sup - inf) + inf;
+                frnd.z =  random4.v[2] % (sup - inf) + inf;
+                frnd.w =  random4.v[3] % (sup - inf) + inf;
+                randomnumber[gdx] = frnd;
+        }
+}
+
+
 template <class T>
 __kernel void PRNG_threefry4x32_gaussian(
 	__global float4 *randomnumber, 

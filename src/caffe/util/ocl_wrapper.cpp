@@ -145,6 +145,33 @@ void caffe_gpu_uniform(Dtype* a, const unsigned int n, Dtype inf, Dtype sup)
 template void caffe_gpu_uniform<float>(float* a, const unsigned int n, float inf, float sup);
 template void caffe_gpu_uniform<double>(double* a, const unsigned int n, double inf, double sup);
 
+void caffe_gpu_uniform(const unsigned int n, unsigned int *r)
+{
+        std::string kernel_name = "PRNG_threefry4x32_uint_uniform";
+        cl_kernel ker_rand = amdDevice.GetKernel(kernel_name);
+
+        static unsigned c = 0;
+        unsigned nrounds = 20;
+        array4x32  rndctr4;
+        rndctr4.v[0] = rndctr4.v[1] = rndctr4.v[2] = rndctr4.v[3] = c++;
+        cl_uint size = n / 4; //Note: for correctness, we need to make sure n is dividable by 4
+        
+        cl_uint inf = 0;
+        cl_uint sup = UINT_MAX;
+        cl_int ret;
+        ret  = clSetKernelArg(ker_rand, 0, sizeof(cl_mem),     (void*)&r);
+        ret |= clSetKernelArg(ker_rand, 1, sizeof(array4x32),  (void*)&rndctr4);
+        ret |= clSetKernelArg(ker_rand, 2, sizeof(cl_uint),   (void*)&inf);
+        ret |= clSetKernelArg(ker_rand, 3, sizeof(cl_uint),   (void*)&sup);
+        ret |= clSetKernelArg(ker_rand, 4, sizeof(cl_uint),    (void*)&nrounds);
+        ret |= clSetKernelArg(ker_rand, 5, sizeof(cl_uint),    (void*)&size);
+        OCL_CHECK(ret);
+
+        size_t globalws[1] = {size};
+        size_t localws[1] = {256};
+        OCL_CHECK (clEnqueueNDRangeKernel(amdDevice.CommandQueue, ker_rand, 1, NULL, globalws, localws, 0, NULL, NULL) );
+}
+
 template <typename Dtype>
 void caffe_gpu_gaussian(Dtype* a, const unsigned int n, Dtype E, Dtype V)
 {
