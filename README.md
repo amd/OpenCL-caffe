@@ -1,6 +1,6 @@
 #OpenCL caffe
 
-This is an OpenCL implementation of one of the main stream DNN framework-CAFFE, see more details about CAFFE below. The OpenCL caffe is developed by AMD Research lab. As The goal is to provide industry an effecient and ready to use OpenCL version of DNN framework. Things are not perfect yet. We will keep adding new features and improving performance.
+This is an OpenCL implementation of one of the main stream DNN framework-CAFFE, see more details about CAFFE below.  The goal is to provide the community an OpenCL version of DNN framework to use. Things are not perfect yet. We will keep adding new features and improving performance. We also hope to get help from community to improve it together.
 
 OpenCL is an open standard parallel programming language that is supported by more than 20 companies. People can use this framework to run their DNN app on heterogeneous platforms from vairous commercial chip manufacturer. Compared to CUDA based DNN, this framework support cross-platform compatability and with design space to optimize accordingly.
 
@@ -11,13 +11,11 @@ OpenCL is an open standard parallel programming language that is supported by mo
 
   -Performance improvement by batched sgemm implementation for conv layer
 
-  -User can choose optimal batch number depening on H/W, image size and minibatch size
+  -User can choose optimal batch number depending on H/W, image size and minibatch size
 
-  -Passes unit test
-
-  -OpenCL 2.0, 1.2
+  -Supports OpenCL 2.0, 1.2
   
-  -Remove CUDA for simplicity, only contains C++ and OpenCL, maintains the same interfaces as original caffe to make it easy for caffe users
+  -only contains C++ and OpenCL, maintains the same interfaces as original caffe to make it easy for caffe users
 
   -Users can directly run DNN models: AlexNet, VGG 16 and VGG-19
 
@@ -43,7 +41,10 @@ We will keep updating the latest performance we could achieve in this section.
 For more information on how to install, use or contribute to this code base, please visit our wiki page:
 https://github.com/amd/OpenCL-caffe/wiki
 
-#License and support
+#Support needed
+We encourage the contribution and support from the community to improve it together.
+
+#License
 Original caffe is provided in the [BSD 2-Clause license](https://github.com/BVLC/caffe/blob/master/LICENSE) open source license. The OpenCL ports written by AMD is covered by AMD license. As an open source project, we hope to maintain an open dynamics and sharing culture. We encourage the contribution and support from external, your contribution will be covered either by BSD 2-Clause license or which ever your preferred licence.
 
 # Original Caffe information
