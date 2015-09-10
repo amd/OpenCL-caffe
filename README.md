@@ -1,6 +1,6 @@
 #OpenCL caffe
 
-This is an OpenCL implementation of one of the main stream DNN framework-CAFFE, see more details about CAFFE below. The OpenCL CAFFE is developed by AMD Research lab. As The goal is to provide industry an effecient and ready to use OpenCL version of DNN framework. Things are not perfect yet. We will keep adding new features and improving performance.
+This is an OpenCL implementation of one of the main stream DNN framework-CAFFE, see more details about CAFFE below. The OpenCL CAFFE is developed by AMD Research lab. As The goal is to provide industry an OpenCL version of DNN framework to use. Things are not perfect yet. We will keep adding new features and improving performance. We also hope to get help from community to improve it together. 
 
 OpenCL is an open standard parallel programming language that is supported by more than 20 companies. People can use this framework to run their DNN app on heterogeneous platforms from vairous commercial chip manufacturer. Compared to CUDA based DNN, this framework support cross-platform compatability and with design space to optimize accordingly.
 
@@ -39,7 +39,10 @@ Recognition speed (Model: AlexNet, minibatch size 128)
 For more information on how to install, use or contribute to this code base, please visit our wiki page:
 https://github.com/amd/OpenCL-caffe/wiki
 
-#License and support
+#Support needed
+We encourage the contribution and support from the community to improve it together.
+
+#License 
 Original caffe is provided in the [BSD 2-Clause license](https://github.com/BVLC/caffe/blob/master/LICENSE) open source license. The OpenCL ports written by AMD is covered by AMD license. As an open source project, we hope to maintain an open dynamics and sharing culture. We encourage the contribution and support from external, your contribution will be covered either by BSD 2-Clause license or which ever your preferred licence.
 
 # Caffe
