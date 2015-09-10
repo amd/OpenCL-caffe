@@ -2,10 +2,10 @@
 
 This is an OpenCL implementation of caffe, a mainstream DNN framework (https://github.com/BVLC/caffe). It includes a largely complete caffe feature set as of August 2015. The project is under active development to improve performance and add new features. Contributions from the community are welcome.
 
-OpenCL (https://en.wikipedia.org/wiki/OpenCL) is an open standard parallel programming language is supported by more than 20 companies, enabling this DNN framework to be used on heterogeneous platforms from a variety of  commercial chip manufacturers. 
+OpenCL (https://en.wikipedia.org/wiki/OpenCL) is an open standard parallel programming language for heterogeneous platforms. OpenCL is supported by a variety of commercial chip manufacturers. 
 
 #Design features
-  -All layers ported to OpenCL
+  -All caffe layers ported to OpenCL
 
   -Performance improvement by batched implementation for conv layer based on clBLAS
 
@@ -37,13 +37,13 @@ We will keep updating the latest performance as we make optimizations. Fury resu
 
 #Wiki
 For more information on how to install, use or contribute to this code base, please visit our wiki page:
-https://github.com/amd/OpenCL-caffe/wiki
+ https://github.com/amd/OpenCL-caffe/wiki
 
 #Support needed
  As an open source project, we hope to maintain an open dynamics and sharing culture. We encourage the contribution and support from the community to improve it together.
 
 #License
-Original caffe is provided in the [BSD 2-Clause license](https://github.com/BVLC/caffe/blob/master/LICENSE) open source license. The OpenCL ports written by AMD is covered by AMD license. We encourage the contribution and support from external, your contribution will be covered either by BSD 2-Clause license or which ever your preferred licence.
+Original caffe is provided in the [BSD 2-Clause license](https://github.com/BVLC/caffe/blob/master/LICENSE) open source license. The OpenCL ports written by AMD is covered by AMD license. We encourage the contribution and support from external, your contribution will be covered either by BSD 2-Clause license or whichever your preferred license.
 
 # Original Caffe information
 ## Caffe
