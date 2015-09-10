@@ -27,7 +27,7 @@ Training speed (Model: AlexNet)
 
 -AMD W9100 (5.2TFLOPS), 255 images per second
 
--AMD R9 Fury((7.2TFLOPS)), 231 images per second
+-AMD R9 Fury((7.2TFLOPS)), 261 images per second
 
 Recognition speed (Model: AlexNet)
 
