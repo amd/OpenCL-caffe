@@ -67,6 +67,7 @@ void HDF5OutputLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
 	return;
 }
 
+// begin: code written/modified by AMD
 template <typename Dtype>
 void HDF5OutputLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 		const vector<Blob<Dtype>*>& top) {

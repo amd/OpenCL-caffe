@@ -309,6 +309,7 @@ void PoolingLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
 	}
 }
 
+// begin: code written/modified by AMD
 template <typename Dtype>
 void PoolingLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 		const vector<Blob<Dtype>*>& top) {
@@ -407,6 +408,7 @@ void PoolingLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
 	}
 }
 
+// end: code written/modified by AMD
 #ifdef CPU_ONLY
 STUB_GPU(PoolingLayer);
 #endif

@@ -92,6 +92,7 @@ void ConcatLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
 	}
 }
 
+// begin: code written/modified by AMD
 template <typename Dtype>
 void ConcatLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 		const vector<Blob<Dtype>*>& top) {

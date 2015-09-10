@@ -158,6 +158,7 @@ void HDF5DataLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 	}
 }
 
+// begin: code written/modified by AMD
 template <typename Dtype>
 void HDF5DataLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 		const vector<Blob<Dtype>*>& top) {

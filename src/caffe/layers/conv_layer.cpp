@@ -69,6 +69,7 @@ void ConvolutionLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
 
 }
 
+// begin: code written/modified by AMD
 template <typename Dtype>
 void ConvolutionLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 		const vector<Blob<Dtype>*>& top) {
@@ -234,6 +235,7 @@ void ConvolutionLayer<Dtype>::Backward_gpu_org(const vector<Blob<Dtype>*>& top,
 	}
 
 }
+// end: code written/modified by AMD
 
 #ifdef CPU_ONLY
 STUB_GPU(ConvolutionLayer);

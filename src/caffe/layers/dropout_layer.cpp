@@ -94,6 +94,7 @@ do{ \
   delete []global_mem_cpu; \
 }while(0)
 
+// begin: code is written/modified by AMD
 template <typename Dtype>
 void DropoutLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 		const vector<Blob<Dtype>*>& top) {
@@ -116,6 +117,7 @@ void DropoutLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 				top_data);
 #endif
 	} else {
+             if(bottom_data != top_data)
 		caffe_gpu_copy(count, bottom_data, top_data);
 	}
 CHECK_GLOBAL_INT_MEM_DATA((int*)MaskMem, bottom[0]->count(), 20, "Mask");
@@ -139,7 +141,7 @@ void DropoutLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
                CHECK_GLOBAL_MEM_DATA(bottom_diff, bottom[0]->count(), 20, "bottom_diff");
 	}
 }
-
+// end: code is written/modified by AMD
 #ifdef CPU_ONLY
 STUB_GPU(DropoutLayer);
 #endif

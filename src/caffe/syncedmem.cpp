@@ -52,6 +52,7 @@ SyncedMemory::~SyncedMemory() {
 	clReleaseKernel (oclmem_kernel);
 }
 
+//begin: code written/modified by AMD.
 void SyncedMemory::ocl_setup() {
 	cl_int err = 0;
 	oclmem_kernel = clCreateKernel(amdDevice.Program, "OCL_memset2", &err);
@@ -63,7 +64,6 @@ inline void SyncedMemory::to_cpu() {
 		case UNINITIALIZED:
 			gpu_cache_ptr_ = clCreateBuffer(amdDevice.Context, CL_MEM_ALLOC_HOST_PTR,
 					size_, NULL, NULL);
-			//}
 			cpu_ptr_ = clEnqueueMapBuffer(amdDevice.CommandQueue,
 					(cl_mem) gpu_cache_ptr_, CL_TRUE, CL_MAP_READ | CL_MAP_WRITE, 0,
 					size_,
@@ -89,9 +89,6 @@ inline void SyncedMemory::to_cpu() {
 			head_ = SYNCED;
 #else
 			NO_GPU;
-#endif
-#ifdef Track_data_transfer
-			LOG(WARNING) << "sync: data from GPU to CPU";
 #endif
 			break;
 		}
@@ -130,9 +127,6 @@ inline void SyncedMemory::to_gpu() {
 							(cl_mem) gpu_ptr_, 0, 0, size_, 0, NULL, NULL));
 			clFinish(amdDevice.CommandQueue);
 			head_ = SYNCED;
-#ifdef Track_data_transfer
-			LOG(WARNING) << "sync: data from CPU to GPU";
-#endif
 			break;
 		}
 		case HEAD_AT_GPU:

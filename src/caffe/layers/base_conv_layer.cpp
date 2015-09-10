@@ -296,6 +296,65 @@ void BaseConvolutionLayer<Dtype>::forward_gpu_gemm(const Dtype* input,
 }
 
 template <typename Dtype>
+void BaseConvolutionLayer<Dtype>::forward_gpu_bias(Dtype* output,
+		const Dtype* bias) {
+	caffe_gpu_gemm < Dtype > (CblasNoTrans, CblasNoTrans, num_output_,
+			height_out_ * width_out_, 1, (Dtype) 1., bias, 0,
+			reinterpret_cast<const Dtype*>(bias_multiplier_.gpu_data()), 0,
+			(Dtype) 1., output, top_offset_);
+}
+
+template <typename Dtype>
+void BaseConvolutionLayer<Dtype>::backward_gpu_gemm(const Dtype* output,
+		const Dtype* weights, Dtype* input) {
+	Dtype* col_buff = col_buffer_.mutable_gpu_data();
+	if (is_1x1_) {
+		col_buff = input;
+	}
+	for (int g = 0; g < group_; ++g) {
+		caffe_gpu_gemm < Dtype
+				> (&(amdDevice.CommandQueue), CblasTrans, CblasNoTrans, kernel_dim_
+						/ group_, conv_out_spatial_dim_, conv_out_channels_ / group_,
+						(Dtype) 1., weights, weight_offset_ * g,
+						output, top_offset_ + output_offset_ * g,
+						(Dtype) 0., col_buff, col_offset_ * g);
+	}
+	if (!is_1x1_) {
+		conv_col2im_gpu(col_buff, input);
+	}
+}
+
+
+template <typename Dtype>
+void BaseConvolutionLayer<Dtype>::weight_gpu_gemm(const Dtype* input,
+		const Dtype* output, Dtype* weights) {
+	const Dtype* col_buff = input;
+	if (!is_1x1_) {
+		conv_im2col_gpu(input, col_buffer_.mutable_gpu_data());
+		col_buff = col_buffer_.gpu_data();
+	}
+	for (int g = 0; g < group_; ++g) {
+		caffe_gpu_gemm < Dtype
+				> (&(amdDevice.CommandQueue), CblasNoTrans, CblasTrans, conv_out_channels_
+						/ group_, kernel_dim_ / group_, conv_out_spatial_dim_,
+						(Dtype) 1., output, top_offset_,
+						(Dtype*) col_buff, col_offset_ * g, (Dtype) 1.,
+						(Dtype*) weights, weight_offset_ * g);
+	}
+}
+
+template <typename Dtype>
+void BaseConvolutionLayer<Dtype>::backward_gpu_bias(Dtype* bias,
+		const Dtype* input) {
+	caffe_gpu_gemv < Dtype
+			> (CblasNoTrans, num_output_, N_,
+					(Dtype) 1., input, top_offset_, N_,
+					reinterpret_cast<const Dtype*>(bias_multiplier_.gpu_data()), (size_t) 0, (Dtype) 1., 1,
+					bias, (size_t) 0, 1);
+}
+
+// begin: code written/modified by AMD
+template <typename Dtype>
 void BaseConvolutionLayer<Dtype>::forward_gpu_gemm_opt(const Dtype* input,
 		const Dtype* weight, Dtype* output, bool skip_im2col) {
 	cl_command_queue Queue;
@@ -335,14 +394,6 @@ void BaseConvolutionLayer<Dtype>::forward_gpu_gemm_opt(const Dtype* input,
 			opt_num2);
 }
 
-template <typename Dtype>
-void BaseConvolutionLayer<Dtype>::forward_gpu_bias(Dtype* output,
-		const Dtype* bias) {
-	caffe_gpu_gemm < Dtype > (CblasNoTrans, CblasNoTrans, num_output_,
-			height_out_ * width_out_, 1, (Dtype) 1., bias, 0,
-			reinterpret_cast<const Dtype*>(bias_multiplier_.gpu_data()), 0,
-			(Dtype) 1., output, top_offset_);
-}
 
 template <typename Dtype>
 void BaseConvolutionLayer<Dtype>::forward_gpu_bias_opt(Dtype* output,
@@ -354,25 +405,6 @@ void BaseConvolutionLayer<Dtype>::forward_gpu_bias_opt(Dtype* output,
 				(Dtype) 1., output, top_offset_ + num_output_ * N_ * z);
 }
 
-template <typename Dtype>
-void BaseConvolutionLayer<Dtype>::backward_gpu_gemm(const Dtype* output,
-		const Dtype* weights, Dtype* input) {
-	Dtype* col_buff = col_buffer_.mutable_gpu_data();
-	if (is_1x1_) {
-		col_buff = input;
-	}
-	for (int g = 0; g < group_; ++g) {
-		caffe_gpu_gemm < Dtype
-				> (&(amdDevice.CommandQueue), CblasTrans, CblasNoTrans, kernel_dim_
-						/ group_, conv_out_spatial_dim_, conv_out_channels_ / group_,
-						(Dtype) 1., weights, weight_offset_ * g,
-						output, top_offset_ + output_offset_ * g,
-						(Dtype) 0., col_buff, col_offset_ * g);
-	}
-	if (!is_1x1_) {
-		conv_col2im_gpu(col_buff, input);
-	}
-}
 
 template <typename Dtype>
 void BaseConvolutionLayer<Dtype>::backward_gpu_gemm_opt(const Dtype* output,
@@ -413,23 +445,6 @@ void BaseConvolutionLayer<Dtype>::backward_gpu_gemm_opt(const Dtype* output,
 }
 
 template <typename Dtype>
-void BaseConvolutionLayer<Dtype>::weight_gpu_gemm(const Dtype* input,
-		const Dtype* output, Dtype* weights) {
-	const Dtype* col_buff = input;
-	if (!is_1x1_) {
-		conv_im2col_gpu(input, col_buffer_.mutable_gpu_data());
-		col_buff = col_buffer_.gpu_data();
-	}
-	for (int g = 0; g < group_; ++g) {
-		caffe_gpu_gemm < Dtype
-				> (&(amdDevice.CommandQueue), CblasNoTrans, CblasTrans, conv_out_channels_
-						/ group_, kernel_dim_ / group_, conv_out_spatial_dim_,
-						(Dtype) 1., output, top_offset_,
-						(Dtype*) col_buff, col_offset_ * g, (Dtype) 1.,
-						(Dtype*) weights, weight_offset_ * g);
-	}
-}
-template <typename Dtype>
 void BaseConvolutionLayer<Dtype>::weight_gpu_gemm_opt(const Dtype* input,
 		const Dtype* output, Dtype* weights) {
 	cl_command_queue Queue;
@@ -463,16 +478,7 @@ void BaseConvolutionLayer<Dtype>::weight_gpu_gemm_opt(const Dtype* input,
 	}
 }
 
-template <typename Dtype>
-void BaseConvolutionLayer<Dtype>::backward_gpu_bias(Dtype* bias,
-		const Dtype* input) {
-	caffe_gpu_gemv < Dtype
-			> (CblasNoTrans, num_output_, N_,
-					(Dtype) 1., input, top_offset_, N_,
-					reinterpret_cast<const Dtype*>(bias_multiplier_.gpu_data()), (size_t) 0, (Dtype) 1., 1,
-					bias, (size_t) 0, 1);
-}
-
+// end: code is written/modified by AMD
 #endif  // !CPU_ONLY
 
 INSTANTIATE_CLASS (BaseConvolutionLayer);

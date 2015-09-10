@@ -96,6 +96,7 @@ void PowerLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
 	}
 }
 
+// begin: code written/modified by AMD
 template <typename Dtype>
 void PowerLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 		const vector<Blob<Dtype>*>& top) {
@@ -168,7 +169,7 @@ void PowerLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
 		caffe_gpu_mul(count, top_diff, bottom_diff, bottom_diff);
 	}
 }
-
+// end: code written/modified by AMD
 #ifdef CPU_ONLY
 STUB_GPU(PowerLayer);
 #endif

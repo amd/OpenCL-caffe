@@ -61,6 +61,7 @@ void SplitLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 	}
 }
 
+// begin: code written/modified by AMD
 template <typename Dtype>
 void SplitLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
 		const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
@@ -79,9 +80,8 @@ void SplitLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
 		Dtype* bottom_diff = bottom[0]->mutable_gpu_diff();
 		caffe_gpu_axpy(count_, Dtype(1.), top_diff, bottom_diff);
 	}
-
 }
-
+// end: code written/modified by AMD
 #ifdef CPU_ONLY
 STUB_GPU(SplitLayer);
 #endif
