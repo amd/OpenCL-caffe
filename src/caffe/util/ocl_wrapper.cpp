@@ -145,12 +145,16 @@ void caffe_gpu_uniform(Dtype* a, const unsigned int n, Dtype inf, Dtype sup)
 template void caffe_gpu_uniform<float>(float* a, const unsigned int n, float inf, float sup);
 template void caffe_gpu_uniform<double>(double* a, const unsigned int n, double inf, double sup);
 
-void caffe_gpu_uniform(const unsigned int n, unsigned int *r)
+void caffe_gpu_uniform(const unsigned int n, unsigned int *r, unsigned int _seed)
 {
+        static unsigned c = 0;
+        if ((n == 0) || (r == NULL)) {
+            c = _seed;
+            return;
+        }
         std::string kernel_name = "PRNG_threefry4x32_uint_uniform";
         cl_kernel ker_rand = amdDevice.GetKernel(kernel_name);
 
-        static unsigned c = 0;
         unsigned nrounds = 20;
         array4x32  rndctr4;
         rndctr4.v[0] = rndctr4.v[1] = rndctr4.v[2] = rndctr4.v[3] = c++;
@@ -1692,33 +1696,33 @@ template void caffe_gpu_powx<double>(const int n, const double* a,
 
 template <typename Dtype>
 void DropoutForward(const int count, const Dtype* bottom_data,
-		const int* MaskMem, const Dtype scale_, Dtype* top_data) {
+		const  unsigned int* MaskMem, const unsigned int threshold, const float scale_, Dtype* top_data) {
 	std::string kernel_name = "DropoutForward" + get_dtype_suffix<Dtype>();
 	cl_kernel kernel = amdDevice.GetKernel(kernel_name);
 
 	cl_int ret;
-	ret = clSetKernelArg(kernel, 0, sizeof(cl_int), (void*) &count);
+	ret = clSetKernelArg(kernel,  0, sizeof(cl_int), (void*) &count);
 	ret |= clSetKernelArg(kernel, 1, sizeof(cl_mem), (void*) &bottom_data);
 	ret |= clSetKernelArg(kernel, 2, sizeof(cl_mem), (void*) &MaskMem);
-	ret |= clSetKernelArg(kernel, 3, sizeof(Dtype), (void*) &scale_);
-	ret |= clSetKernelArg(kernel, 4, sizeof(cl_mem), (void*) &top_data);
+	ret |= clSetKernelArg(kernel, 3, sizeof(cl_uint), (void*) &threshold);
+        ret |= clSetKernelArg(kernel, 4, sizeof(cl_float), (void*) &scale_);
+	ret |= clSetKernelArg(kernel, 5, sizeof(cl_mem), (void*) &top_data);
 	OCL_CHECK(ret);
 
 	size_t Global_Work_Size[] = { (size_t) count };
 	size_t Local_Work_Size[] = { 256 };
-	OCL_CHECK(
-			clEnqueueNDRangeKernel(amdDevice.CommandQueue, kernel, 1, NULL,
+	OCL_CHECK(clEnqueueNDRangeKernel(amdDevice.CommandQueue, kernel, 1, NULL,
 					Global_Work_Size, Local_Work_Size, 0, NULL, NULL));
 }
 
 template void DropoutForward<float>(const int count, const float* bottom_data,
-		const int* MaskMem, const float scale_, float* top_data);
+		const unsigned int* MaskMem, const unsigned int threshold, const float scale_, float* top_data);
 template void DropoutForward<double>(const int count, const double* bottom_data,
-		const int* MaskMem, const double scale_, double* top_data);
+		const unsigned int* MaskMem, const unsigned int threshold, const float scale_, double* top_data);
 
 template <typename Dtype>
-void DropoutBackward(const int count, const Dtype* top_diff, const int* MaskMem,
-		const float threshold_, const Dtype scale_, Dtype* bottom_diff) {
+void DropoutBackward(const int count, const Dtype* top_diff, const unsigned int* MaskMem,
+		const unsigned int threshold_, const float scale_, Dtype* bottom_diff) {
 	std::string kernel_name = "DropoutBackward" + get_dtype_suffix<Dtype>();
 	cl_kernel kernel = amdDevice.GetKernel(kernel_name);
 
@@ -1726,8 +1730,8 @@ void DropoutBackward(const int count, const Dtype* top_diff, const int* MaskMem,
 	ret = clSetKernelArg(kernel, 0, sizeof(cl_int), (void*) &count);
 	ret |= clSetKernelArg(kernel, 1, sizeof(cl_mem), (void*) &top_diff);
 	ret |= clSetKernelArg(kernel, 2, sizeof(cl_mem), (void*) &MaskMem);
-	ret |= clSetKernelArg(kernel, 3, sizeof(cl_int), (void*) &threshold_);
-	ret |= clSetKernelArg(kernel, 4, sizeof(Dtype), (void*) &scale_);
+	ret |= clSetKernelArg(kernel, 3, sizeof(cl_uint), (void*) &threshold_);
+	ret |= clSetKernelArg(kernel, 4, sizeof(cl_float), (void*) &scale_);
 	ret |= clSetKernelArg(kernel, 5, sizeof(cl_mem), (void*) &bottom_diff);
 	OCL_CHECK(ret);
 
@@ -1738,10 +1742,10 @@ void DropoutBackward(const int count, const Dtype* top_diff, const int* MaskMem,
 					Global_Work_Size, Local_Work_Size, 0, NULL, NULL));
 }
 template void DropoutBackward<float>(const int count, const float* top_diff,
-		const int* MaskMem, const float threshold_, const float scale_,
+		const unsigned int* MaskMem, const unsigned int threshold_, const float scale_,
 		float* bottom_diff);
 template void DropoutBackward<double>(const int count, const double* top_diff,
-		const int* MaskMem, const float threshold_, const double scale_,
+		const unsigned int* MaskMem, const unsigned int  threshold_, const float scale_,
 		double* bottom_diff);
 
 template <typename Dtype>
@@ -1927,7 +1931,8 @@ template void ocl_conv<float>(float* bottom_data, float* top_data,
 		int stride, int pad, int batch_sz);
 template void ocl_conv<double>(double* bottom_data, double* top_data,
 		double* weights, double* bias, int channel_in, int width, int height,
-		int channel_out, int width_out, int height_out, int kernel_w, int kernel_h,
-		int stride, int pad, int batch_sz);
+                int channel_out, int width_out, int height_out, int kernel_w, int kernel_h, 
+                int stride, int pad, int batch_sz);
 
 }  // namespace caffe
+

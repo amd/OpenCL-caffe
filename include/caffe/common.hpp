@@ -73,7 +73,7 @@ private:\
 #define NOT_IMPLEMENTED LOG(FATAL) << "Not Implemented Yet"
 //OpenCL:  various of defines to choose the design schemes
 /* ifdef: use CPU random generator in dropout layer
- ifndef: use GPU randome generator*/
+ ifndef: use GPU random generator*/
 //#define use_cpu_generator_dropout
 //#define print_memory_trace
 //the following are macro defines for optimization schmes in conv layer

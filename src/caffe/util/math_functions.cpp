@@ -886,6 +886,7 @@ uint32_t caffe_gpu_hamming_distance<double>(const int n, const double* x,
 }
 
 void caffe_gpu_rng_uniform(const int n, unsigned int* r) {
+        caffe_gpu_uniform(n, r);
 }
 
 template <>

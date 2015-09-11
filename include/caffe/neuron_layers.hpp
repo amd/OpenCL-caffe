@@ -190,12 +190,6 @@ class DropoutLayer: public NeuronLayer<Dtype> {
 		virtual inline const char* type() const {
 			return "Dropout";
 		}
-		virtual ~DropoutLayer();
-		void ocl_setup(int bottom_count);
-		cl_mem MaskMem;
-		cl_kernel ocl_Kernel_Fwd;
-		cl_kernel ocl_Kernel_Bwd;
-		cl_kernel rng_kernel;
 
 	protected:
 		/**
