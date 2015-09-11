@@ -27,27 +27,27 @@ int main(int argc, char** argv);
 
 namespace caffe {
 
-template<typename TypeParam>
+template <typename TypeParam>
 class MultiDeviceTest: public ::testing::Test {
-	public:
-		typedef typename TypeParam::Dtype Dtype;
-		protected:
-		MultiDeviceTest() {
-			Caffe::set_mode(TypeParam::device);
-		}
-		virtual ~MultiDeviceTest() {
-		}
+  public:
+    typedef typename TypeParam::Dtype Dtype;
+  protected:
+    MultiDeviceTest() {
+      Caffe::set_mode(TypeParam::device);
+    }
+    virtual ~MultiDeviceTest() {
+    }
 };
 
 typedef ::testing::Types<float, double> TestDtypes;
 
-template<typename TypeParam>
+template <typename TypeParam>
 struct CPUDevice {
-		typedef TypeParam Dtype;
-		static const Caffe::Brew device = Caffe::CPU;
+    typedef TypeParam Dtype;
+    static const Caffe::Brew device = Caffe::CPU;
 };
 
-template<typename Dtype>
+template <typename Dtype>
 class CPUDeviceTest: public MultiDeviceTest<CPUDevice<Dtype> > {
 };
 
@@ -58,19 +58,18 @@ CPUDevice<double> > TestDtypesAndDevices;
 
 #else
 
-template<typename TypeParam>
+template <typename TypeParam>
 struct GPUDevice {
-		typedef TypeParam Dtype;
-		static const Caffe::Brew device = Caffe::GPU;
+    typedef TypeParam Dtype;
+    static const Caffe::Brew device = Caffe::GPU;
 };
 
-template<typename Dtype>
+template <typename Dtype>
 class GPUDeviceTest: public MultiDeviceTest<GPUDevice<Dtype> > {
 };
 
-typedef ::testing::Types<CPUDevice<float>, CPUDevice<double>,
-	GPUDevice<float>, GPUDevice<double> >
-TestDtypesAndDevices;
+typedef ::testing::Types<CPUDevice<float>, CPUDevice<double>, GPUDevice<float>,
+    GPUDevice<double> > TestDtypesAndDevices;
 
 #endif
 
