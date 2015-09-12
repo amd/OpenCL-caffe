@@ -185,81 +185,81 @@ void GlobalInit(int* pargc, char*** pargv);
 // A singleton class to hold common caffe stuff, such as the handler that
 // caffe is going to use for cublas, curand, etc.
 class Caffe {
-	public:
-		~Caffe();
-		inline static Caffe& Get() {
-			if (!singleton_.get()) {
-				singleton_.reset(new Caffe());
-			}
-			return *singleton_;
-		}
-		enum Brew {
-			CPU, GPU, APU
-		};
+  public:
+    ~Caffe();
+    inline static Caffe& Get() {
+      if (!singleton_.get()) {
+        singleton_.reset(new Caffe());
+      }
+      return *singleton_;
+    }
+    enum Brew {
+      CPU, GPU, APU
+    };
 
-		// This random number generator facade hides boost and CUDA rng
-		// implementation from one another (for cross-platform compatibility).
-		class RNG {
-			public:
-				RNG();
-				explicit RNG(unsigned int seed);
-				explicit RNG(const RNG&);
-				RNG& operator=(const RNG&);
-				void* generator();
-				private:
-				class Generator;
-				shared_ptr<Generator> generator_;
-		};
+    // This random number generator facade hides boost and CUDA rng
+    // implementation from one another (for cross-platform compatibility).
+    class RNG {
+      public:
+        RNG();
+        explicit RNG(unsigned int seed);
+        explicit RNG(const RNG&);
+        RNG& operator=(const RNG&);
+        void* generator();
+      private:
+        class Generator;
+        shared_ptr<Generator> generator_;
+    };
 
-		// Getters for boost rng, curand, and cublas handles
-		inline static RNG& rng_stream() {
-			if (!Get().random_generator_) {
-				Get().random_generator_.reset(new RNG());
-			}
-			return *(Get().random_generator_);
-		}
+    // Getters for boost rng, curand, and cublas handles
+    inline static RNG& rng_stream() {
+      if (!Get().random_generator_) {
+        Get().random_generator_.reset(new RNG());
+      }
+      return *(Get().random_generator_);
+    }
 #ifndef CPU_ONLY
-		//inline static cublasHandle_t cublas_handle() { return Get().cublas_handle_; }
-		//inline static curandGenerator_t curand_generator() {
-		//  return Get().curand_generator_;
-		//}
+    //inline static cublasHandle_t cublas_handle() { return Get().cublas_handle_; }
+    //inline static curandGenerator_t curand_generator() {
+    //  return Get().curand_generator_;
+    //}
 #endif
 
-		// Returns the mode: running on CPU or GPU.
-		inline static Brew mode() {
-			return Get().mode_;
-		}
-		// The setters for the variables
-		// Sets the mode. It is recommended that you don't change the mode halfway
-		// into the program since that may cause allocation of pinned memory being
-		// freed in a non-pinned way, which may cause problems - I haven't verified
-		// it personally but better to note it here in the header file.
-		inline static void set_mode(Brew mode) {
-			Get().mode_ = mode;
-		}
-		// Sets the random seed of both boost and curand
-		static void set_random_seed(const unsigned int seed);
-		// Sets the device. Since we have cublas and curand stuff, set device also
-		// requires us to reset those values.
-		static void SetDevice(const int device_id);
-		// Prints the current GPU status.
-		static void DeviceQuery();
+    // Returns the mode: running on CPU or GPU.
+    inline static Brew mode() {
+      return Get().mode_;
+    }
+    // The setters for the variables
+    // Sets the mode. It is recommended that you don't change the mode halfway
+    // into the program since that may cause allocation of pinned memory being
+    // freed in a non-pinned way, which may cause problems - I haven't verified
+    // it personally but better to note it here in the header file.
+    inline static void set_mode(Brew mode) {
+      Get().mode_ = mode;
+    }
+    // Sets the random seed of both boost and curand
+    static void set_random_seed(const unsigned int seed);
+    // Sets the device. Since we have cublas and curand stuff, set device also
+    // requires us to reset those values.
+    static void SetDevice(const int device_id);
+    // Prints the current GPU status.
+    static void DeviceQuery();
 
-	protected:
+  protected:
 #ifndef CPU_ONLY
-		//cublasHandle_t cublas_handle_;
-		//curandGenerator_t curand_generator_;
+    //cublasHandle_t cublas_handle_;
+    //curandGenerator_t curand_generator_;
 #endif
-		shared_ptr<RNG> random_generator_;
+    shared_ptr<RNG> random_generator_;
 
-		Brew mode_;
-		static shared_ptr<Caffe> singleton_;
+    Brew mode_;
+    static shared_ptr<Caffe> singleton_;
 
-	private:
-		// The private constructor to avoid duplicate instantiation.
-		Caffe();
+  private:
+    // The private constructor to avoid duplicate instantiation.
+    Caffe();
 
-	DISABLE_COPY_AND_ASSIGN(Caffe);
+  DISABLE_COPY_AND_ASSIGN(Caffe);
 };
 
 }  // namespace caffe

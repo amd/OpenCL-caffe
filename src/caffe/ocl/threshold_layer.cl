@@ -26,9 +26,9 @@
 
 template <class T>
 __kernel void ThresholdForward(const int count, const T threshold, __global T* in, __global T* out) {
-	int index = get_global_id(0);
-	if(index < count)
-	out[index] =in[index] > threshold ? 1 : 0;
+  int index = get_global_id(0);
+  if(index < count)
+  out[index] =in[index] > threshold ? 1 : 0;
 }
 
 template __attribute__ ((mangled_name(ThresholdForward_float))) __kernel void ThresholdForward(const int count, const float threshold, __global float* in, __global float* out);

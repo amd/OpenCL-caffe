@@ -26,9 +26,9 @@
 
 template <class T>
 __kernel void TanHForward(const int count, __global T* in, __global T* out) {
-	int index = get_global_id(0);
-	if(index < count)
-	out[index] =tanh(in[index]);
+  int index = get_global_id(0);
+  if(index < count)
+  out[index] =tanh(in[index]);
 }
 
 template __attribute__ ((mangled_name(TanHForward_float))) __kernel void TanHForward(const int count, __global float* in, __global float* out);
@@ -36,10 +36,10 @@ template __attribute__ ((mangled_name(TanHForward_double))) __kernel void TanHFo
 
 template <class T>
 __kernel void TanHBackward(const int count, __global T* in_diff, __global T* out_data,__global T* out_diff) {
-	int index = get_global_id(0);
-	const T tanhx = out_data[index];
-	if(index < count)
-	out_diff[index] = in_diff[index] * ( 1- tanhx * tanhx);
+  int index = get_global_id(0);
+  const T tanhx = out_data[index];
+  if(index < count)
+  out_diff[index] = in_diff[index] * ( 1- tanhx * tanhx);
 }
 
 template __attribute__ ((mangled_name(TanHBackward_float))) __kernel void TanHBackward(const int count, __global float* in_diff, __global float* out_data, __global float* out_diff);
