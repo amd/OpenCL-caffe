@@ -27,15 +27,6 @@ void SoftmaxWithLossLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
     ignore_label_ = this->layer_param_.loss_param().ignore_label();
   }
   normalize_ = this->layer_param_.loss_param().normalize();
-
-  ocl_setup();
-}
-
-template <typename Dtype>
-void SoftmaxWithLossLayer<Dtype>::ocl_setup() {
-  d_loss = clCreateBuffer(amdDevice.Context, CL_MEM_ALLOC_HOST_PTR,
-      sizeof(Dtype), NULL, NULL);
-
 }
 
 template <typename Dtype>
@@ -134,6 +125,7 @@ void SoftmaxWithLossLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
 }
 
 // begin: code written/modified by AMD
+#ifndef CPU_ONLY
 template <typename Dtype>
 void SoftmaxWithLossLayer<Dtype>::Forward_gpu(
     const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
@@ -200,7 +192,7 @@ void SoftmaxWithLossLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
   }
 }
 // end: code written/modified by AMD
-#ifdef CPU_ONLY
+#else
 STUB_GPU(SoftmaxWithLossLayer);
 #endif
 

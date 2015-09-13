@@ -33,6 +33,7 @@
 #include <dirent.h>
 
 namespace caffe {
+#ifndef CPU_ONLY
 string buildOption = "-x clc++ ";
 std::string oclKernelPath = "./src/caffe/ocl/";
 Device amdDevice;
@@ -420,5 +421,6 @@ void Device::appendBitfield(T info, T value, std::string name,
   }
 }
 
+#endif
 }  // namespace caffe
 

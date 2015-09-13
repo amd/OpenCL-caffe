@@ -1,7 +1,6 @@
 #ifndef CAFFE_COMMON_HPP_
 #define CAFFE_COMMON_HPP_
 
-#include <CL/cl_ext.h>
 #include <boost/shared_ptr.hpp>
 #include <gflags/gflags.h>
 #include <glog/logging.h>
@@ -16,8 +15,12 @@
 #include <string>
 #include <utility>  // pair
 #include <vector>
+
+#ifndef CPU_ONLY
 #include <clBLAS.h>
 #include <CL/cl.h>
+#include <CL/cl_ext.h>
+#endif
 
 #include "caffe/device.hpp"
 #include "caffe/util/device_alternate.hpp"

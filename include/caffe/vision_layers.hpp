@@ -232,7 +232,7 @@ class ConvolutionLayer: public BaseConvolutionLayer<Dtype> {
       return false;
     }
     virtual void compute_output_shape();
-
+#ifndef CPU_ONLY
     virtual void Forward_gpu_org(const vector<Blob<Dtype>*>& bottom,
         const vector<Blob<Dtype>*>& top);
     virtual void Backward_gpu_org(const vector<Blob<Dtype>*>& top,
@@ -241,6 +241,7 @@ class ConvolutionLayer: public BaseConvolutionLayer<Dtype> {
         const vector<Blob<Dtype>*>& top);
     virtual void Backward_gpu_opt2(const vector<Blob<Dtype>*>& top,
         const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
+#endif
 };
 
 /**

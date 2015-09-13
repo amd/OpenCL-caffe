@@ -89,6 +89,8 @@ void SoftmaxLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
   // elementwise multiplication
   caffe_mul(top[0]->count(), bottom_diff, top_data, bottom_diff);
 }
+
+#ifndef CPU_ONLY
 // begin: code written/modified by AMD
 template <typename Dtype>
 void SoftmaxLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
@@ -147,7 +149,7 @@ void SoftmaxLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
 
 }
 // end: code written/modified by AMD
-#ifdef CPU_ONLY
+#else
 STUB_GPU(SoftmaxLayer);
 #endif
 

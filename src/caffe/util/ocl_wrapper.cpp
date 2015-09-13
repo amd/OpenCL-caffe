@@ -33,6 +33,8 @@
 #include "caffe/util/ocl_util.hpp"
 #include "caffe/util/ocl_wrapper.hpp"
 namespace caffe {
+
+#ifndef CPU_ONLY
 typedef unsigned int uint32_t;
 struct array4x32 {
     uint32_t v[4];
@@ -1929,5 +1931,8 @@ template void ocl_conv<double>(double* bottom_data, double* top_data,
     double* weights, double* bias, int channel_in, int width, int height,
     int channel_out, int width_out, int height_out, int kernel_w, int kernel_h,
     int stride, int pad, int batch_sz);
+
+#endif
+
 }  // namespace caffe
 

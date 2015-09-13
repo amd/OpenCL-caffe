@@ -49,6 +49,7 @@ template <typename dtype> inline std::string get_dtype_suffix() {
   return suffix;
 }
 
+#ifndef CPU_ONLY
 template <typename Dtype>
 void transform_gpu(Dtype* src, Dtype* dst, const int top_offset, const int N_,
     const int M_, const int packing_num);
@@ -339,6 +340,7 @@ void MaxForward(const int nthreads, const Dtype* bottom_data_a,
 template <typename Dtype>
 void MaxBackward(const int nthreads, const Dtype* top_diff, const int blob_idx,
     const int* mask, Dtype* bottom_diff);
+#endif
 }
 #endif  // CAFFE_UTIL_OCL_UTIL_HPP_
 // namespace caffe

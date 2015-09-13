@@ -110,7 +110,7 @@ void SliceLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
     offset_slice_axis += top_slice_axis;
   }
 }
-
+#ifndef CPU_ONLY
 template <typename Dtype>
 void SliceLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
     const vector<Blob<Dtype>*>& top) {
@@ -121,7 +121,7 @@ void SliceLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
     const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
 }
 
-#ifdef CPU_ONLY
+#else
 STUB_GPU(SliceLayer);
 #endif
 

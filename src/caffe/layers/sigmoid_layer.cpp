@@ -39,6 +39,8 @@ void SigmoidLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
   }
 }
 
+#ifndef CPU_ONLY
+
 template <typename Dtype>
 void SigmoidLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
     const vector<Blob<Dtype>*>& top) {
@@ -62,7 +64,7 @@ void SigmoidLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
   }
 }
 
-#ifdef CPU_ONLY
+#else
 STUB_GPU(SigmoidLayer);
 #endif
 

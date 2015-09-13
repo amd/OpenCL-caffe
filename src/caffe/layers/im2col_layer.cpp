@@ -87,6 +87,7 @@ void Im2colLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
   }
 }
 
+#ifndef CPU_ONLY
 template <typename Dtype>
 void Im2colLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
     const vector<Blob<Dtype>*>& top) {
@@ -111,7 +112,7 @@ void Im2colLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
   }
 }
 
-#ifdef CPU_ONLY
+#else
 STUB_GPU(Im2colLayer);
 #endif
 

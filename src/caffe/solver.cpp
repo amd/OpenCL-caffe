@@ -20,14 +20,6 @@ Solver<Dtype>::Solver(const SolverParameter& param)
 }
 
 template <typename Dtype>
-void Solver<Dtype>::ocl_setup() {
-  scalar_kernel = clCreateKernel(amdDevice.Program, "add_scalar_float", NULL);
-  add_kernel = clCreateKernel(amdDevice.Program, "caffe_gpu_add_float", NULL);
-  div_kernel = clCreateKernel(amdDevice.Program, "div_float", NULL);
-  powx_kernel = clCreateKernel(amdDevice.Program, "powx_float", NULL);
-}
-
-template <typename Dtype>
 Solver<Dtype>::Solver(const string& param_file)
     : net_() {
   SolverParameter param;
@@ -41,8 +33,6 @@ void Solver<Dtype>::Init(const SolverParameter& param) {
       << param.DebugString();
   param_ = param;
   CHECK_GE(param_.average_loss(), 1) << "average_loss should be non-negative.";
-
-  ocl_setup();
 
   if (param_.random_seed() >= 0) {
     Caffe::set_random_seed(param_.random_seed());
