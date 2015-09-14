@@ -57,10 +57,6 @@ TYPED_TEST(InnerProductLayerTest, TestSetUp) {
 
 TYPED_TEST(InnerProductLayerTest, TestForward) {
   typedef typename TypeParam::Dtype Dtype;
-  bool IS_VALID_CUDA = false;
-#ifndef CPU_ONLY
- // IS_VALID_CUDA = CAFFE_TEST_CUDA_PROP.major >= 2;
-#endif
   if (Caffe::mode() == Caffe::CPU ||
       sizeof(Dtype) == 4 ) {
     LayerParameter layer_param;
@@ -87,10 +83,6 @@ TYPED_TEST(InnerProductLayerTest, TestForward) {
 
 TYPED_TEST(InnerProductLayerTest, TestGradient) {
   typedef typename TypeParam::Dtype Dtype;
-  bool IS_VALID_CUDA = false;
-#ifndef CPU_ONLY
- // IS_VALID_CUDA = CAFFE_TEST_CUDA_PROP.major >= 2;
-#endif
   if (Caffe::mode() == Caffe::CPU ||
       sizeof(Dtype) == 4 ) {
     LayerParameter layer_param;
