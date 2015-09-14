@@ -80,6 +80,8 @@ void BasePrefetchingDataLayer<Dtype>::Forward_cpu(
   CreatePrefetchThread();
 }
 
+#ifndef CPU_ONLY
+
 template <typename Dtype>
 void BasePrefetchingDataLayer<Dtype>::Forward_gpu(
     const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
@@ -104,15 +106,12 @@ void BasePrefetchingDataLayer<Dtype>::Forward_gpu(
             0, NULL, NULL));
   }
 
-#ifdef Track_data_transfer
-#endif
-
   // Start a new prefetch thread
   DLOG(INFO) << "CreatePrefetchThread";
   CreatePrefetchThread();
 }
 
-#ifdef CPU_ONLY
+#else
 STUB_GPU_FORWARD(BasePrefetchingDataLayer, Forward);
 #endif
 

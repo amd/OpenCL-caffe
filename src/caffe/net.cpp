@@ -528,7 +528,9 @@ Dtype Net<Dtype>::ForwardFromTo(int start, int end) {
     if (debug_info_) {
       ForwardDebugInfo(i);
     }
+#ifndef CPU_ONLY
     clFinish(amdDevice.CommandQueue);
+#endif
     layer_timer.Stop();
     printf("Forwarding %s,\ttime %f ms\n", layer_names_[i].c_str(),
         layer_timer.MilliSeconds());
@@ -608,7 +610,9 @@ void Net<Dtype>::BackwardFromTo(int start, int end) {
       if (debug_info_) {
         BackwardDebugInfo(i);
       }
+#ifndef CPU_ONLY
       clFinish(amdDevice.CommandQueue);
+#endif
       layer_timer.Start();
       printf("Backwarding %s,\ttime %f ms\n", layer_names_[i].c_str(),
           layer_timer.MilliSeconds());

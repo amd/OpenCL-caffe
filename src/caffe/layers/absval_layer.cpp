@@ -35,6 +35,7 @@ void AbsValLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
   }
 }
 
+#ifndef CPU_ONLY
 // begin: code written/modified by AMD
 template <typename Dtype>
 void AbsValLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
@@ -57,7 +58,7 @@ void AbsValLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
   }
 }
 
-#ifdef CPU_ONLY
+#else
 STUB_GPU(AbsValLayer);
 #endif
 

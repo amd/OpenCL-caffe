@@ -39,6 +39,7 @@ void col2im_cpu(const Dtype* data_col, const int channels, const int height,
     const int width, const int patch_h, const int patch_w, const int pad_h,
     const int pad_w, const int stride_h, const int stride_w, Dtype* data_im);
 
+#ifndef CPU_ONLY
 template <typename Dtype>
 void col2im_gpu(const Dtype* data_col, const int col_offset, const int height,
     const int width, const int channels, const int patch_h, const int patch_w,
@@ -97,6 +98,7 @@ template <typename Dtype>
 void im2col_gpu_ocl(cl_mem data_im, const int channels, const int height,
     const int width, const int ksize, const int pad, const int stride,
     Dtype* data_col, cl_kernel Kernel);
+#endif
 }  // namespace caffe
 
 #endif  // CAFFE_UTIL_IM2COL_HPP_

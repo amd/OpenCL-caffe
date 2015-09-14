@@ -71,6 +71,7 @@ void SigmoidCrossEntropyLossLayer<Dtype>::Backward_cpu(
   }
 }
 
+#ifndef CPU_ONLY
 template <typename Dtype>
 void SigmoidCrossEntropyLossLayer<Dtype>::Backward_gpu(
     const vector<Blob<Dtype>*>& top, const vector<bool>& propagate_down,
@@ -94,7 +95,7 @@ void SigmoidCrossEntropyLossLayer<Dtype>::Backward_gpu(
   }
 }
 
-#ifdef CPU_ONLY
+#else
 STUB_GPU_BACKWARD(SigmoidCrossEntropyLossLayer, Backward);
 #endif
 

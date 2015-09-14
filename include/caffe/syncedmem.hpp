@@ -68,12 +68,16 @@ class SyncedMemory {
     SyncedMemory()
         : cpu_ptr_(NULL), gpu_ptr_(NULL), size_(0), head_(UNINITIALIZED), own_cpu_data_(
             false), data_layer_(false) {
-      ocl_setup();
+#ifndef CPU_ONLY
+     	ocl_setup();
+#endif
     }
     explicit SyncedMemory(size_t size)
         : cpu_ptr_(NULL), gpu_ptr_(NULL), size_(size), head_(UNINITIALIZED), own_cpu_data_(
             false), data_layer_(false) {
-      ocl_setup();
+#ifndef CPU_ONLY
+	ocl_setup();
+#endif
     }
 
     ~SyncedMemory();
@@ -95,8 +99,10 @@ class SyncedMemory {
     void set_data_layer() {
       data_layer_ = true;
     }
+#ifndef CPU_ONLY
   private:
     void ocl_setup();
+#endif
   protected:
     cl_kernel oclmem_kernel;
 

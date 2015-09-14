@@ -21,8 +21,6 @@ void SplitLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
     top[i]->ReshapeLike(*bottom[0]);
     CHECK_EQ(count_, top[i]->count());
   }
-  gpu_add_kernel = clCreateKernel(amdDevice.Program, "caffe_gpu_add_float",
-      NULL);
 }
 
 template <typename Dtype>
@@ -53,6 +51,7 @@ void SplitLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
   }
 }
 
+#ifndef  CPU_ONLY
 template <typename Dtype>
 void SplitLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
     const vector<Blob<Dtype>*>& top) {
@@ -82,7 +81,7 @@ void SplitLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
   }
 }
 // end: code written/modified by AMD
-#ifdef CPU_ONLY
+#else
 STUB_GPU(SplitLayer);
 #endif
 

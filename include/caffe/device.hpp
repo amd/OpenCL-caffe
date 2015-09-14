@@ -26,12 +26,11 @@
 
 #ifndef CAFFE_DEVICE_HPP
 #define CAFFE_DEVICE_HPP
-#include <CL/cl.h>
 #include <string>
 #include <fstream>
 #include "caffe/common.hpp"
 namespace caffe {
-
+#ifndef CPU_ONLY
 class Device {
   public:
     Device()
@@ -80,7 +79,7 @@ class Device {
 };
 extern std::string buildOption;
 extern Device amdDevice;
-
+#endif
 }  // namespace caffe
 
 #endif //CAFFE_DEVICE_HPP

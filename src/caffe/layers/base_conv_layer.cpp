@@ -9,6 +9,7 @@
 
 namespace caffe {
 
+#ifndef CPU_ONLY
 #ifdef use_packing_scheme
 template <typename Dtype> size_t BaseConvolutionLayer<Dtype>::subtop_mem_size = sizeof(Dtype);
 template <typename Dtype> size_t BaseConvolutionLayer<Dtype>::trans_mem_size = sizeof(Dtype);
@@ -45,6 +46,8 @@ void BaseConvolutionLayer<Dtype>::ocl_setup() {
   Alloc_public_tmp_mem<Dtype>(subtop_size, trans_size);
 #endif
 }
+
+#endif
 
 template <typename Dtype>
 BaseConvolutionLayer<Dtype>::~BaseConvolutionLayer() {
@@ -204,8 +207,10 @@ void BaseConvolutionLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
     caffe_set(bias_multiplier_.count(), Dtype(1),
         bias_multiplier_.mutable_cpu_data());
   }
+#ifndef CPU_ONLY
   //initializa OpenCL kernels and cl_mem objects
   ocl_setup();
+#endif
 }
 
 template <typename Dtype>

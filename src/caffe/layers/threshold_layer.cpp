@@ -24,6 +24,7 @@ void ThresholdLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
   }
 }
 
+#ifndef CPU_ONLY
 template <typename Dtype>
 void ThresholdLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
     const vector<Blob<Dtype>*>& top) {
@@ -34,7 +35,7 @@ void ThresholdLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
   ThresholdForward(count, threshold_, bottom_data, top_data);
 }
 
-#ifdef CPU_ONLY
+#else
 STUB_GPU_FORWARD(ThresholdLayer, Forward);
 #endif
 

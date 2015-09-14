@@ -251,6 +251,7 @@ void LRNLayer<Dtype>::WithinChannelBackward(const vector<Blob<Dtype>*>& top,
   }
 }
 
+#ifndef CPU_ONLY
 template <typename Dtype>
 void LRNLayer<Dtype>::CrossChannelForward_gpu(
     const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
@@ -309,7 +310,7 @@ void LRNLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
     LOG(FATAL) << "Unknown normalization region.";
   }
 }
-#ifdef CPU_ONLY
+#else
 STUB_GPU(LRNLayer);
 STUB_GPU_FORWARD(LRNLayer, CrossChannelForward);
 STUB_GPU_BACKWARD(LRNLayer, CrossChannelBackward);

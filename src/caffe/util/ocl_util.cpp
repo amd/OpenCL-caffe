@@ -32,6 +32,9 @@
 #include "caffe/common.hpp"
 #include "caffe/util/ocl_util.hpp"
 namespace caffe {
+
+#ifndef CPU_ONLY
+
 template <typename dtype> extern std::string get_dtype_suffix();
 
 template <typename Dtype>
@@ -88,4 +91,5 @@ void eventCallback(cl_event event, cl_int event_status, void* user_data) {
   printf("The kernel's running time is %f s\n", run_time * 1.0e-9);
 }
 
+#endif
 }  // namespace caffe

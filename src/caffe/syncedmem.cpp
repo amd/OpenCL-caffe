@@ -36,6 +36,7 @@
 namespace caffe {
 
 SyncedMemory::~SyncedMemory() {
+#ifndef CPU_ONLY
   if (cpu_ptr_ && own_cpu_data_) {
     OCL_CHECK(
         clEnqueueUnmapMemObject(amdDevice.CommandQueue, (cl_mem) gpu_cache_ptr_,
@@ -50,23 +51,30 @@ SyncedMemory::~SyncedMemory() {
   }
 
   clReleaseKernel (oclmem_kernel);
+#endif
 }
 
 //begin: code written/modified by AMD.
+#ifndef CPU_ONLY
 void SyncedMemory::ocl_setup() {
   cl_int err = 0;
   oclmem_kernel = clCreateKernel(amdDevice.Program, "OCL_memset2", &err);
   OCL_CHECK(err);
 }
+#endif
 
 inline void SyncedMemory::to_cpu() {
   switch (head_) {
   case UNINITIALIZED:
+#ifndef CPU_ONLY
     gpu_cache_ptr_ = clCreateBuffer(amdDevice.Context, CL_MEM_ALLOC_HOST_PTR,
         size_, NULL, NULL);
     cpu_ptr_ = clEnqueueMapBuffer(amdDevice.CommandQueue,
         (cl_mem) gpu_cache_ptr_, CL_TRUE, CL_MAP_READ | CL_MAP_WRITE, 0, size_,
         0, NULL, NULL, NULL);
+#else
+    CaffeMallocHost(&cpu_ptr_, size_);
+#endif
     memset(cpu_ptr_, 0, size_);
     head_ = HEAD_AT_CPU;
     own_cpu_data_ = true;

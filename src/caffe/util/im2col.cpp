@@ -103,6 +103,7 @@ template void col2im_cpu<double>(const double* data_col, const int channels,
     const int pad_h, const int pad_w, const int stride_h, const int stride_w,
     double* data_im);
 
+#ifndef CPU_ONLY
 template <typename Dtype>
 void col2im_gpu_opt(const Dtype* data_col, const int col_offset,
     const int channels, const int height, const int width, const int ksize,
@@ -366,5 +367,5 @@ template void col2im_gpu<float>(const float* data_col, const int col_offset,
 template void col2im_gpu<double>(const double* data_col, const int col_offset,
     const int channels, const int height, const int width, const int psize,
     const int pad, const int stride, double* data_im, const int img_offset);
-
+#endif
 }  // namespace caffe
