@@ -16,7 +16,9 @@ using caffe::Layer;
 using caffe::shared_ptr;
 using caffe::Timer;
 using caffe::vector;
+#ifndef CPU_ONLY
 using caffe::amdDevice;
+#endif
 
 DEFINE_int32(gpu, -1,
     "Run in GPU mode on given device ID.");
@@ -247,9 +249,9 @@ int time() {
   std::vector<double> backward_time_per_layer(layers.size(), 0.0);
   double forward_time = 0.0;
   double backward_time = 0.0;
-
+#ifndef CPU_ONLY
   clFinish(amdDevice.CommandQueue);
-
+#endif
   for (int j = 0; j < FLAGS_iterations; ++j) {
     Timer iter_timer;
     iter_timer.Start();
@@ -257,9 +259,9 @@ int time() {
     for (int i = 0; i < layers.size(); ++i) {
       timer.Start();
       layers[i]->Forward(bottom_vecs[i], top_vecs[i]);
-
+#ifndef CPU_ONLY
       clFinish(amdDevice.CommandQueue);
-
+#endif
       forward_time_per_layer[i] += timer.MicroSeconds();
     }
     forward_time += forward_timer.MicroSeconds();
@@ -268,9 +270,9 @@ int time() {
       timer.Start();
       layers[i]->Backward(top_vecs[i], bottom_need_backward[i],
                           bottom_vecs[i]);
-      
+#ifndef CPU_ONLY
       clFinish(amdDevice.CommandQueue);
-      
+#endif
       backward_time_per_layer[i] += timer.MicroSeconds();
     }
     backward_time += backward_timer.MicroSeconds();
