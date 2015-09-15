@@ -1918,6 +1918,41 @@ template void MaxBackward<double>(const int nthreads, const double* top_diff,
     const int blob_idx, const int* mask, double* bottom_diff);
 
 template <typename Dtype>
+void Slice(const int nthreads, const Dtype* in_data,
+    const bool forward, const int num_slices, const int slice_size,
+    const int bottom_slice_axis, const int top_slice_axis,
+    const int offset_slice_axis, Dtype* out_data) {
+  std::string kernel_name = "Slice" + get_dtype_suffix<Dtype>();
+  cl_kernel kernel = amdDevice.GetKernel(kernel_name);
+  int k_forward = (forward == true) ? 1 : 0;
+  cl_int ret;
+  ret = clSetKernelArg(kernel, 0, sizeof(cl_int), (void*) &nthreads);
+  ret |= clSetKernelArg(kernel, 1, sizeof(cl_mem), (void*) &in_data);
+  ret |= clSetKernelArg(kernel, 2, sizeof(cl_int), (void*) &k_forward);
+  ret |= clSetKernelArg(kernel, 3, sizeof(cl_int), (void*) &num_slices);
+  ret |= clSetKernelArg(kernel, 4, sizeof(cl_int), (void*) &slice_size);
+  ret |= clSetKernelArg(kernel, 5, sizeof(cl_int), (void*) &bottom_slice_axis);
+  ret |= clSetKernelArg(kernel, 6, sizeof(cl_int), (void*) &top_slice_axis);
+  ret |= clSetKernelArg(kernel, 7, sizeof(cl_int), (void*) &offset_slice_axis);
+  ret |= clSetKernelArg(kernel, 8, sizeof(cl_mem), (void*) &out_data);
+  OCL_CHECK(ret);
+
+  size_t Global_Work_Size[] = { (size_t) nthreads };
+  size_t Local_Work_Size[] = { 256 };
+  OCL_CHECK(
+      clEnqueueNDRangeKernel(amdDevice.CommandQueue, kernel, 1, NULL,
+          Global_Work_Size, Local_Work_Size, 0, NULL, NULL));
+}
+template void Slice<float>(const int nthreads, const float* in_data,
+    const bool forward, const int num_slices, const int slice_size,
+    const int bottom_slice_axis, const int top_slice_axis,
+    const int offset_slice_axis, float* out_data);
+template void Slice<double>(const int nthreads, const double* in_data,
+    const bool forward, const int num_slices, const int slice_size,
+    const int bottom_slice_axis, const int top_slice_axis,
+    const int offset_slice_axis, double* out_data);
+
+template <typename Dtype>
 void ocl_conv(Dtype* bottom_data, Dtype* top_data, Dtype* weights, Dtype* bias,
     int channel_in, int width, int height, int channel_out, int width_out,
     int height_out, int kernel_w, int kernel_h, int stride, int pad,

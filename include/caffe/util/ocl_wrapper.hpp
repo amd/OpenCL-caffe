@@ -340,6 +340,12 @@ void MaxForward(const int nthreads, const Dtype* bottom_data_a,
 template <typename Dtype>
 void MaxBackward(const int nthreads, const Dtype* top_diff, const int blob_idx,
     const int* mask, Dtype* bottom_diff);
+
+template <typename Dtype>
+void Slice(const int nthreads, const Dtype* in_data,
+    const bool forward, const int num_slices, const int slice_size,
+    const int bottom_slice_axis, const int top_slice_axis,
+    const int offset_slice_axis, Dtype* out_data);
 #endif
 }
 #endif  // CAFFE_UTIL_OCL_UTIL_HPP_
