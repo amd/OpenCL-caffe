@@ -92,5 +92,6 @@ LOG*
 CURRENT
 MANIFEST-*
 
-#log files
-log
+#cmakefiles
+src/caffe/test/CMakeFiles
+src/caffe/CMakeFiles
