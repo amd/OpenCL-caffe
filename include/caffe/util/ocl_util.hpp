@@ -30,7 +30,7 @@
 namespace caffe {
 #ifndef CPU_ONLY
 template <typename Dtype>
-void ocl_memset(Dtype* buffer, const Dtype value, const int count);
+void ocl_memset(Dtype* buffer, const Dtype value, const int count, const int buf_offset = 0);
 
 void ocl_memset(cl_kernel Kernel, cl_mem buffer, const int value,
     const int count);

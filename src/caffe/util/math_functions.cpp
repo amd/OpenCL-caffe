@@ -702,16 +702,34 @@ void caffe_gpu_copy<double>(const int N, const double* X, double* Y) {
 }
 
 template <>
-void caffe_gpu_scal<float>(const int N, const float alpha, float *X) {
+void caffe_gpu_copy<float>(const int N, const float* X, const int offx, float* Y, const int offy) {
+  if (X != Y) {
+    CLBLAS_CHECK(
+        clblasScopy(N, (cl_mem) X, offx, 1, (cl_mem) Y, offy, 1, 1,
+            &(amdDevice.CommandQueue), 0, NULL, NULL));
+  }
+}
+
+template <>
+void caffe_gpu_copy<double>(const int N, const double* X, const int offx, double* Y, const int offy) {
+  if (X != Y) {
+    CLBLAS_CHECK(
+        clblasDcopy(N, (cl_mem) X, offx, 1, (cl_mem) Y, offy, 1, 1,
+            &(amdDevice.CommandQueue), 0, NULL, NULL));
+  }
+}
+
+template <>
+void caffe_gpu_scal<float>(const int N, const float alpha, float *X, const int offx) {
   CLBLAS_CHECK(
-      clblasSscal(N, alpha, (cl_mem) X, 0, 1, 1, &(amdDevice.CommandQueue), 0,
+      clblasSscal(N, alpha, (cl_mem) X, offx, 1, 1, &(amdDevice.CommandQueue), 0,
           NULL, NULL));
 }
 
 template <>
-void caffe_gpu_scal<double>(const int N, const double alpha, double *X) {
+void caffe_gpu_scal<double>(const int N, const double alpha, double *X, const int offx) {
   CLBLAS_CHECK(
-      clblasDscal(N, alpha, (cl_mem) X, 0, 1, 1, &(amdDevice.CommandQueue), 0,
+      clblasDscal(N, alpha, (cl_mem) X, offx, 1, 1, &(amdDevice.CommandQueue), 0,
           NULL, NULL));
 }
 
@@ -762,6 +780,36 @@ void caffe_gpu_dot<double>(const int n, const double* x, const double* y,
 }
 
 template <>
+void caffe_gpu_dot<float>(const int n, const float* x, size_t offx, const float* y, size_t offy, float* out) {
+  cl_mem scratchBuff = clCreateBuffer(amdDevice.Context, CL_MEM_READ_WRITE,
+      (n * sizeof(float)), NULL, NULL);
+  cl_mem d_out = clCreateBuffer(amdDevice.Context, CL_MEM_READ_WRITE,
+      (1 * sizeof(float)), NULL, NULL);
+  clblasSdot(n, d_out, 0, (cl_mem) x, offx, 1, (cl_mem) y, offy, 1, scratchBuff, 1,
+      &(amdDevice.CommandQueue), 0, NULL, NULL);
+  clEnqueueReadBuffer(amdDevice.CommandQueue, d_out, CL_TRUE, 0, sizeof(float),
+      out, 0, NULL, NULL);
+  clReleaseMemObject(scratchBuff);
+  clReleaseMemObject(d_out);
+}
+
+template <>
+void caffe_gpu_dot<double>(const int n, const double* x, size_t offx, const double* y, size_t offy, double * out) {
+  //need to pass in scratchBuff
+  //AMDBLAS_CHECK(clAmdBlasDdot(n, out, 0, x, 0, 1, y, 0, 1, scratch_buf, 1, &(amdDevice.CommandQueue), 0, NULL, NULL));
+  cl_mem scratchBuff = clCreateBuffer(amdDevice.Context, CL_MEM_READ_WRITE,
+      (n * sizeof(double)), NULL, NULL);
+  cl_mem d_out = clCreateBuffer(amdDevice.Context, CL_MEM_READ_WRITE,
+      (1 * sizeof(double)), NULL, NULL);
+  clblasDdot(n, d_out, 0, (cl_mem) x, offx, 1, (cl_mem) y, offy, 1, scratchBuff, 1,
+      &(amdDevice.CommandQueue), 0, NULL, NULL);
+  clEnqueueReadBuffer(amdDevice.CommandQueue, d_out, CL_TRUE, 0, sizeof(double),
+      out, 0, NULL, NULL);
+  clReleaseMemObject(scratchBuff);
+  clReleaseMemObject(d_out);
+}
+
+template <>
 void caffe_gpu_asum<float>(const int n, const float* x, float* y) {
   cl_mem scratchBuff = clCreateBuffer(amdDevice.Context, CL_MEM_READ_WRITE,
       (n * sizeof(cl_float)), NULL, NULL);
@@ -789,6 +837,33 @@ void caffe_gpu_asum<double>(const int n, const double* x, double* y) {
   clReleaseMemObject(d_y);
 }
 
+template <>
+void caffe_gpu_asum<float>(const int n, const float* x, size_t offx, float* y) {
+  cl_mem scratchBuff = clCreateBuffer(amdDevice.Context, CL_MEM_READ_WRITE,
+      (n * sizeof(cl_float)), NULL, NULL);
+  cl_mem d_y = clCreateBuffer(amdDevice.Context, CL_MEM_READ_WRITE,
+      (1 * sizeof(cl_float)), NULL, NULL);
+  clblasSasum(n, d_y, 0, (cl_mem) x, offx, 1, scratchBuff, 1,
+      &(amdDevice.CommandQueue), 0, NULL, NULL);
+  clEnqueueReadBuffer(amdDevice.CommandQueue, d_y, CL_TRUE, 0, sizeof(float), y,
+      0, NULL, NULL);
+  clReleaseMemObject(scratchBuff);
+  clReleaseMemObject(d_y);
+}
+
+template <>
+void caffe_gpu_asum<double>(const int n, const double* x, size_t offx, double* y) {
+  cl_mem scratchBuff = clCreateBuffer(amdDevice.Context, CL_MEM_READ_WRITE,
+      (n * sizeof(cl_double)), NULL, NULL);
+  cl_mem d_y = clCreateBuffer(amdDevice.Context, CL_MEM_READ_WRITE,
+      (1 * sizeof(cl_double)), NULL, NULL);
+  clblasDasum(n, d_y, 0, (cl_mem) x, offx, 1, scratchBuff, 1,
+      &(amdDevice.CommandQueue), 0, NULL, NULL);
+  clEnqueueReadBuffer(amdDevice.CommandQueue, d_y, CL_TRUE, 0, sizeof(double),
+      y, 0, NULL, NULL);
+  clReleaseMemObject(scratchBuff);
+  clReleaseMemObject(d_y);
+}
 
 
 template <>
@@ -805,18 +880,32 @@ void caffe_gpu_scale<double>(const int n, const double alpha, const double *x,
   caffe_gpu_scal(n, alpha, y);
 }
 
+template <>
+void caffe_gpu_scale<float>(const int n, const float alpha, const float *x,
+    const int offx, float* y, const int offy) {
+  caffe_gpu_copy(n, x, offx, y, offy);
+  caffe_gpu_scal(n, alpha, y, offy);
+}
+
+template <>
+void caffe_gpu_scale<double>(const int n, const double alpha, const double *x,
+    const int offx, double* y, const int offy) {
+  caffe_gpu_copy(n, x, offx, y, offy);
+  caffe_gpu_scal(n, alpha, y, offy);
+}
+
 template <typename Dtype>
 void set_kernel(const int n, const Dtype alpha, Dtype* y) {
 }
 
 template <>
-void caffe_gpu_set<float>(const int N, const float alpha, float* Y) {
-  ocl_memset(Y, alpha, N);
+void caffe_gpu_set<float>(const int N, const float alpha, float* Y, const int offy) {
+  ocl_memset(Y, alpha, N, offy);
 }
 
 template <>
-void caffe_gpu_set<double>(const int N, const double alpha, double* Y) {
-  ocl_memset(Y, alpha, N);
+void caffe_gpu_set<double>(const int N, const double alpha, double* Y, const int offy) {
+  ocl_memset(Y, alpha, N, offy);
 }
 
 template <>
@@ -844,9 +933,21 @@ void caffe_gpu_sign<float>(const int N, const float *X, float *Y) {
   caffe_gpu_sign_ocl(N, X, Y);
 }
 
+
 template <>
 void caffe_gpu_sign<double>(const int N, const double *X, double *Y) {
   caffe_gpu_sign_ocl(N, X, Y);
+}
+
+template <>
+void caffe_gpu_sign<float>(const int N, const float *X, const int offx, float *Y, const int offy) {
+  caffe_gpu_sign_with_offset_ocl(N, X, offx, Y, offy);
+}
+
+
+template <>
+void caffe_gpu_sign<double>(const int N, const double *X, const int offx, double *Y, const int offy) {
+  caffe_gpu_sign_with_offset_ocl(N, X, offx, Y, offy);
 }
 
 template <>

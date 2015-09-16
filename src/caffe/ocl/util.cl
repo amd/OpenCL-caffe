@@ -27,16 +27,17 @@
 #pragma OPENCL EXTENSION cl_amd_printf : enable
 
 template <class T>
-__kernel void OCL_memset(__global T* buffer, const T value, const int size) {
+__kernel void OCL_memset(__global T* buffer, const T value, const int size, const int buf_offset) {
   int gdx = get_global_id(0);
+  buffer += buf_offset;
   if(gdx < size) {
     buffer[gdx] = value;
   }
 }
 
-template __attribute__((mangled_name(oclmem_int))) __kernel void OCL_memset(__global int* buffer, const int value, const int size);
-template __attribute__((mangled_name(oclmem_float))) __kernel void OCL_memset(__global float* buffer, const float value, const int size);
-template __attribute__((mangled_name(oclmem_double))) __kernel void OCL_memset(__global double* buffer, const double value, const int size);
+template __attribute__((mangled_name(oclmem_int))) __kernel void OCL_memset(__global int* buffer, const int value, const int size, const int buf_offset);
+template __attribute__((mangled_name(oclmem_float))) __kernel void OCL_memset(__global float* buffer, const float value, const int size, const int buf_offset);
+template __attribute__((mangled_name(oclmem_double))) __kernel void OCL_memset(__global double* buffer, const double value, const int size, const int buf_offset);
 
 __kernel void OCL_memset2(__global int* buffer, const int value, const int size) {
   int gdx = get_global_id(0);
@@ -55,6 +56,18 @@ __kernel void caffe_gpu_sign(const int N, __global T* X, __global T* Y) {
 
 template __attribute__((mangled_name(caffe_gpu_sign_float))) __kernel void caffe_gpu_sign(const int N, __global float* X, __global float* Y);
 template __attribute__((mangled_name(caffe_gpu_sign_double))) __kernel void caffe_gpu_sign(const int N, __global double* X, __global double* Y);
+
+template <class T>
+__kernel void caffe_gpu_sign_with_offset(const int N, __global T* X, const int offx,  __global T* Y, const int offy) {
+  X += offx;
+  Y += offy;
+  int gdx = get_global_id(0);
+  if(gdx < N) {
+    Y[gdx] =((X[gdx]>0.0)-(X[gdx]<0.0));
+  }
+}
+template __attribute__((mangled_name(caffe_gpu_sign_with_offset_float))) __kernel void caffe_gpu_sign_with_offset(const int N, __global float* X, const int offx,  __global float* Y, const int offy);
+template __attribute__((mangled_name(caffe_gpu_sign_with_offset_double))) __kernel void caffe_gpu_sign_with_offset(const int N, __global double* X, const int offx,  __global double* Y, const int offy);
 
 template <class T>
 __kernel void caffe_gpu_abs(const int n, __global T* a, __global T* y) {

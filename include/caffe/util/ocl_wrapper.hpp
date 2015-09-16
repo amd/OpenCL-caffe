@@ -230,6 +230,9 @@ template <typename Dtype>
 void caffe_gpu_sign_ocl(const int N, const Dtype* X, Dtype * Y);
 
 template <typename Dtype>
+void caffe_gpu_sign_with_offset_ocl(const int N, const Dtype* X, const int offx,  Dtype * Y, const int offy);
+
+template <typename Dtype>
 void kernel_channel_max(const int num, const int channels,
     const int spatial_dim, const Dtype* data, Dtype* out);
 

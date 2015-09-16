@@ -1585,6 +1585,28 @@ template void caffe_gpu_sign_ocl<double>(const int N, const double* X,
     double* Y);
 
 template <typename Dtype>
+void caffe_gpu_sign_with_offset_ocl(const int N, const Dtype* X, const int offx,  Dtype * Y, const int offy) {
+  std::string kernel_name = "caffe_gpu_sign_with_offset" + get_dtype_suffix<Dtype>();
+  cl_kernel Kernel = amdDevice.GetKernel(kernel_name);
+  cl_int ret;
+  ret = clSetKernelArg(Kernel, 0, sizeof(cl_int), (void*) &N);
+  ret |= clSetKernelArg(Kernel, 1, sizeof(cl_mem), (void*) &X);
+  ret |= clSetKernelArg(Kernel, 2, sizeof(cl_int), (void*) &offx);
+  ret |= clSetKernelArg(Kernel, 3, sizeof(cl_mem), (void*) &Y);
+  ret |= clSetKernelArg(Kernel, 4, sizeof(cl_int), (void*) &offy);
+  OCL_CHECK(ret);
+  size_t Global_Work_Size[] = { (size_t) N };
+  size_t Local_Work_Size[] = { 256 };
+  OCL_CHECK(
+      clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL,
+          Global_Work_Size, Local_Work_Size, 0, NULL, NULL));
+}
+
+template void caffe_gpu_sign_with_offset_ocl<float>(const int N, const float* X, const int offx, float* Y, const int offy);
+template void caffe_gpu_sign_with_offset_ocl<double>(const int N, const double* X, const int offx, double* Y, const int offy);
+
+
+template <typename Dtype>
 void caffe_gpu_abs_ocl(const int N, const Dtype* X, Dtype * Y) {
   std::string kernel_name = "caffe_gpu_abs" + get_dtype_suffix<Dtype>();
   cl_kernel Kernel = amdDevice.GetKernel(kernel_name);

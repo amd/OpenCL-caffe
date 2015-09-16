@@ -107,7 +107,7 @@ template <typename Dtype>
 void caffe_set(const int N, const Dtype alpha, Dtype *X);
 
 template <typename Dtype>
-void caffe_gpu_set(const int N, const Dtype alpha, Dtype *X);
+void caffe_gpu_set(const int N, const Dtype alpha, Dtype *X, const int offset=0);
 
 inline void caffe_memset(const size_t N, const int alpha, void* X) {
   memset(X, alpha, N);  // NOLINT(caffe/alt_fn)
@@ -128,6 +128,9 @@ template <typename Dtype>
 void caffe_gpu_copy(const int N, const Dtype *X, Dtype *Y);
 
 template <typename Dtype>
+void caffe_gpu_copy(const int N, const Dtype* X, const int offx, Dtype* Y, const int offy);
+
+template <typename Dtype>
 void caffe_add_scalar(const int N, const Dtype alpha, Dtype *X);
 
 template <typename Dtype>
@@ -141,7 +144,7 @@ template <typename Dtype>
 void caffe_scal(const int N, const Dtype alpha, Dtype *X);
 
 template <typename Dtype>
-void caffe_gpu_scal(const int N, const Dtype alpha, Dtype *X);
+void caffe_gpu_scal(const int N, const Dtype alpha, Dtype *X, const int offx = 0);
 
 template <typename Dtype>
 void caffe_sqr(const int N, const Dtype* a, Dtype* y);
@@ -223,6 +226,9 @@ template <typename Dtype>
 void caffe_gpu_dot(const int n, const Dtype* x, const Dtype* y, Dtype* out);
 
 template <typename Dtype>
+void caffe_gpu_dot(const int n, const Dtype* x, size_t offx, const Dtype* y, size_t offy, Dtype* out);
+
+template <typename Dtype>
 int caffe_cpu_hamming_distance(const int n, const Dtype* x, const Dtype* y);
 
 template <typename Dtype>
@@ -235,6 +241,9 @@ Dtype caffe_cpu_asum(const int n, const Dtype* x);
 
 template <typename Dtype>
 void caffe_gpu_asum(const int n, const Dtype* x, Dtype* y);
+
+template <typename Dtype>
+void caffe_gpu_asum(const int n, const Dtype* x, size_t offx, Dtype* y);
 
 // the branchless, type-safe version from
 // http://stackoverflow.com/questions/1903954/is-there-a-standard-sign-function-signum-sgn-in-c-c
@@ -282,6 +291,9 @@ DEFINE_CAFFE_CPU_UNARY_FUNC(sign, y[i] = caffe_sign<Dtype>(x[i]));
 template <typename Dtype>
 void caffe_gpu_sign(const int n, const Dtype* x, Dtype* y);
 
+template <typename Dtype>
+void caffe_gpu_sign(const int N, const Dtype *X, const int offx, Dtype *Y, const int offy);
+
 // This returns a nonzero value if the input has its sign bit set.
 // The name sngbit is meant to avoid conflicts with std::signbit in the macro
 using std::signbit;
@@ -300,6 +312,9 @@ void caffe_cpu_scale(const int n, const Dtype alpha, const Dtype *x, Dtype* y);
 
 template <typename Dtype>
 void caffe_gpu_scale(const int n, const Dtype alpha, const Dtype *x, Dtype* y);
+
+template <typename Dtype>
+void caffe_gpu_scale(const int n, const Dtype alpha, const Dtype *x, const int offx, Dtype* y, const int offy);
 
 template <typename Dtype>
 void caffe_gpu_add(const int N, const Dtype* a, const Dtype* b, Dtype* y);

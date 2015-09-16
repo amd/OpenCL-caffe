@@ -38,13 +38,14 @@ namespace caffe {
 template <typename dtype> extern std::string get_dtype_suffix();
 
 template <typename Dtype>
-void ocl_memset(Dtype* buffer, const Dtype value, const int count) {
+void ocl_memset(Dtype* buffer, const Dtype value, const int count, const int buf_offset) {
   std::string kernel_name = std::string("oclmem") + get_dtype_suffix<Dtype>();
   cl_kernel Kernel = amdDevice.GetKernel(kernel_name);
   cl_int err = 0;
   err = clSetKernelArg(Kernel, 0, sizeof(cl_mem), (void*) &buffer);
   err |= clSetKernelArg(Kernel, 1, sizeof(Dtype), (void*) &value);
   err |= clSetKernelArg(Kernel, 2, sizeof(cl_int), (void*) &count);
+  err |= clSetKernelArg(Kernel, 3, sizeof(cl_int), (void*) &buf_offset);
   OCL_CHECK(err);
 
   size_t Global_Work_Size[1] = { (size_t) count };
@@ -55,11 +56,9 @@ void ocl_memset(Dtype* buffer, const Dtype value, const int count) {
 
 }
 
-template void ocl_memset<int>(int* buffer, const int value, const int count);
-template void ocl_memset<float>(float* buffer, const float value,
-    const int count);
-template void ocl_memset<double>(double* buffer, const double value,
-    const int count);
+template void ocl_memset<int>(int* buffer, const int value, const int count, const int buf_offset);
+template void ocl_memset<float>(float* buffer, const float value, const int count, const int buf_offset);
+template void ocl_memset<double>(double* buffer, const double value, const int count, const int buf_offset);
 
 void ocl_memset(cl_kernel Kernel, cl_mem buffer, const int value,
     const int count) {
