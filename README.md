@@ -41,6 +41,7 @@ For more information on how to install, use or contribute to this code base, ple
 
 #Contributors
 Junli Gu, Yibing Liu, Yuan Gao, Maohua Zhu
+
 We thank Mauricio Breternitz, Hanjin Chu and Greg Stoner for their technical suggestions and support. 
 
 #Support needed
