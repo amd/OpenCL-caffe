@@ -39,6 +39,10 @@ We will keep updating the latest performance as we make optimizations. Fury resu
 For more information on how to install, use or contribute to this code base, please visit our wiki page:
  https://github.com/amd/OpenCL-caffe/wiki
 
+#Contributors
+Junli Gu, Yibing Liu, Yuan Gao, Maohua Zhu
+We thank Mauricio Breternitz, Hanjin Chu and Greg Stoner for their technical suggestions and support. 
+
 #Support needed
  As an open source project, we hope to maintain an open dynamics and sharing culture. We encourage the contribution and support from the community to improve it together.
 
