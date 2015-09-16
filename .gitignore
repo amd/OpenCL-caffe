@@ -91,3 +91,7 @@ LOCK
 LOG*
 CURRENT
 MANIFEST-*
+
+#cmakefiles
+src/caffe/test/CMakeFiles
+src/caffe/CMakeFiles
