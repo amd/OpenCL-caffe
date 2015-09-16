@@ -196,8 +196,8 @@ template void im2col_gpu<double>(const double* data_im, const int img_offset,
     const int stride_w, double* data_col, const int col_offset);
 
 template <typename Dtype>
-void col2im_gpu(const Dtype* data_col, const int col_offset, const int height,
-    const int width, const int channels, const int patch_h, const int patch_w,
+void col2im_gpu(const Dtype* data_col, const int col_offset, const int channels, const int height,
+    const int width,  const int patch_h, const int patch_w,
     const int pad_h, const int pad_w, const int stride_h, const int stride_w,
     Dtype* data_im, const int img_offset) {
   std::string kernel_name = "col2im_gpu_kernel" + get_dtype_suffix<Dtype>();
@@ -233,11 +233,11 @@ void col2im_gpu(const Dtype* data_col, const int col_offset, const int height,
 }
 
 template void col2im_gpu<float>(const float* data_col, const int col_offset,
-    const int height, const int width, const int channels, const int patch_h,
+    const int channels, const int height, const int width, const int patch_h,
     const int patch_w, const int pad_h, const int pad_w, const int stride_h,
     const int stride_w, float* data_im, const int img_offset);
 template void col2im_gpu<double>(const double* data_col, const int col_offset,
-    const int height, const int width, const int channels, const int patch_h,
+    const int channels, const int height, const int width, const int patch_h,
     const int patch_w, const int pad_h, const int pad_w, const int stride_h,
     const int stride_w, double* data_im, const int img_offset);
 
