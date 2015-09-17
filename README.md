@@ -1,27 +1,27 @@
-#OpenCL caffe
+#OpenCL Caffe
 
-This is an OpenCL implementation of caffe, a mainstream DNN framework (https://github.com/BVLC/caffe). It includes a largely complete caffe feature set as of August 2015. The project is under active development to improve performance and add new features. Contributions from the community are welcome.
+This is an OpenCL implementation of Caffe, a mainstream DNN framework (https://github.com/BVLC/caffe). It includes a largely complete Caffe feature set as of August 2015. The project is under active development to improve performance and add new features. Contributions from the community are welcome.
 
 OpenCL (https://en.wikipedia.org/wiki/OpenCL) is an open standard parallel programming language for heterogeneous platforms. OpenCL is supported by a variety of commercial chip manufacturers. 
 
 #Design features
-  -All caffe layers ported to OpenCL
+  -All Caffe layers ported to OpenCL
 
   -Performance improvement by batched implementation for conv layer based on clBLAS
 
-  -User can choose optimal batch number depending on H/W, image size and minibatch size
+  -The user can choose the optimal batch number depending on H/W properties, image size and minibatch size
 
   -Supports OpenCL 2.0, 1.2
   
-  -Implemented in C++ and OpenCL, maintaining the same interfaces as original caffe to make it easy for caffe users
+  -Implemented in C++ and OpenCL, maintaining the same interfaces as the original Caffe
 
   -Users can directly run DNN models: AlexNet, VGG-16 and VGG-19
 
-Note: More features will be added in the near future. Currently this implementation has been verified and tuned on AMD devices (CPUs/GPUs/APUs). Compatibility across different chip manufacturers will be considered to be added in the future.
+Note: More features are planned in the near future. Currently this implementation has been verified and tuned on AMD devices (CPUs/GPUs/APUs). Compatibility across different chip manufacturers will be considered for future addition.
 
 #Performance
 
-We will keep updating the latest performance as we make optimizations. Fury results are preliminary and are actively being improved.
+We intend to keep updating the latest performance as we make optimizations. Fury results are preliminary and are actively being improved.
 
 * Training speed (Model: AlexNet, minibatch size 128)
 
@@ -48,7 +48,7 @@ We thank Mauricio Breternitz, Hanjin Chu and Greg Stoner for their technical sug
  As an open source project, we hope to maintain an open dynamics and sharing culture. We encourage the contribution and support from the community to improve it together.
 
 #License
-Original caffe is provided in the [BSD 2-Clause license](https://github.com/BVLC/caffe/blob/master/LICENSE) open source license. The OpenCL ports written by AMD is covered by AMD license. We encourage the contribution and support from external, your contribution will be covered either by BSD 2-Clause license or whichever your preferred license.
+The original Caffe is provided in the [BSD 2-Clause license](https://github.com/BVLC/caffe/blob/master/LICENSE) open source license. The OpenCL ports written by AMD is covered by AMD license. We encourage the contribution and support from external, your contribution will be covered either by BSD 2-Clause license or whichever your preferred license.
 
 # Original Caffe information
 ## Caffe
