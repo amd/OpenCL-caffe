@@ -1,33 +1,12 @@
-/*************************************************************************************
- * Copyright (c) 2015, Advanced Micro Devices, Inc.  
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this 
- * list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form must reproduce the above copyright notice, 
- * this list of conditions and the following disclaimer in the documentation and/or
- *  other materials provided with the distribution.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
- * IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, 
- * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, 
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
- * OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
- * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- **************************************************************************************/
 
 #pragma OPENCL EXTENSION cl_amd_printf : enable
 
-//beginning of the looooooong gpu_random_generator kernel 
-//we use the open sourced threefry's GPU implementation
+//Note: random generator has two parts
+//first part: the open sourced threefy random generator kernel from DE Shaw Research
+//second part. we wrapp the kernel up to generate uniform, bernoulli and gaussion distribution generators.
+
+//begin: the open sourced random generator from DE Shaw Research
+//https://www.deshawresearch.com/resources_random123.html
 typedef uint uint32_t;
 
 struct r123array4x32 {
@@ -803,6 +782,7 @@ inline threefry4x32_ctr_t threefry4x32_R(unsigned int Nrounds,
   }
   return X;
 }
+//end: the open sourced random generator from DE Shaw Research
 
 template <class T>
 __kernel void PRNG_threefry4x32_bernoulli(
@@ -846,6 +826,8 @@ template __attribute__((mangled_name(RNGBernoulli_float))) __kernel void PRNG_th
 template __attribute__((mangled_name(RNGBernoulli_double))) __kernel void PRNG_threefry4x32_bernoulli(__global uint4 *randomnumber, threefry4x32_ctr_t ctr_i, double inf, double sup, double threshold, uint nrounds, uint numrandonm);
 
 //end of the looooooong gpu_random_generator kernel 
+
+//We wrapp the kernel up to generate uniform, bernoulli and gaussion distribution generators.
 
 template <class T>
 __kernel void PRNG_threefry4x32_uniform(
