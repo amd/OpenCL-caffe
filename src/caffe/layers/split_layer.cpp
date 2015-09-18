@@ -60,7 +60,7 @@ void SplitLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
   }
 }
 
-// begin: code written/modified by AMD
+// begin: code modified for OpenCL port
 template <typename Dtype>
 void SplitLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
     const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
@@ -80,7 +80,7 @@ void SplitLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
     caffe_gpu_axpy(count_, Dtype(1.), top_diff, bottom_diff);
   }
 }
-// end: code written/modified by AMD
+// begin: code modified for OpenCL port
 #else
 STUB_GPU(SplitLayer);
 #endif

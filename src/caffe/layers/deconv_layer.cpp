@@ -70,6 +70,7 @@ void DeconvolutionLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
 }
 
 #ifndef CPU_ONLY
+// begin: code modified for OpenCL port
 
 template <typename Dtype>
 void DeconvolutionLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
@@ -124,6 +125,7 @@ void DeconvolutionLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
     }
   }
 }
+// end: code modified for OpenCL port
 
 #else 
 STUB_GPU(DeconvolutionLayer);

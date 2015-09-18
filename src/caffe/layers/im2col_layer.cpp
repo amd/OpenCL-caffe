@@ -88,6 +88,7 @@ void Im2colLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
 }
 
 #ifndef CPU_ONLY
+// begin: code modified for OpenCL port
 template <typename Dtype>
 void Im2colLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
     const vector<Blob<Dtype>*>& top) {
@@ -112,6 +113,7 @@ void Im2colLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
         bottom[0]->offset(n));
   }
 }
+// end: code modified for OpenCL port
 
 #else
 STUB_GPU(Im2colLayer);

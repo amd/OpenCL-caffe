@@ -252,6 +252,7 @@ void LRNLayer<Dtype>::WithinChannelBackward(const vector<Blob<Dtype>*>& top,
 }
 
 #ifndef CPU_ONLY
+// begin: code modified for OpenCL port
 template <typename Dtype>
 void LRNLayer<Dtype>::CrossChannelForward_gpu(
     const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
@@ -310,6 +311,7 @@ void LRNLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
     LOG(FATAL) << "Unknown normalization region.";
   }
 }
+// end: code modified for OpenCL port
 #else
 STUB_GPU(LRNLayer);
 STUB_GPU_FORWARD(LRNLayer, CrossChannelForward);

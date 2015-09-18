@@ -154,7 +154,7 @@ void EltwiseLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
   }
 }
 
-// begin: code written/modified by AMD
+// begin: code modified for OpenCL port
 #ifndef CPU_ONLY
 template <typename Dtype>
 void EltwiseLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
@@ -241,6 +241,7 @@ void EltwiseLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
     }
   }
 }
+// end: code modified for OpenCL port
 
 #else
 STUB_GPU(EltwiseLayer);

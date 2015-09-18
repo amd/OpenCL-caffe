@@ -112,6 +112,7 @@ void SliceLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
 }
 
 #ifndef CPU_ONLY
+// begin: code modified for OpenCL port
 template <typename Dtype>
 void SliceLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
       const vector<Blob<Dtype>*>& top) {
@@ -151,7 +152,7 @@ void SliceLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
     offset_slice_axis += top_slice_axis;
   }
 }
-
+// end: code modified for OpenCL port
 
 #else
 STUB_GPU(SliceLayer);

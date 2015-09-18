@@ -91,7 +91,7 @@ void SoftmaxLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
 }
 
 #ifndef CPU_ONLY
-// begin: code written/modified by AMD
+// begin: code modified for OpenCL port
 template <typename Dtype>
 void SoftmaxLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
     const vector<Blob<Dtype>*>& top) {
@@ -148,7 +148,7 @@ void SoftmaxLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
   caffe_gpu_mul < Dtype > (top[0]->count(), bottom_diff, top_data, bottom_diff);
 
 }
-// end: code written/modified by AMD
+// end: code modified for OpenCL port
 #else
 STUB_GPU(SoftmaxLayer);
 #endif

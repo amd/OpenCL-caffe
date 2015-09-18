@@ -40,6 +40,7 @@ void SigmoidLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
 }
 
 #ifndef CPU_ONLY
+// begin: code modified for OpenCL port
 
 template <typename Dtype>
 void SigmoidLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
@@ -63,6 +64,7 @@ void SigmoidLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
     SigmoidBackward(count, top_diff, top_data, bottom_diff);
   }
 }
+// end: code modified for OpenCL port
 
 #else
 STUB_GPU(SigmoidLayer);

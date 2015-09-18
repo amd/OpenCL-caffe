@@ -38,6 +38,7 @@ void TanHLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
 }
 
 #ifndef CPU_ONLY
+// begin: code modified for OpenCL port
 template <typename Dtype>
 void TanHLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
     const vector<Blob<Dtype>*>& top) {
@@ -60,6 +61,7 @@ void TanHLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
     TanHBackward(count, top_diff, top_data, bottom_diff);
   }
 }
+// end: code modified for OpenCL port
 
 #else
 STUB_GPU(TanHLayer);

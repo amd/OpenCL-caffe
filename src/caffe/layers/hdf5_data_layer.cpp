@@ -158,7 +158,7 @@ void HDF5DataLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
   }
 }
 
-// begin: code written/modified by AMD
+// begin: code modified for OpenCL port
 #ifndef CPU_ONLY
 template <typename Dtype>
 void HDF5DataLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
@@ -197,6 +197,7 @@ void HDF5DataLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
     }
   }
 }
+// end: code modified for OpenCL port
 
 #else
 STUB_GPU_FORWARD(HDF5DataLayer, Forward);

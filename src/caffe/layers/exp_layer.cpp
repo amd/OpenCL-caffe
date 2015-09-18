@@ -61,7 +61,7 @@ void ExpLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
   }
 }
 
-// begin: code written/modified by AMD
+// begin: code modified for OpenCL port
 #ifndef CPU_ONLY
 template <typename Dtype>
 void ExpLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
@@ -95,6 +95,7 @@ void ExpLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
     caffe_gpu_scal(count, inner_scale_, bottom_diff);
   }
 }
+// end: code modified for OpenCL port
 
 #else
 STUB_GPU(ExpLayer);

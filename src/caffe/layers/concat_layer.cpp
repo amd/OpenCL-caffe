@@ -95,7 +95,7 @@ void ConcatLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
 }
 
 #ifndef CPU_ONLY
-// begin: code written/modified by AMD
+// begin: code modified for OpenCL port
 template <typename Dtype>
 void ConcatLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
     const vector<Blob<Dtype>*>& top) {
@@ -139,6 +139,7 @@ void ConcatLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
     offset_concat_axis += bottom_concat_axis;
   }
 }
+// end: code modified for OpenCL port
 
 #else
 STUB_GPU(ConcatLayer);

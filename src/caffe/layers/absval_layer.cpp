@@ -36,7 +36,7 @@ void AbsValLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
 }
 
 #ifndef CPU_ONLY
-// begin: code written/modified by AMD
+// begin: code modified for OpenCL port
 template <typename Dtype>
 void AbsValLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
     const vector<Blob<Dtype>*>& top) {
@@ -57,6 +57,7 @@ void AbsValLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
     caffe_gpu_mul(count, bottom_diff, top_diff, bottom_diff);
   }
 }
+// end: code modified for OpenCL port
 
 #else
 STUB_GPU(AbsValLayer);
