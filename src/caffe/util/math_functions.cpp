@@ -111,6 +111,16 @@ void caffe_set(const int N, const double alpha, double* Y) {
 }
 
 template <>
+void caffe_copy<float>(const int N, const float* X, float* Y) {
+  cblas_scopy(N, X, 1, Y, 1);
+}
+
+template <>
+void caffe_copy<double>(const int N, const double* X, double* Y) {
+  cblas_dcopy(N, X, 1, Y, 1);
+}
+
+template <>
 void caffe_add_scalar(const int N, const float alpha, float* Y) {
   for (int i = 0; i < N; ++i) {
     Y[i] += alpha;
@@ -122,16 +132,6 @@ void caffe_add_scalar(const int N, const double alpha, double* Y) {
   for (int i = 0; i < N; ++i) {
     Y[i] += alpha;
   }
-}
-
-template <>
-void caffe_copy<float>(const int N, const float* X, float* Y) {
-  cblas_scopy(N, X, 1, Y, 1);
-}
-
-template <>
-void caffe_copy<double>(const int N, const double* X, double* Y) {
-  cblas_dcopy(N, X, 1, Y, 1);
 }
 
 template <>
@@ -226,13 +226,14 @@ void caffe_log<double>(const int n, const double* a, double* y) {
   vdLn(n, a, y);
 }
 
+
 template <typename Dtype>
 void caffe_copy(const int N, const Dtype* X, Dtype* Y) {
   if (X != Y) {
     if (Caffe::mode() == Caffe::GPU) {
 #ifndef CPU_ONLY
       // NOLINT_NEXT_LINE(caffe/alt_fn)
-      //CUDA_CHECK(cudaMemcpy(Y, X, sizeof(Dtype) * N, cudaMemcpyDefault));
+     // caffe_gpu_copy(N, X, Y);
 #else
       NO_GPU;
 #endif
@@ -241,6 +242,7 @@ void caffe_copy(const int N, const Dtype* X, Dtype* Y) {
     }
   }
 }
+
 
 template void caffe_copy<int>(const int N, const int* X, int* Y);
 template void caffe_copy<unsigned int>(const int N, const unsigned int* X,
@@ -675,6 +677,20 @@ void caffe_gpu_memcpy<double>(const size_t N, const double* X, double* Y) {
           N, 0, NULL, NULL));
 }
 
+template <typename Dtype>
+void caffe_gpu_copy(const int N, const Dtype* X, Dtype* Y) {
+  if (X != Y) {
+     OCL_CHECK(
+       clEnqueueCopyBuffer(amdDevice.CommandQueue, (cl_mem) X, (cl_mem) Y, 0, 0,
+          N * sizeof(Dtype), 0, NULL, NULL));
+  }
+}
+template void caffe_gpu_copy<float>(const int N, const float* X, float* Y);
+template void caffe_gpu_copy<double>(const int N, const double* X, double* Y);
+template void caffe_gpu_copy<int>(const int N, const int* X, int* Y);
+template void caffe_gpu_copy<unsigned int>(const int N, const unsigned int* X, unsigned int* Y);
+
+/*
 template <>
 void caffe_gpu_copy<float>(const int N, const float* X, float* Y) {
   if (X != Y) {
@@ -692,7 +708,7 @@ void caffe_gpu_copy<double>(const int N, const double* X, double* Y) {
             &(amdDevice.CommandQueue), 0, NULL, NULL));
   }
 }
-
+*/
 template <>
 void caffe_gpu_copy<float>(const int N, const float* X, const int offx, float* Y, const int offy) {
   if (X != Y) {

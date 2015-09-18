@@ -120,12 +120,16 @@ template void get_max_gpu<double>(cl_kernel Kernel, const int num,
 		const int dim, const double* bottom_data, double* scale_data);
 
 template <typename Dtype>
-void caffe_gpu_uniform(Dtype* a, const unsigned int n, Dtype inf, Dtype sup)
+void caffe_gpu_uniform(Dtype* a, const unsigned int n, Dtype inf, Dtype sup, unsigned int seed_)
 {
-        std::string kernel_name = "RNGUniform" + get_dtype_suffix<Dtype>();
+        static unsigned c = 0;
+        if ((n == 0) || (a == NULL)) {
+            c = seed_;
+            return;
+        }
+	std::string kernel_name = "RNGUniform" + get_dtype_suffix<Dtype>();
         cl_kernel ker_rand = amdDevice.GetKernel(kernel_name);
 
-        static unsigned c = 0;
         unsigned nrounds = 20;
         array4x32  rndctr4;
         rndctr4.v[0] = rndctr4.v[1] = rndctr4.v[2] = rndctr4.v[3] = c++;
@@ -144,8 +148,8 @@ void caffe_gpu_uniform(Dtype* a, const unsigned int n, Dtype inf, Dtype sup)
         size_t localws[1] = {256};
         OCL_CHECK (clEnqueueNDRangeKernel(amdDevice.CommandQueue, ker_rand, 1, NULL, globalws, localws, 0, NULL, NULL) );
 }
-template void caffe_gpu_uniform<float>(float* a, const unsigned int n, float inf, float sup);
-template void caffe_gpu_uniform<double>(double* a, const unsigned int n, double inf, double sup);
+template void caffe_gpu_uniform<float>(float* a, const unsigned int n, float inf, float sup, unsigned int seed_);
+template void caffe_gpu_uniform<double>(double* a, const unsigned int n, double inf, double sup, unsigned int seed_);
 
 void caffe_gpu_uniform(const unsigned int n, unsigned int *r, unsigned int _seed)
 {

@@ -105,6 +105,7 @@ void Caffe::set_random_seed(const unsigned int seed) {
 	// RNG seed
 	Get().random_generator_.reset(new RNG(seed));
         caffe_gpu_uniform(0, NULL, seed);
+        caffe_gpu_uniform((float*)NULL, 0, (float)0.0, (float)1.0, seed);
 }
 
 void Caffe::SetDevice(const int device_id) {

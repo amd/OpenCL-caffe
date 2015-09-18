@@ -94,11 +94,11 @@ __kernel void im2col(const int n, __global const T* data_im, const int img_offse
   }
 }
 
-template __attribute__((mangled_name(im2col_float))) void im2col_gpu_kernel<float>(const int n, __global const float* data_im,
+template __attribute__((mangled_name(im2col_float))) void im2col<float>(const int n, __global const float* data_im,
     const int img_offset, const int height, const int width, const int kernel_h, const int kernel_w,
     const int pad_h, const int pad_w, const int stride_h, const int stride_w,
     const int height_col, const int width_col, __global float* data_col, const int col_offset);
-template __attribute__((mangled_name(im2col_double))) void im2col_gpu_kernel<double>(const int n, __global const double* data_im,
+template __attribute__((mangled_name(im2col_double))) void im2col<double>(const int n, __global const double* data_im,
     const int img_offset, const int height, const int width, const int kernel_h, const int kernel_w,
     const int pad_h, const int pad_w, const int stride_h, const int stride_w,
     const int height_col, const int width_col, __global double* data_col, const int col_offset);
@@ -138,12 +138,12 @@ __kernel void col2im(const int n, __global const T* data_col, const int col_offs
   }
 }
 
-template __attribute__((mangled_name(col2im_float))) __kernel void col2im_gpu_kernel(const int n, __global const float* data_col, const int col_offset,
+template __attribute__((mangled_name(col2im_float))) __kernel void col2im(const int n, __global const float* data_col, const int col_offset,
     const int height, const int width, const int channels,
     const int patch_h, const int patch_w,const int pad_h, const int pad_w,
     const int stride_h, const int stride_w,const int height_col, const int width_col,
     __global float* data_im, const int img_offset);
-template __attribute__((mangled_name(col2im_double))) __kernel void col2im_gpu_kernel(const int n, __global const double* data_col,
+template __attribute__((mangled_name(col2im_double))) __kernel void col2im(const int n, __global const double* data_col,
     const int col_offset, const int height, const int width, const int channels,
     const int patch_h, const int patch_w, const int pad_h, const int pad_w,
     const int stride_h, const int stride_w, const int height_col, const int width_col, __global double* data_im, const int img_offset);

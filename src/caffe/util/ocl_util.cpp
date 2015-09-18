@@ -60,8 +60,10 @@ template void ocl_memset<int>(int* buffer, const int value, const int count, con
 template void ocl_memset<float>(float* buffer, const float value, const int count, const int buf_offset);
 template void ocl_memset<double>(double* buffer, const double value, const int count, const int buf_offset);
 
-void ocl_memset(cl_kernel Kernel, cl_mem buffer, const int value,
+void ocl_memset(cl_mem buffer, const int value,
     const int count) {
+  std::string kernel_name = std::string("OCL_memset2");
+  cl_kernel Kernel = amdDevice.GetKernel(kernel_name);
   cl_int err;
   err = clSetKernelArg(Kernel, 0, sizeof(cl_mem), (void*) &buffer);
   err |= clSetKernelArg(Kernel, 1, sizeof(cl_int), (void*) &value);
