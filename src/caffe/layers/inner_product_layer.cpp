@@ -120,6 +120,7 @@ void InnerProductLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
 }
 
 #ifndef CPU_ONLY
+// begin: code modified for OpenCL port
 template <typename Dtype>
 void InnerProductLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
     const vector<Blob<Dtype>*>& top) {
@@ -157,6 +158,7 @@ void InnerProductLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
         > (CblasNoTrans, CblasNoTrans, M_, K_, N_, (Dtype) 1., top_diff, 0, this->blobs_[0]->gpu_data(), 0, (Dtype) 0., bottom[0]->mutable_gpu_diff(), 0);
   }
 }
+// end: code modified for OpenCL port
 
 #else
 STUB_GPU(InnerProductLayer);

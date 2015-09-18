@@ -39,7 +39,7 @@ void BNLLLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
 }
 
 #ifndef CPU_ONLY
-// begin: code written/modified by AMD
+// begin: code modified for OpenCL port
 template <typename Dtype>
 void BNLLLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
     const vector<Blob<Dtype>*>& top) {
@@ -62,6 +62,7 @@ void BNLLLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
     BNLLBackward(count, top_diff, bottom_data, bottom_diff);
   }
 }
+// end: code modified for OpenCL port
 
 #else
 STUB_GPU(BNLLLayer);

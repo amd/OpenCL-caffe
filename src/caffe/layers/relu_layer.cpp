@@ -35,6 +35,7 @@ void ReLULayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
 }
 
 #ifndef CPU_ONLY
+// begin: code modified for OpenCL port
 template <typename Dtype>
 void ReLULayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
     const vector<Blob<Dtype>*>& top) {
@@ -57,6 +58,7 @@ void ReLULayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
     ReLUBackward(count, top_diff, bottom_data, bottom_diff, negative_slope);
   }
 }
+// end: code modified for OpenCL port
 
 #else 
 STUB_GPU(ReLULayer);

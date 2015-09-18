@@ -67,7 +67,7 @@ void DropoutLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
 }
 
 #ifndef CPU_ONLY
-// begin: code is written/modified by AMD
+// begin: code modified for OpenCL port
 template <typename Dtype>
 void DropoutLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
     const vector<Blob<Dtype>*>& top) {
@@ -82,6 +82,7 @@ void DropoutLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
     // NOLINT_NEXT_LINE(whitespace/operators)
     DropoutForward(count, bottom_data, mask, uint_thres_, scale_, top_data);
   } else {
+    if(bottom_data != top_data)
     caffe_gpu_copy(count, bottom_data, top_data);
   }
 }
@@ -99,10 +100,12 @@ void DropoutLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
       // NOLINT_NEXT_LINE(whitespace/operators)
       DropoutBackward(count, top_diff, mask, uint_thres_, scale_, bottom_diff);
     } else {
+      if(bottom_diff != top_diff)
       caffe_gpu_copy(top[0]->count(), top_diff, bottom_diff);
     }
   }
 }
+// end: code modified for OpenCL port
 
 #else
 STUB_GPU(DropoutLayer);
