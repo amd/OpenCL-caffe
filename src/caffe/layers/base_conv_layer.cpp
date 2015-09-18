@@ -291,15 +291,15 @@ void BaseConvolutionLayer<Dtype>::forward_gpu_gemm(const Dtype* input,
       conv_im2col_gpu(input, col_buffer_.mutable_gpu_data());
     }
     col_buff = col_buffer_.gpu_data();
-  }
+  } 
 
   for (int g = 0; g < group_; ++g) {
-    caffe_gpu_gemm < Dtype
-        > (&(amdDevice.CommandQueue), CblasNoTrans, CblasNoTrans, conv_out_channels_
+     caffe_gpu_gemm < Dtype > (&(amdDevice.CommandQueue), CblasNoTrans, CblasNoTrans, conv_out_channels_
             / group_, conv_out_spatial_dim_, kernel_dim_ / group_, (Dtype) 1., weights, weight_offset_
-            * g, col_buff, col_offset_ * g, (Dtype) 0., output, top_offset_
+            * g, col_buff, is_1x1_ * bottom_offset_ + col_offset_ * g, (Dtype) 0., output, top_offset_
             + output_offset_ * g);
   }
+  
 }
 
 template <typename Dtype>
@@ -316,13 +316,14 @@ void BaseConvolutionLayer<Dtype>::backward_gpu_gemm(const Dtype* output,
   if (is_1x1_) {
     col_buff = input;
   }
+ 
   for (int g = 0; g < group_; ++g) {
-    caffe_gpu_gemm < Dtype
-        > (&(amdDevice.CommandQueue), CblasTrans, CblasNoTrans, kernel_dim_
+      caffe_gpu_gemm < Dtype> (&(amdDevice.CommandQueue), CblasTrans, CblasNoTrans, kernel_dim_
             / group_, conv_out_spatial_dim_, conv_out_channels_ / group_, (Dtype) 1., weights, weight_offset_
-            * g, output, top_offset_ + output_offset_ * g, (Dtype) 0., col_buff, col_offset_
+            * g, output, top_offset_ + output_offset_ * g, (Dtype) 0., col_buff, is_1x1_ * bottom_offset_ + col_offset_
             * g);
   }
+  
   if (!is_1x1_) {
     conv_col2im_gpu(col_buff, input);
   }
@@ -339,8 +340,7 @@ void BaseConvolutionLayer<Dtype>::weight_gpu_gemm(const Dtype* input,
   for (int g = 0; g < group_; ++g) {
     caffe_gpu_gemm < Dtype
         > (&(amdDevice.CommandQueue), CblasNoTrans, CblasTrans, conv_out_channels_
-            / group_, kernel_dim_ / group_, conv_out_spatial_dim_, (Dtype) 1., output, top_offset_, (Dtype*) col_buff, col_offset_
-            * g, (Dtype) 1., (Dtype*) weights, weight_offset_ * g);
+            / group_, kernel_dim_ / group_, conv_out_spatial_dim_, (Dtype) 1., output, top_offset_ + output_offset_*g, (Dtype*) col_buff, is_1x1_*bottom_offset_ + col_offset_ * g, (Dtype) 1., (Dtype*) weights, weight_offset_ * g);
   }
 }
 

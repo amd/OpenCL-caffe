@@ -483,8 +483,8 @@ void caffe_gpu_gemm<double>(const CBLAS_TRANSPOSE TransA,
   int ldb = (TransB == CblasNoTrans) ? N : K;
   int ldc = N;
   CLBLAS_CHECK(
-      clblasDgemm(amdDevice.col, transB, transA, N, M, K, (cl_float) alpha,
-          (cl_mem) B, 0, ldb, (cl_mem) A, 0, lda, (cl_float) beta, (cl_mem) C,
+      clblasDgemm(amdDevice.col, transB, transA, N, M, K,  alpha,
+          (cl_mem) B, 0, ldb, (cl_mem) A, 0, lda,  beta, (cl_mem) C,
           0, ldc, 1, &(amdDevice.CommandQueue), 0, NULL, NULL));
 }
 
@@ -523,8 +523,8 @@ cl_event caffe_gpu_gemm<double>(const CBLAS_TRANSPOSE TransA,
   int ldb = (TransB == CblasNoTrans) ? N : K;
   int ldc = N;
   CLBLAS_CHECK(
-      clblasDgemm(amdDevice.col, transB, transA, N, M, K, (cl_float) alpha,
-          (cl_mem) B, offB, ldb, (cl_mem) A, offA, lda, (cl_float) beta,
+      clblasDgemm(amdDevice.col, transB, transA, N, M, K, alpha,
+          (cl_mem) B, offB, ldb, (cl_mem) A, offA, lda, beta,
           (cl_mem) C, offC, ldc, 1, &(amdDevice.CommandQueue), 0, NULL,
           &event));
   return event;
@@ -566,8 +566,8 @@ cl_event caffe_gpu_gemm<double>(cl_command_queue *queue,
   int ldb = (TransB == CblasNoTrans) ? N : K;
   int ldc = N;
   CLBLAS_CHECK(
-      clblasDgemm(amdDevice.col, transB, transA, N, M, K, (cl_float) alpha,
-          (cl_mem) B, offB, ldb, (cl_mem) A, offA, lda, (cl_float) beta,
+      clblasDgemm(amdDevice.col, transB, transA, N, M, K,  alpha,
+          (cl_mem) B, offB, ldb, (cl_mem) A, offA, lda, beta,
           (cl_mem) C, offC, ldc, 1, queue, 0, NULL, &event));
   return event;
 }
