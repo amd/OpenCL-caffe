@@ -1569,6 +1569,24 @@ template void caffe_gpu_add<double>(const int n, const double* in1,
     const double* in2, double* y);
 
 template <typename Dtype>
+void caffe_gpu_signbit(const int N, const Dtype* X, Dtype * Y) {
+  std::string kernel_name = "caffe_gpu_sgnbit" + get_dtype_suffix<Dtype>();
+  cl_kernel Kernel = amdDevice.GetKernel(kernel_name);
+  cl_int ret;
+  ret = clSetKernelArg(Kernel, 0, sizeof(cl_int), (void*) &N);
+  ret |= clSetKernelArg(Kernel, 1, sizeof(cl_mem), (void*) &X);
+  ret |= clSetKernelArg(Kernel, 2, sizeof(cl_mem), (void*) &Y);
+  OCL_CHECK(ret);
+  size_t Global_Work_Size[] = { (size_t) N };
+  size_t Local_Work_Size[] = { 256 };
+  OCL_CHECK(
+      clEnqueueNDRangeKernel(amdDevice.CommandQueue, Kernel, 1, NULL,
+          Global_Work_Size, Local_Work_Size, 0, NULL, NULL));
+}
+template void caffe_gpu_signbit<float>(const int N, const float* X, float * Y);
+template void caffe_gpu_signbit<double>(const int N, const double* X, double * Y);
+
+template <typename Dtype>
 void caffe_gpu_sign_ocl(const int N, const Dtype* X, Dtype * Y) {
   std::string kernel_name = "caffe_gpu_sign" + get_dtype_suffix<Dtype>();
   cl_kernel Kernel = amdDevice.GetKernel(kernel_name);

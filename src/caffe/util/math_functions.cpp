@@ -110,6 +110,7 @@ void caffe_set(const int N, const double alpha, double* Y) {
   }
 }
 
+/*
 template <>
 void caffe_copy<float>(const int N, const float* X, float* Y) {
   cblas_scopy(N, X, 1, Y, 1);
@@ -119,7 +120,7 @@ template <>
 void caffe_copy<double>(const int N, const double* X, double* Y) {
   cblas_dcopy(N, X, 1, Y, 1);
 }
-
+*/
 template <>
 void caffe_add_scalar(const int N, const float alpha, float* Y) {
   for (int i = 0; i < N; ++i) {
@@ -208,7 +209,7 @@ void caffe_set(const int N, const Dtype alpha, Dtype* Y) {
     return;
   }
   for (int i = 0; i < N; ++i) {
-    Y[i] = alpha;
+	    Y[i] = alpha;
   }
 }
 
@@ -226,23 +227,12 @@ void caffe_log<double>(const int n, const double* a, double* y) {
   vdLn(n, a, y);
 }
 
-
 template <typename Dtype>
 void caffe_copy(const int N, const Dtype* X, Dtype* Y) {
   if (X != Y) {
-    if (Caffe::mode() == Caffe::GPU) {
-#ifndef CPU_ONLY
-      // NOLINT_NEXT_LINE(caffe/alt_fn)
-     // caffe_gpu_copy(N, X, Y);
-#else
-      NO_GPU;
-#endif
-    } else {
       memcpy(Y, X, sizeof(Dtype) * N);  // NOLINT(caffe/alt_fn)
-    }
   }
 }
-
 
 template void caffe_copy<int>(const int N, const int* X, int* Y);
 template void caffe_copy<unsigned int>(const int N, const unsigned int* X,
@@ -387,7 +377,7 @@ void caffe_rng_bernoulli(const int n, const Dtype p, unsigned int* r) {
 
 template void caffe_rng_bernoulli<double>(const int n, const double p, unsigned int* r);
 template void caffe_rng_bernoulli<float>(const int n, const float p, unsigned int* r);
-//
+
 template <>
 float caffe_cpu_dot<float>(const int n, const float* x, const float* y) {
   return cblas_sdot(n, x, 1, y, 1);
@@ -641,12 +631,12 @@ void caffe_gpu_axpy<double>(const int N, const double alpha, const double* X,
 
 template <>
 void caffe_gpu_sgnbit<float>(const int n, const float* x, float* y) {
-  NOT_IMPLEMENTED;
+  caffe_gpu_signbit(n, x, y);
 }
 
 template <>
 void caffe_gpu_sgnbit<double>(const int n, const double* x, double* y) {
-  NOT_IMPLEMENTED;
+  caffe_gpu_signbit(n, x, y);
 }
 
 template <>
@@ -690,25 +680,6 @@ template void caffe_gpu_copy<double>(const int N, const double* X, double* Y);
 template void caffe_gpu_copy<int>(const int N, const int* X, int* Y);
 template void caffe_gpu_copy<unsigned int>(const int N, const unsigned int* X, unsigned int* Y);
 
-/*
-template <>
-void caffe_gpu_copy<float>(const int N, const float* X, float* Y) {
-  if (X != Y) {
-    CLBLAS_CHECK(
-        clblasScopy(N, (cl_mem) X, 0, 1, (cl_mem) Y, 0, 1, 1,
-            &(amdDevice.CommandQueue), 0, NULL, NULL));
-  }
-}
-
-template <>
-void caffe_gpu_copy<double>(const int N, const double* X, double* Y) {
-  if (X != Y) {
-    CLBLAS_CHECK(
-        clblasDcopy(N, (cl_mem) X, 0, 1, (cl_mem) Y, 0, 1, 1,
-            &(amdDevice.CommandQueue), 0, NULL, NULL));
-  }
-}
-*/
 template <>
 void caffe_gpu_copy<float>(const int N, const float* X, const int offx, float* Y, const int offy) {
   if (X != Y) {

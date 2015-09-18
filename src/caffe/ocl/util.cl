@@ -58,6 +58,17 @@ template __attribute__((mangled_name(caffe_gpu_sign_float))) __kernel void caffe
 template __attribute__((mangled_name(caffe_gpu_sign_double))) __kernel void caffe_gpu_sign(const int N, __global double* X, __global double* Y);
 
 template <class T>
+__kernel void caffe_gpu_sgnbit(const int N, __global T* X, __global T* Y) {
+  int gdx = get_global_id(0);
+  if(gdx < N) {
+    Y[gdx] =(X[gdx] < 0.0);
+  }
+}
+
+template __attribute__((mangled_name(caffe_gpu_sgnbit_float))) __kernel void caffe_gpu_sgnbit(const int N, __global float* X, __global float* Y);
+template __attribute__((mangled_name(caffe_gpu_sgnbit_double))) __kernel void caffe_gpu_sgnbit(const int N, __global double* X, __global double* Y);
+
+template <class T>
 __kernel void caffe_gpu_sign_with_offset(const int N, __global T* X, const int offx,  __global T* Y, const int offy) {
   X += offx;
   Y += offy;

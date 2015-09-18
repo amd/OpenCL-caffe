@@ -75,7 +75,7 @@ template <typename Dtype>
 void ConvolutionLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
     const vector<Blob<Dtype>*>& top) {
   if (use_packing_scheme && global_packing_N > 1)
-    Forward_gpu_opt2(bottom, top);
+    Forward_gpu_batched(bottom, top);
   else
     Forward_gpu_org(bottom, top);
 }
@@ -84,13 +84,13 @@ template <typename Dtype>
 void ConvolutionLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
     const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
   if (use_packing_scheme && global_packing_N > 1)
-    Backward_gpu_opt2(top, propagate_down, bottom);
+    Backward_gpu_batched(top, propagate_down, bottom);
   else
     Backward_gpu_org(top, propagate_down, bottom);
 }
 
 template <typename Dtype>
-void ConvolutionLayer<Dtype>::Forward_gpu_opt2(
+void ConvolutionLayer<Dtype>::Forward_gpu_batched(
     const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
   const Dtype* weight = this->blobs_[0]->gpu_data();
   for (int i = 0; i < bottom.size(); ++i) {
@@ -146,7 +146,7 @@ void ConvolutionLayer<Dtype>::Forward_gpu_org(
 }
 
 template <typename Dtype>
-void ConvolutionLayer<Dtype>::Backward_gpu_opt2(const vector<Blob<Dtype>*>& top,
+void ConvolutionLayer<Dtype>::Backward_gpu_batched(const vector<Blob<Dtype>*>& top,
     const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
   const Dtype* weight = this->blobs_[0]->gpu_data();
   Dtype* weight_diff = this->blobs_[0]->mutable_gpu_diff();

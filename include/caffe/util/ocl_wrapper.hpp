@@ -227,6 +227,9 @@ template <typename Dtype>
 void caffe_gpu_abs_ocl(const int N, const Dtype* X, Dtype * Y);
 
 template <typename Dtype>
+void caffe_gpu_signbit(const int N, const Dtype* X, Dtype * Y);
+
+template <typename Dtype>
 void caffe_gpu_sign_ocl(const int N, const Dtype* X, Dtype * Y);
 
 template <typename Dtype>

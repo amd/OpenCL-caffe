@@ -677,7 +677,7 @@ void NesterovSolver<Dtype>::ComputeUpdateValue(int param_id, Dtype rate) {
   case Caffe::GPU: {
 #ifndef CPU_ONLY
     // save history momentum for stepping back
-    caffe_copy(net_params[param_id]->count(),
+    caffe_gpu_copy(net_params[param_id]->count(),
         this->history_[param_id]->gpu_data(),
         this->update_[param_id]->mutable_gpu_data());
 
