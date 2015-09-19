@@ -47,7 +47,7 @@ __kernel void im2col_opt(const int n, __global T* data_im, const int channels, c
       int x_im = x_in + k_w;
       int y_im = y_in + k_h;
       int index_im = y_im * width + x_im;
-      int index_col = (k_h * kernel_h + k_w) * optnum * height_col * width_col + y_out * width_col + x_out;
+      int index_col = (k_h * kernel_w + k_w) * optnum * height_col * width_col + y_out * width_col + x_out;
       if(y_im >= 0 && y_im < height && x_im >= 0 && x_im < width)
       data_col[offset_col + index_col] = data_im[offset_im + index_im];
       else
@@ -168,7 +168,7 @@ const int kernel_h, const int kernel_w, const int pad_h, const int pad_w,
     int h_col_end = min(h / stride_h + 1, height_col);
     // equivalent implementation
     int offset = (c * kernel_h * kernel_w + h * kernel_w + w) * height_col * width_col * optnum + im * height_col * width_col;
-    int coeff_h_col = (1 - stride_h * kernel_h * height_col * optnum) * width_col;
+    int coeff_h_col = (1 - stride_h * kernel_w * height_col * optnum) * width_col;
     int coeff_w_col = (1 - stride_w * height_col * width_col * optnum);
     for (int h_col = h_col_start; h_col < h_col_end; ++h_col) {
       for (int w_col = w_col_start; w_col < w_col_end; ++w_col) {
