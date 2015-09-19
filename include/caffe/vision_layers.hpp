@@ -117,12 +117,14 @@ class BaseConvolutionLayer: public Layer<Dtype> {
   protected:
     inline void conv_im2col_gpu_opt(const Dtype* data) {
       im2col_gpu_opt(data, bottom_offset_, conv_in_channels_, conv_in_height_,
-          conv_in_width_, kernel_w_, pad_w_, stride_h_, (Dtype*) transMem, 0,
+          conv_in_width_, kernel_h_, kernel_w_, pad_h_, pad_w_, stride_h_,
+          stride_w_, (Dtype*) transMem, 0,
           opt_num2);
     }
     inline void conv_col2im_gpu_opt(Dtype* data) {
       col2im_gpu_opt((Dtype*) transMem, 0, conv_in_channels_, conv_in_height_,
-          conv_in_width_, kernel_h_, pad_h_, stride_w_, data, bottom_offset_,
+          conv_in_width_, kernel_h_, kernel_w_, pad_h_, pad_w_, stride_h_,
+          stride_w_, data, bottom_offset_,
           opt_num2);
     }
   private:
