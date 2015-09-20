@@ -74,19 +74,19 @@ void ConvolutionLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
 template <typename Dtype>
 void ConvolutionLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
     const vector<Blob<Dtype>*>& top) {
-  //if (!this->is_1x1_ && use_packing_scheme && global_packing_N > 1)
-    //Forward_gpu_batched(bottom, top);
-  //else
+  if (!this->is_1x1_ && use_packing_scheme && global_packing_N > 1)
+    Forward_gpu_batched(bottom, top);
+  else
     Forward_gpu_org(bottom, top);
 }
 
 template <typename Dtype>
 void ConvolutionLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
     const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
-  //if (!this->is_1x1_ && use_packing_scheme && global_packing_N > 1)
+  if (!this->is_1x1_ && use_packing_scheme && global_packing_N > 1)
     Backward_gpu_batched(top, propagate_down, bottom);
-  //else
-    //Backward_gpu_org(top, propagate_down, bottom);
+  else
+    Backward_gpu_org(top, propagate_down, bottom);
 }
 
 template <typename Dtype>
