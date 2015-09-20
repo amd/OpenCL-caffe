@@ -53,6 +53,8 @@ Junli Gu, Yibing Liu, Yuan Gao, Maohua Zhu
 
 We thank Mauricio Breternitz, Hanjin Chu and Greg Stoner for their technical suggestions and support. 
 
+If you have any questions, please send an email to Junli.Gu@amd.com 
+
 #Support needed
  As an open source project, we hope to maintain an open dynamics and sharing culture. We encourage the contribution and support from the community to improve it together.
 
