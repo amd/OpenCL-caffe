@@ -113,7 +113,7 @@ void col2im_gpu_opt(const Dtype* data_col, const int col_offset,
   cl_kernel Kernel = amdDevice.GetKernel(kernel_name);
   int height_col = (height + 2 * pad_h - kernel_h) / stride_h + 1;
   int width_col = (width + 2 * pad_w - kernel_w) / stride_w + 1;
-  int num_kernels = channels * height * width;
+  int num_kernels = channels * height * width * optnum;
 
   cl_int ret;
   ret = clSetKernelArg(Kernel, 0, sizeof(cl_int), (void*) &num_kernels);

@@ -74,19 +74,19 @@ void ConvolutionLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
 template <typename Dtype>
 void ConvolutionLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
     const vector<Blob<Dtype>*>& top) {
-  if (!this->is_1x1_ && use_packing_scheme && global_packing_N > 1)
-    Forward_gpu_batched(bottom, top);
-  else
+  //if (!this->is_1x1_ && use_packing_scheme && global_packing_N > 1)
+    //Forward_gpu_batched(bottom, top);
+  //else
     Forward_gpu_org(bottom, top);
 }
 
 template <typename Dtype>
 void ConvolutionLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
     const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
-  if (!this->is_1x1_ && use_packing_scheme && global_packing_N > 1)
+  //if (!this->is_1x1_ && use_packing_scheme && global_packing_N > 1)
     Backward_gpu_batched(top, propagate_down, bottom);
-  else
-    Backward_gpu_org(top, propagate_down, bottom);
+  //else
+    //Backward_gpu_org(top, propagate_down, bottom);
 }
 
 template <typename Dtype>
@@ -132,6 +132,7 @@ void ConvolutionLayer<Dtype>::Forward_gpu_org(
       //two intermediate variables to pass offset
       this->bottom_offset_ = bottom[i]->offset(n);
       this->top_offset_ = top[i]->offset(n);
+      this->col_offset_ = this->K_ * this->N_;
       this->forward_gpu_gemm(bottom_data, weight, top_data);
 
       if (this->bias_term_) {
@@ -156,7 +157,6 @@ void ConvolutionLayer<Dtype>::Backward_gpu_batched(const vector<Blob<Dtype>*>& t
     // Bias gradient, if necessary.
     if (this->bias_term_ && this->param_propagate_down_[1]) {
       Dtype* bias_diff = this->blobs_[1]->mutable_gpu_diff();
-      ocl_memset(bias_diff, (Dtype)(0.), this->blobs_[1]->count());
       for (int n = 0; n < this->num_; ++n) {
         this->top_offset_ = top[i]->offset(n);
         this->backward_gpu_bias(bias_diff, top_diff);
@@ -186,7 +186,6 @@ void ConvolutionLayer<Dtype>::Backward_gpu_batched(const vector<Blob<Dtype>*>& t
       }
     }
   }
-
 }
 template <typename Dtype>
 void ConvolutionLayer<Dtype>::Backward_gpu_org(const vector<Blob<Dtype>*>& top,
@@ -203,6 +202,7 @@ void ConvolutionLayer<Dtype>::Backward_gpu_org(const vector<Blob<Dtype>*>& top,
         //
         this->top_offset_ = top[i]->offset(n);
         this->bottom_offset_ = bottom[i]->offset(n);
+        this->col_offset_ = this->K_ * this->N_;
         this->backward_gpu_bias(bias_diff, top_diff);
       }
     }
