@@ -1,0 +1,26 @@
+if(CPU_ONLY)
+  return()
+endif()
+
+#find_path(OCL_INCLUDE_DIR  NAMES  CL/cl.h PATHS "$ENV{AMDAPPSDKROOT}/include")
+#find_library(OCL_LIBRARIES NAMES libOpenCL.so PATHS "$ENV{AMDAPPSDKROOT}/lib/x86_64")
+
+#find_path(CLBLAS_INCLUDE_DIR  NAMES clBLAS.h     PATHS /opt/clBLAS-2.1/include  $ENV{C_INCLUDE_PATH} $ENV{CPLUS_INCLUDE_PATH})
+#find_library(CLBLAS_LIBRARIES NAMES libclBLAS.so PATHS $ENV{LD_LIBRARY_PATH})
+
+#if(OCL_INCLUDE_DIR AND OCL_LIBRARIES)
+#    set(OCL_FOUND  TRUE PARENT_SCOPE)
+#    message(STATUS "Found OpenCL (include: ${OCL_INCLUDE_DIR}, library: ${OCL_LIBRARIES})")
+#endif()
+
+#if(CLBLAS_INCLUDE_DIR AND CLBLAS_LIBRARIES)
+#    set(CLBLAS_FOUND  TRUE PARENT_SCOPE)
+#endif()
+
+#set(OCL_INCLUDE_DIR /opt/AMDAPPSDK-2.9-1/include)
+#set(OCL_LIBRARIES /opt/AMDAPPSDK-2.9-1/lib/x86_64/libOpenCL.so)
+set(CLBLAS_INCLUDE_DIR /opt/clBLAS-2.1/include)
+set(CLBLAS_LIBRARIES /opt/clBLAS-2.1/lib64/libclBLAS.so)
+
+
+

@@ -23,7 +23,7 @@ DataLayer<Dtype>::~DataLayer<Dtype>() {
 
 template <typename Dtype>
 void DataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top) {
+    const vector<Blob<Dtype>*>& top) {
   // Initialize DB
   db_.reset(db::GetDB(this->layer_param_.data_param().backend()));
   db_->Open(this->layer_param_.data_param().source(), db::READ);
@@ -31,8 +31,8 @@ void DataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& bottom,
 
   // Check if we should randomly skip a few data points
   if (this->layer_param_.data_param().rand_skip()) {
-    unsigned int skip = caffe_rng_rand() %
-                        this->layer_param_.data_param().rand_skip();
+    unsigned int skip = caffe_rng_rand()
+        % this->layer_param_.data_param().rand_skip();
     LOG(INFO) << "Skipping first " << skip << " data points.";
     while (skip-- > 0) {
       cursor_->Next();
@@ -48,6 +48,7 @@ void DataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& bottom,
   top_shape[0] = this->layer_param_.data_param().batch_size();
   this->prefetch_data_.Reshape(top_shape);
   top[0]->ReshapeLike(this->prefetch_data_);
+  this->prefetch_data_.set_data_layer();
 
   LOG(INFO) << "output data size: " << top[0]->num() << ","
       << top[0]->channels() << "," << top[0]->height() << ","
@@ -57,6 +58,7 @@ void DataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& bottom,
     vector<int> label_shape(1, this->layer_param_.data_param().batch_size());
     top[1]->Reshape(label_shape);
     this->prefetch_label_.Reshape(label_shape);
+    this->prefetch_label_.set_data_layer();
   }
 }
 
@@ -120,7 +122,7 @@ void DataLayer<Dtype>::InternalThreadEntry() {
   DLOG(INFO) << "Transform time: " << trans_time / 1000 << " ms.";
 }
 
-INSTANTIATE_CLASS(DataLayer);
-REGISTER_LAYER_CLASS(Data);
+INSTANTIATE_CLASS (DataLayer);
+REGISTER_LAYER_CLASS (Data);
 
 }  // namespace caffe

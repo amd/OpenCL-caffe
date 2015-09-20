@@ -9,17 +9,19 @@ namespace caffe {
 
 template <typename Dtype>
 void EltwiseLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top) {
-  CHECK(this->layer_param().eltwise_param().coeff_size() == 0
-      || this->layer_param().eltwise_param().coeff_size() == bottom.size()) <<
-      "Eltwise Layer takes one coefficient per bottom blob.";
-  CHECK(!(this->layer_param().eltwise_param().operation()
-      == EltwiseParameter_EltwiseOp_PROD
-      && this->layer_param().eltwise_param().coeff_size())) <<
-      "Eltwise layer only takes coefficients for summation.";
+    const vector<Blob<Dtype>*>& top) {
+  CHECK(
+      this->layer_param().eltwise_param().coeff_size() == 0
+          || this->layer_param().eltwise_param().coeff_size() == bottom.size())
+      << "Eltwise Layer takes one coefficient per bottom blob.";
+  CHECK(
+      !(this->layer_param().eltwise_param().operation()
+          == EltwiseParameter_EltwiseOp_PROD
+          && this->layer_param().eltwise_param().coeff_size()))
+      << "Eltwise layer only takes coefficients for summation.";
   op_ = this->layer_param_.eltwise_param().operation();
   // Blob-wise coefficients for the elementwise operation.
-  coeffs_ = vector<Dtype>(bottom.size(), 1);
+  coeffs_ = vector < Dtype > (bottom.size(), 1);
   if (this->layer_param().eltwise_param().coeff_size()) {
     for (int i = 0; i < bottom.size(); ++i) {
       coeffs_[i] = this->layer_param().eltwise_param().coeff(i);
@@ -30,21 +32,21 @@ void EltwiseLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
 
 template <typename Dtype>
 void EltwiseLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top) {
+    const vector<Blob<Dtype>*>& top) {
   for (int i = 1; i < bottom.size(); ++i) {
     CHECK(bottom[i]->shape() == bottom[0]->shape());
   }
   top[0]->ReshapeLike(*bottom[0]);
   // If max operation, we will initialize the vector index part.
-  if (this->layer_param_.eltwise_param().operation() ==
-      EltwiseParameter_EltwiseOp_MAX && top.size() == 1) {
+  if (this->layer_param_.eltwise_param().operation()
+      == EltwiseParameter_EltwiseOp_MAX && top.size() == 1) {
     max_idx_.Reshape(bottom[0]->shape());
   }
 }
 
 template <typename Dtype>
-void EltwiseLayer<Dtype>::Forward_cpu(
-    const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
+void EltwiseLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
+    const vector<Blob<Dtype>*>& top) {
   int* mask = NULL;
   const Dtype* bottom_data_a = NULL;
   const Dtype* bottom_data_b = NULL;
@@ -113,13 +115,14 @@ void EltwiseLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
         if (stable_prod_grad_) {
           bool initialized = false;
           for (int j = 0; j < bottom.size(); ++j) {
-            if (i == j) { continue; }
+            if (i == j) {
+              continue;
+            }
             if (!initialized) {
               caffe_copy(count, bottom[j]->cpu_data(), bottom_diff);
               initialized = true;
             } else {
-              caffe_mul(count, bottom[j]->cpu_data(), bottom_diff,
-                        bottom_diff);
+              caffe_mul(count, bottom[j]->cpu_data(), bottom_diff, bottom_diff);
             }
           }
         } else {
@@ -151,11 +154,100 @@ void EltwiseLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
   }
 }
 
-#ifdef CPU_ONLY
+// begin: code modified for OpenCL port
+#ifndef CPU_ONLY
+template <typename Dtype>
+void EltwiseLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
+    const vector<Blob<Dtype>*>& top) {
+  int* mask = NULL;
+  const int count = top[0]->count();
+  Dtype* top_data = top[0]->mutable_gpu_data();
+  switch (op_) {
+  case EltwiseParameter_EltwiseOp_PROD:
+    caffe_gpu_mul(count, bottom[0]->gpu_data(), bottom[1]->gpu_data(),
+        top_data);
+    for (int i = 2; i < bottom.size(); ++i) {
+      caffe_gpu_mul(count, top_data, bottom[i]->gpu_data(), top_data);
+    }
+    break;
+  case EltwiseParameter_EltwiseOp_SUM:
+    caffe_gpu_set(count, Dtype(0.), top_data);
+    // TODO(shelhamer) does cuBLAS optimize to sum for coeff = 1?
+    for (int i = 0; i < bottom.size(); ++i) {
+      caffe_gpu_axpy(count, coeffs_[i], bottom[i]->gpu_data(), top_data);
+    }
+    break;
+  case EltwiseParameter_EltwiseOp_MAX:
+    mask = max_idx_.mutable_gpu_data();
+    // NOLINT_NEXT_LINE(whitespace/operators)
+    MaxForward(count, bottom[0]->gpu_data(), bottom[1]->gpu_data(), 0, top_data,
+        mask);
+    for (int i = 2; i < bottom.size(); ++i) {
+      // NOLINT_NEXT_LINE(whitespace/operators)
+      MaxForward(count, top_data, bottom[i]->gpu_data(), i - 1, top_data, mask);
+    }
+    break;
+  default:
+    LOG(FATAL) << "Unknown elementwise operation.";
+  }
+}
+
+template <typename Dtype>
+void EltwiseLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
+    const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
+  const int* mask = NULL;
+  const int count = top[0]->count();
+  const Dtype* top_data = top[0]->gpu_data();
+  const Dtype* top_diff = top[0]->gpu_diff();
+  for (int i = 0; i < bottom.size(); ++i) {
+    if (propagate_down[i]) {
+      const Dtype* bottom_data = bottom[i]->gpu_data();
+      Dtype* bottom_diff = bottom[i]->mutable_gpu_diff();
+      switch (op_) {
+      case EltwiseParameter_EltwiseOp_PROD:
+        if (stable_prod_grad_) {
+          bool initialized = false;
+          for (int j = 0; j < bottom.size(); ++j) {
+            if (i == j) {
+              continue;
+            }
+            if (!initialized) {
+              caffe_gpu_copy(count, bottom[j]->gpu_data(), bottom_diff);
+              initialized = true;
+            } else {
+              caffe_gpu_mul(count, bottom[j]->gpu_data(), bottom_diff,
+                  bottom_diff);
+            }
+          }
+        } else {
+          caffe_gpu_div(count, top_data, bottom_data, bottom_diff);
+        }
+        caffe_gpu_mul(count, bottom_diff, top_diff, bottom_diff);
+        break;
+      case EltwiseParameter_EltwiseOp_SUM:
+        if (coeffs_[i] == Dtype(1.)) {
+          caffe_gpu_copy(count, top_diff, bottom_diff);
+        } else {
+          caffe_gpu_scale(count, coeffs_[i], top_diff, bottom_diff);
+        }
+        break;
+      case EltwiseParameter_EltwiseOp_MAX:
+        mask = max_idx_.gpu_data();
+        MaxBackward(count, top_diff, i, mask, bottom_diff);
+        break;
+      default:
+        LOG(FATAL) << "Unknown elementwise operation.";
+      }
+    }
+  }
+}
+// end: code modified for OpenCL port
+
+#else
 STUB_GPU(EltwiseLayer);
 #endif
 
-INSTANTIATE_CLASS(EltwiseLayer);
-REGISTER_LAYER_CLASS(Eltwise);
+INSTANTIATE_CLASS (EltwiseLayer);
+REGISTER_LAYER_CLASS (Eltwise);
 
 }  // namespace caffe

@@ -55,22 +55,20 @@ void Blob<Dtype>::ReshapeLike(const Blob<Dtype>& other) {
 template <typename Dtype>
 Blob<Dtype>::Blob(const int num, const int channels, const int height,
     const int width)
-  // capacity_ must be initialized before calling Reshape
-  : capacity_(0) {
+    : capacity_(0) {
   Reshape(num, channels, height, width);
 }
 
 template <typename Dtype>
 Blob<Dtype>::Blob(const vector<int>& shape)
-  // capacity_ must be initialized before calling Reshape
-  : capacity_(0) {
+    : capacity_(0) {
   Reshape(shape);
 }
 
 template <typename Dtype>
 const Dtype* Blob<Dtype>::cpu_data() const {
-  CHECK(data_);
-  return (const Dtype*)data_->cpu_data();
+  CHECK (data_);
+  return (const Dtype*) data_->cpu_data();
 }
 
 template <typename Dtype>
@@ -81,43 +79,49 @@ void Blob<Dtype>::set_cpu_data(Dtype* data) {
 
 template <typename Dtype>
 const Dtype* Blob<Dtype>::gpu_data() const {
-  CHECK(data_);
-  return (const Dtype*)data_->gpu_data();
+  CHECK (data_);
+  return (const Dtype*) data_->gpu_data();
+}
+
+template <typename Dtype>
+const Dtype* Blob<Dtype>::gpu_cache_data() const {
+  CHECK (data_);
+  return (const Dtype*) data_->gpu_cache_data();
 }
 
 template <typename Dtype>
 const Dtype* Blob<Dtype>::cpu_diff() const {
-  CHECK(diff_);
-  return (const Dtype*)diff_->cpu_data();
+  CHECK (diff_);
+  return (const Dtype*) diff_->cpu_data();
 }
 
 template <typename Dtype>
 const Dtype* Blob<Dtype>::gpu_diff() const {
-  CHECK(diff_);
-  return (const Dtype*)diff_->gpu_data();
+  CHECK (diff_);
+  return (const Dtype*) diff_->gpu_data();
 }
 
 template <typename Dtype>
 Dtype* Blob<Dtype>::mutable_cpu_data() {
-  CHECK(data_);
+  CHECK (data_);
   return static_cast<Dtype*>(data_->mutable_cpu_data());
 }
 
 template <typename Dtype>
 Dtype* Blob<Dtype>::mutable_gpu_data() {
-  CHECK(data_);
+  CHECK (data_);
   return static_cast<Dtype*>(data_->mutable_gpu_data());
 }
 
 template <typename Dtype>
 Dtype* Blob<Dtype>::mutable_cpu_diff() {
-  CHECK(diff_);
+  CHECK (diff_);
   return static_cast<Dtype*>(diff_->mutable_cpu_data());
 }
 
 template <typename Dtype>
 Dtype* Blob<Dtype>::mutable_gpu_diff() {
-  CHECK(diff_);
+  CHECK (diff_);
   return static_cast<Dtype*>(diff_->mutable_gpu_data());
 }
 
@@ -136,8 +140,12 @@ void Blob<Dtype>::ShareDiff(const Blob& other) {
 // The "update" method is used for parameter blobs in a Net, which are stored
 // as Blob<float> or Blob<double> -- hence we do not define it for
 // Blob<int> or Blob<unsigned int>.
-template <> void Blob<unsigned int>::Update() { NOT_IMPLEMENTED; }
-template <> void Blob<int>::Update() { NOT_IMPLEMENTED; }
+template <> void Blob<unsigned int>::Update() {
+  NOT_IMPLEMENTED;
+}
+template <> void Blob<int>::Update() {
+  NOT_IMPLEMENTED;
+}
 
 template <typename Dtype>
 void Blob<Dtype>::Update() {
@@ -145,17 +153,15 @@ void Blob<Dtype>::Update() {
   switch (data_->head()) {
   case SyncedMemory::HEAD_AT_CPU:
     // perform computation on CPU
-    caffe_axpy<Dtype>(count_, Dtype(-1),
-        static_cast<const Dtype*>(diff_->cpu_data()),
-        static_cast<Dtype*>(data_->mutable_cpu_data()));
+    caffe_axpy < Dtype
+        > (count_, Dtype(-1), static_cast<const Dtype*>(diff_->cpu_data()), static_cast<Dtype*>(data_->mutable_cpu_data()));
     break;
   case SyncedMemory::HEAD_AT_GPU:
   case SyncedMemory::SYNCED:
 #ifndef CPU_ONLY
     // perform computation on GPU
-    caffe_gpu_axpy<Dtype>(count_, Dtype(-1),
-        static_cast<const Dtype*>(diff_->gpu_data()),
-        static_cast<Dtype*>(data_->mutable_gpu_data()));
+    caffe_gpu_axpy < Dtype
+        > (count_, Dtype(-1), static_cast<const Dtype*>(diff_->gpu_data()), static_cast<Dtype*>(data_->mutable_gpu_data()));
 #else
     NO_GPU;
 #endif
@@ -177,7 +183,9 @@ template <> int Blob<int>::asum_data() const {
 
 template <typename Dtype>
 Dtype Blob<Dtype>::asum_data() const {
-  if (!data_) { return 0; }
+  if (!data_) {
+    return 0;
+  }
   switch (data_->head()) {
   case SyncedMemory::HEAD_AT_CPU:
     return caffe_cpu_asum(count_, cpu_data());
@@ -212,7 +220,9 @@ template <> int Blob<int>::asum_diff() const {
 
 template <typename Dtype>
 Dtype Blob<Dtype>::asum_diff() const {
-  if (!diff_) { return 0; }
+  if (!diff_) {
+    return 0;
+  }
   switch (diff_->head()) {
   case SyncedMemory::HEAD_AT_CPU:
     return caffe_cpu_asum(count_, cpu_diff());
@@ -249,7 +259,9 @@ template <typename Dtype>
 Dtype Blob<Dtype>::sumsq_data() const {
   Dtype sumsq;
   const Dtype* data;
-  if (!data_) { return 0; }
+  if (!data_) {
+    return 0;
+  }
   switch (data_->head()) {
   case SyncedMemory::HEAD_AT_CPU:
     data = cpu_data();
@@ -286,7 +298,9 @@ template <typename Dtype>
 Dtype Blob<Dtype>::sumsq_diff() const {
   Dtype sumsq;
   const Dtype* diff;
-  if (!diff_) { return 0; }
+  if (!diff_) {
+    return 0;
+  }
   switch (diff_->head()) {
   case SyncedMemory::HEAD_AT_CPU:
     diff = cpu_diff();
@@ -320,7 +334,9 @@ template <> void Blob<int>::scale_data(int scale_factor) {
 template <typename Dtype>
 void Blob<Dtype>::scale_data(Dtype scale_factor) {
   Dtype* data;
-  if (!data_) { return; }
+  if (!data_) {
+    return;
+  }
   switch (data_->head()) {
   case SyncedMemory::HEAD_AT_CPU:
     data = mutable_cpu_data();
@@ -353,7 +369,9 @@ template <> void Blob<int>::scale_diff(int scale_factor) {
 template <typename Dtype>
 void Blob<Dtype>::scale_diff(Dtype scale_factor) {
   Dtype* diff;
-  if (!diff_) { return; }
+  if (!diff_) {
+    return;
+  }
   switch (diff_->head()) {
   case SyncedMemory::HEAD_AT_CPU:
     diff = mutable_cpu_diff();
@@ -377,19 +395,17 @@ void Blob<Dtype>::scale_diff(Dtype scale_factor) {
 
 template <typename Dtype>
 bool Blob<Dtype>::ShapeEquals(const BlobProto& other) {
-  if (other.has_num() || other.has_channels() ||
-      other.has_height() || other.has_width()) {
+  if (other.has_num() || other.has_channels() || other.has_height()
+      || other.has_width()) {
     // Using deprecated 4D Blob dimensions --
     // shape is (num, channels, height, width).
     // Note: we do not use the normal Blob::num(), Blob::channels(), etc.
     // methods as these index from the beginning of the blob shape, where legacy
     // parameter blobs were indexed from the end of the blob shape (e.g., bias
     // Blob shape (1 x 1 x 1 x N), IP layer weight Blob shape (1 x 1 x M x N)).
-    return shape_.size() <= 4 &&
-           LegacyShape(-4) == other.num() &&
-           LegacyShape(-3) == other.channels() &&
-           LegacyShape(-2) == other.height() &&
-           LegacyShape(-1) == other.width();
+    return shape_.size() <= 4 && LegacyShape(-4) == other.num()
+        && LegacyShape(-3) == other.channels()
+        && LegacyShape(-2) == other.height() && LegacyShape(-1) == other.width();
   }
   vector<int> other_shape(other.shape().dim_size());
   for (int i = 0; i < other.shape().dim_size(); ++i) {
@@ -410,10 +426,10 @@ void Blob<Dtype>::CopyFrom(const Blob& source, bool copy_diff, bool reshape) {
   switch (Caffe::mode()) {
   case Caffe::GPU:
     if (copy_diff) {
-      caffe_copy(count_, source.gpu_diff(),
+      caffe_gpu_copy(count_, source.gpu_diff(),
           static_cast<Dtype*>(diff_->mutable_gpu_data()));
     } else {
-      caffe_copy(count_, source.gpu_data(),
+      caffe_gpu_copy(count_, source.gpu_data(),
           static_cast<Dtype*>(data_->mutable_gpu_data()));
     }
     break;
@@ -435,8 +451,8 @@ template <typename Dtype>
 void Blob<Dtype>::FromProto(const BlobProto& proto, bool reshape) {
   if (reshape) {
     vector<int> shape;
-    if (proto.has_num() || proto.has_channels() ||
-        proto.has_height() || proto.has_width()) {
+    if (proto.has_num() || proto.has_channels() || proto.has_height()
+        || proto.has_width()) {
       // Using deprecated 4D Blob dimensions --
       // shape is (num, channels, height, width).
       shape.resize(4);
@@ -487,9 +503,9 @@ void Blob<Dtype>::ToProto(BlobProto* proto, bool write_diff) const {
   }
 }
 
-INSTANTIATE_CLASS(Blob);
-template class Blob<int>;
-template class Blob<unsigned int>;
+INSTANTIATE_CLASS (Blob);
+template class Blob<int> ;
+template class Blob<unsigned int> ;
 
 }  // namespace caffe
 

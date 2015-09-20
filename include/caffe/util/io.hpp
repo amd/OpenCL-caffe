@@ -38,8 +38,8 @@ inline void MakeTempDir(string* temp_dirname) {
   // NOLINT_NEXT_LINE(runtime/printf)
   strcpy(temp_dirname_cstr, temp_dirname->c_str());
   char* mkdtemp_result = mkdtemp(temp_dirname_cstr);
-  CHECK(mkdtemp_result != NULL)
-      << "Failed to create a temporary directory at: " << *temp_dirname;
+  CHECK(mkdtemp_result != NULL) << "Failed to create a temporary directory at: "
+      << *temp_dirname;
   *temp_dirname = temp_dirname_cstr;
   delete[] temp_dirname_cstr;
 }
@@ -74,14 +74,13 @@ inline void ReadProtoFromBinaryFileOrDie(const char* filename, Message* proto) {
 }
 
 inline void ReadProtoFromBinaryFileOrDie(const string& filename,
-                                         Message* proto) {
+    Message* proto) {
   ReadProtoFromBinaryFileOrDie(filename.c_str(), proto);
 }
 
-
 void WriteProtoToBinaryFile(const Message& proto, const char* filename);
-inline void WriteProtoToBinaryFile(
-    const Message& proto, const string& filename) {
+inline void WriteProtoToBinaryFile(const Message& proto,
+    const string& filename) {
   WriteProtoToBinaryFile(proto, filename.c_str());
 }
 
@@ -91,14 +90,13 @@ inline bool ReadFileToDatum(const string& filename, Datum* datum) {
   return ReadFileToDatum(filename, -1, datum);
 }
 
-bool ReadImageToDatum(const string& filename, const int label,
-    const int height, const int width, const bool is_color,
-    const std::string & encoding, Datum* datum);
+bool ReadImageToDatum(const string& filename, const int label, const int height,
+    const int width, const bool is_color, const std::string & encoding,
+    Datum* datum);
 
 inline bool ReadImageToDatum(const string& filename, const int label,
     const int height, const int width, const bool is_color, Datum* datum) {
-  return ReadImageToDatum(filename, label, height, width, is_color,
-                          "", datum);
+  return ReadImageToDatum(filename, label, height, width, is_color, "", datum);
 }
 
 inline bool ReadImageToDatum(const string& filename, const int label,
@@ -124,14 +122,13 @@ inline bool ReadImageToDatum(const string& filename, const int label,
 bool DecodeDatumNative(Datum* datum);
 bool DecodeDatum(Datum* datum, bool is_color);
 
-cv::Mat ReadImageToCVMat(const string& filename,
-    const int height, const int width, const bool is_color);
+cv::Mat ReadImageToCVMat(const string& filename, const int height,
+    const int width, const bool is_color);
 
-cv::Mat ReadImageToCVMat(const string& filename,
-    const int height, const int width);
+cv::Mat ReadImageToCVMat(const string& filename, const int height,
+    const int width);
 
-cv::Mat ReadImageToCVMat(const string& filename,
-    const bool is_color);
+cv::Mat ReadImageToCVMat(const string& filename, const bool is_color);
 
 cv::Mat ReadImageToCVMat(const string& filename);
 
@@ -141,18 +138,16 @@ cv::Mat DecodeDatumToCVMat(const Datum& datum, bool is_color);
 void CVMatToDatum(const cv::Mat& cv_img, Datum* datum);
 
 template <typename Dtype>
-void hdf5_load_nd_dataset_helper(
-    hid_t file_id, const char* dataset_name_, int min_dim, int max_dim,
-    Blob<Dtype>* blob);
+void hdf5_load_nd_dataset_helper(hid_t file_id, const char* dataset_name_,
+    int min_dim, int max_dim, Blob<Dtype>* blob);
 
 template <typename Dtype>
-void hdf5_load_nd_dataset(
-    hid_t file_id, const char* dataset_name_, int min_dim, int max_dim,
-    Blob<Dtype>* blob);
+void hdf5_load_nd_dataset(hid_t file_id, const char* dataset_name_, int min_dim,
+    int max_dim, Blob<Dtype>* blob);
 
 template <typename Dtype>
-void hdf5_save_nd_dataset(
-    const hid_t file_id, const string& dataset_name, const Blob<Dtype>& blob);
+void hdf5_save_nd_dataset(const hid_t file_id, const string& dataset_name,
+    const Blob<Dtype>& blob);
 
 }  // namespace caffe
 

@@ -11,7 +11,6 @@ bool InternalThread::is_started() const {
   return thread_.get() != NULL && thread_->joinable();
 }
 
-
 bool InternalThread::StartInternalThread() {
   if (!WaitForInternalThreadToExit()) {
     return false;

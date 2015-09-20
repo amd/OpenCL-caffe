@@ -3,18 +3,18 @@
 
 #include "caffe/data_layers.hpp"
 #include "caffe/util/io.hpp"
+#include "caffe/util/benchmark.hpp"
 
 namespace caffe {
 
 template <typename Dtype>
 BaseDataLayer<Dtype>::BaseDataLayer(const LayerParameter& param)
-    : Layer<Dtype>(param),
-      transform_param_(param.transform_param()) {
+    : Layer<Dtype>(param), transform_param_(param.transform_param()) {
 }
 
 template <typename Dtype>
 void BaseDataLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top) {
+    const vector<Blob<Dtype>*>& top) {
   if (top.size() == 1) {
     output_labels_ = false;
   } else {
@@ -30,7 +30,7 @@ void BaseDataLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
 template <typename Dtype>
 void BasePrefetchingDataLayer<Dtype>::LayerSetUp(
     const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
-  BaseDataLayer<Dtype>::LayerSetUp(bottom, top);
+  BaseDataLayer < Dtype > ::LayerSetUp(bottom, top);
   // Now, start the prefetch thread. Before calling prefetch, we make two
   // cpu_data calls so that the prefetch thread does not accidentally make
   // simultaneous cudaMalloc calls when the main thread is running. In some
@@ -60,30 +60,62 @@ void BasePrefetchingDataLayer<Dtype>::Forward_cpu(
     const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
   // First, join the thread
   JoinPrefetchThread();
+
   DLOG(INFO) << "Thread joined";
   // Reshape to loaded data.
   top[0]->ReshapeLike(prefetch_data_);
   // Copy the data
   caffe_copy(prefetch_data_.count(), prefetch_data_.cpu_data(),
-             top[0]->mutable_cpu_data());
+      top[0]->mutable_cpu_data());
   DLOG(INFO) << "Prefetch copied";
   if (this->output_labels_) {
     // Reshape to loaded labels.
     top[1]->ReshapeLike(prefetch_label_);
     // Copy the labels.
     caffe_copy(prefetch_label_.count(), prefetch_label_.cpu_data(),
-               top[1]->mutable_cpu_data());
+        top[1]->mutable_cpu_data());
   }
   // Start a new prefetch thread
   DLOG(INFO) << "CreatePrefetchThread";
   CreatePrefetchThread();
 }
 
-#ifdef CPU_ONLY
+#ifndef CPU_ONLY
+
+template <typename Dtype>
+void BasePrefetchingDataLayer<Dtype>::Forward_gpu(
+    const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
+
+  JoinPrefetchThread();
+  DLOG(INFO) << "Thread joined";
+
+  top[0]->ReshapeLike(this->prefetch_data_);
+  OCL_CHECK(
+      clEnqueueWriteBuffer(amdDevice.CommandQueue,
+          (cl_mem) top[0]->mutable_gpu_data(), CL_TRUE, 0,
+          sizeof(Dtype) * prefetch_data_.count(), prefetch_data_.cpu_data(), 0,
+          NULL, NULL));
+  DLOG(INFO) << "Prefetch copied";
+  if (this->output_labels_) {
+    // Reshape to loaded labels.
+    top[1]->ReshapeLike(prefetch_label_);
+    OCL_CHECK(
+        clEnqueueWriteBuffer(amdDevice.CommandQueue,
+            (cl_mem) top[1]->mutable_gpu_data(), CL_TRUE, 0,
+            sizeof(Dtype) * prefetch_label_.count(), prefetch_label_.cpu_data(),
+            0, NULL, NULL));
+  }
+
+  // Start a new prefetch thread
+  DLOG(INFO) << "CreatePrefetchThread";
+  CreatePrefetchThread();
+}
+
+#else
 STUB_GPU_FORWARD(BasePrefetchingDataLayer, Forward);
 #endif
 
-INSTANTIATE_CLASS(BaseDataLayer);
-INSTANTIATE_CLASS(BasePrefetchingDataLayer);
+INSTANTIATE_CLASS (BaseDataLayer);
+INSTANTIATE_CLASS (BasePrefetchingDataLayer);
 
 }  // namespace caffe

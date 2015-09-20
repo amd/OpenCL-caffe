@@ -20,13 +20,13 @@ inline rng_t* caffe_rng() {
 // Fisher–Yates algorithm
 template <class RandomAccessIterator, class RandomGenerator>
 inline void shuffle(RandomAccessIterator begin, RandomAccessIterator end,
-                    RandomGenerator* gen) {
-  typedef typename std::iterator_traits<RandomAccessIterator>::difference_type
-      difference_type;
+    RandomGenerator* gen) {
+  typedef typename std::iterator_traits<RandomAccessIterator>::difference_type difference_type;
   typedef typename boost::uniform_int<difference_type> dist_type;
 
   difference_type length = std::distance(begin, end);
-  if (length <= 0) return;
+  if (length <= 0)
+    return;
 
   for (difference_type i = length - 1; i > 0; --i) {
     dist_type dist(0, i);

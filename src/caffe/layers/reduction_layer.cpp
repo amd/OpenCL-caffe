@@ -10,13 +10,13 @@ namespace caffe {
 
 template <typename Dtype>
 void ReductionLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top) {
+    const vector<Blob<Dtype>*>& top) {
   op_ = this->layer_param_.reduction_param().operation();
 }
 
 template <typename Dtype>
 void ReductionLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top) {
+    const vector<Blob<Dtype>*>& top) {
   axis_ = bottom[0]->CanonicalAxisIndex(
       this->layer_param_.reduction_param().axis());
   // In the output, we'll keep all axes up to the reduction axis, but
@@ -24,13 +24,13 @@ void ReductionLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
   // Note: currently reducing along non-tail axes is not supported; otherwise,
   // we'd need to also copy any axes following an "end_axis".
   vector<int> top_shape(bottom[0]->shape().begin(),
-                        bottom[0]->shape().begin() + axis_);
+      bottom[0]->shape().begin() + axis_);
   top[0]->Reshape(top_shape);
   num_ = bottom[0]->count(0, axis_);
   dim_ = bottom[0]->count(axis_);
   CHECK_EQ(num_, top[0]->count());
-  if (op_ == ReductionParameter_ReductionOp_SUM ||
-      op_ == ReductionParameter_ReductionOp_MEAN) {
+  if (op_ == ReductionParameter_ReductionOp_SUM
+      || op_ == ReductionParameter_ReductionOp_MEAN) {
     vector<int> sum_mult_shape(1, dim_);
     sum_multiplier_.Reshape(sum_mult_shape);
     caffe_set(dim_, Dtype(1), sum_multiplier_.mutable_cpu_data());
@@ -42,8 +42,8 @@ void ReductionLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
 }
 
 template <typename Dtype>
-void ReductionLayer<Dtype>::Forward_cpu(
-    const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
+void ReductionLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
+    const vector<Blob<Dtype>*>& top) {
   const Dtype* bottom_data = bottom[0]->cpu_data();
   const Dtype* mult_data = NULL;
   if (sum_multiplier_.count() > 0) {
@@ -79,7 +79,9 @@ void ReductionLayer<Dtype>::Forward_cpu(
 template <typename Dtype>
 void ReductionLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
     const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
-  if (!propagate_down[0]) { return; }
+  if (!propagate_down[0]) {
+    return;
+  }
   // Get bottom_data, if needed.
   const Dtype* bottom_data = NULL;
   switch (op_) {
@@ -87,7 +89,7 @@ void ReductionLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
   case ReductionParameter_ReductionOp_SUM:
   case ReductionParameter_ReductionOp_MEAN:
     break;
-  // Operations that need bottom_data
+    // Operations that need bottom_data
   case ReductionParameter_ReductionOp_ASUM:
   case ReductionParameter_ReductionOp_SUMSQ:
     bottom_data = bottom[0]->cpu_data();
@@ -122,11 +124,102 @@ void ReductionLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
   }
 }
 
-#ifdef CPU_ONLY
+#ifndef CPU_ONLY
+// begin: code modified for OpenCL port
+template <typename Dtype>
+void ReductionLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
+    const vector<Blob<Dtype>*>& top) {
+ //Forward_cpu(bottom, top);
+//return;
+  const Dtype* bottom_data = bottom[0]->gpu_data();
+  const Dtype* mult_data = NULL;
+  if (sum_multiplier_.count() > 0) {
+    mult_data = sum_multiplier_.gpu_data();
+  }
+  Dtype* top_data = top[0]->mutable_cpu_data();
+  size_t bottom_offset = 0;
+  for (int i = 0; i < num_; ++i) {
+    switch (op_) {
+    case ReductionParameter_ReductionOp_SUM:
+    case ReductionParameter_ReductionOp_MEAN:
+    caffe_gpu_dot(dim_, mult_data, 0, bottom_data, bottom_offset, top_data);
+      break;
+    case ReductionParameter_ReductionOp_ASUM:
+      caffe_gpu_asum(dim_, bottom_data, bottom_offset, top_data);
+      break;
+    case ReductionParameter_ReductionOp_SUMSQ:
+      caffe_gpu_dot(dim_, bottom_data, bottom_offset, bottom_data, bottom_offset, top_data);
+      break;
+    default:
+      LOG(FATAL) << "Unknown reduction op: "
+          << ReductionParameter_ReductionOp_Name(op_);
+    }
+    bottom_offset += dim_;
+    ++top_data;
+  }
+  if (coeff_ != Dtype(1)) {
+    // Reset the top_data pointer.
+    top_data = top[0]->mutable_gpu_data();
+    caffe_gpu_scal(num_, coeff_, top_data);
+  }
+}
+
+template <typename Dtype>
+void ReductionLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
+    const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
+  if (!propagate_down[0]) {
+    return;
+  }
+  // Get bottom_data, if needed.
+  const Dtype* bottom_data = NULL;
+  switch (op_) {
+  // Operations that don't need bottom_data
+  case ReductionParameter_ReductionOp_SUM:
+  case ReductionParameter_ReductionOp_MEAN:
+    break;
+    // Operations that need bottom_data
+  case ReductionParameter_ReductionOp_ASUM:
+  case ReductionParameter_ReductionOp_SUMSQ:
+    bottom_data = bottom[0]->gpu_data();
+    break;
+  default:
+    LOG(FATAL) << "Unknown reduction op: "
+        << ReductionParameter_ReductionOp_Name(op_);
+  }
+  const Dtype* top_diff = top[0]->cpu_diff();
+  Dtype* bottom_diff = bottom[0]->mutable_gpu_diff();
+  int bottom_data_offset = 0;
+  int bottom_diff_offset = 0;
+  for (int i = 0; i < num_; ++i) {
+    const Dtype bottom_coeff = (*top_diff) * coeff_;
+    switch (op_) {
+    case ReductionParameter_ReductionOp_SUM:
+    case ReductionParameter_ReductionOp_MEAN:
+      caffe_gpu_set(dim_, bottom_coeff, bottom_diff, bottom_diff_offset);
+      break;
+    case ReductionParameter_ReductionOp_ASUM:
+      caffe_gpu_sign(dim_, bottom_data, bottom_data_offset, bottom_diff, bottom_diff_offset);
+      caffe_gpu_scal(dim_, bottom_coeff, bottom_diff, bottom_diff_offset);
+      break;
+    case ReductionParameter_ReductionOp_SUMSQ:
+      caffe_gpu_scale(dim_, 2 * bottom_coeff, bottom_data, bottom_data_offset, bottom_diff, bottom_diff_offset);
+      break;
+    default:
+      LOG(FATAL) << "Unknown reduction op: "
+          << ReductionParameter_ReductionOp_Name(op_);
+    }
+    bottom_data_offset += dim_;
+    bottom_diff_offset += dim_;
+    ++top_diff;
+  }
+}
+// end: code modified for OpenCL port
+
+#else
 STUB_GPU(ReductionLayer);
 #endif
 
-INSTANTIATE_CLASS(ReductionLayer);
-REGISTER_LAYER_CLASS(Reduction);
+INSTANTIATE_CLASS (ReductionLayer);
+REGISTER_LAYER_CLASS (Reduction);
 
 }  // namespace caffe

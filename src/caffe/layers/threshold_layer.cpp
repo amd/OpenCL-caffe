@@ -2,14 +2,14 @@
 
 #include "caffe/layer.hpp"
 #include "caffe/vision_layers.hpp"
-
+#include "caffe/util/ocl_wrapper.hpp"
 
 namespace caffe {
 
 template <typename Dtype>
 void ThresholdLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top) {
-  NeuronLayer<Dtype>::LayerSetUp(bottom, top);
+    const vector<Blob<Dtype>*>& top) {
+  NeuronLayer < Dtype > ::LayerSetUp(bottom, top);
   threshold_ = this->layer_param_.threshold_param().threshold();
 }
 
@@ -24,11 +24,24 @@ void ThresholdLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
   }
 }
 
-#ifdef CPU_ONLY
+#ifndef CPU_ONLY
+// begin: code modified for OpenCL port
+template <typename Dtype>
+void ThresholdLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
+    const vector<Blob<Dtype>*>& top) {
+  const Dtype* bottom_data = bottom[0]->gpu_data();
+  Dtype* top_data = top[0]->mutable_gpu_data();
+  const int count = bottom[0]->count();
+  // NOLINT_NEXT_LINE(whitespace/operators)
+  ThresholdForward(count, threshold_, bottom_data, top_data);
+}
+// end: code modified for OpenCL port
+
+#else
 STUB_GPU_FORWARD(ThresholdLayer, Forward);
 #endif
 
-INSTANTIATE_CLASS(ThresholdLayer);
-REGISTER_LAYER_CLASS(Threshold);
+INSTANTIATE_CLASS (ThresholdLayer);
+REGISTER_LAYER_CLASS (Threshold);
 
 }  // namespace caffe

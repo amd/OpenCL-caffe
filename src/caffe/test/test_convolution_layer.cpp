@@ -122,10 +122,11 @@ class ConvolutionLayerTest : public MultiDeviceTest<TypeParam> {
   }
 
   virtual ~ConvolutionLayerTest() {
-    delete blob_bottom_;
+   /* delete blob_bottom_;
     delete blob_bottom_2_;
     delete blob_top_;
     delete blob_top_2_;
+   */
   }
 
   virtual Blob<Dtype>* MakeReferenceTop(Blob<Dtype>* top) {

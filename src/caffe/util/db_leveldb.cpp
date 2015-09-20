@@ -2,7 +2,8 @@
 
 #include <string>
 
-namespace caffe { namespace db {
+namespace caffe {
+namespace db {
 
 void LevelDB::Open(const string& source, Mode mode) {
   leveldb::Options options;
@@ -12,8 +13,8 @@ void LevelDB::Open(const string& source, Mode mode) {
   options.error_if_exists = mode == NEW;
   options.create_if_missing = mode != READ;
   leveldb::Status status = leveldb::DB::Open(options, source, &db_);
-  CHECK(status.ok()) << "Failed to open leveldb " << source
-                     << std::endl << status.ToString();
+  CHECK(status.ok()) << "Failed to open leveldb " << source << std::endl
+      << status.ToString();
   LOG(INFO) << "Opened leveldb " << source;
 }
 

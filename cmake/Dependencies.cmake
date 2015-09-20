@@ -44,17 +44,27 @@ include_directories(SYSTEM ${Snappy_INCLUDE_DIR})
 list(APPEND Caffe_LINKER_LIBS ${Snappy_LIBRARIES})
 
 # ---[ CUDA
-include(cmake/Cuda.cmake)
-if(NOT HAVE_CUDA)
-  if(CPU_ONLY)
-    message("-- CUDA is disabled. Building without it...")
-  else()
-    message("-- CUDA is not detected by cmake. Building without it...")
-  endif()
+#include(cmake/Cuda.cmake)
+#if(NOT HAVE_CUDA)
+#  if(CPU_ONLY)
+#    message("-- CUDA is disabled. Building without it...")
+#  else()
+#    message("-- CUDA is not detected by cmake. Building without it...")
+#  endif()
 
   # TODO: remove this not cross platform define in future. Use caffe_config.h instead.
-  add_definitions(-DCPU_ONLY)
-endif()
+#  add_definitions(-DCPU_ONLY)
+#endif()
+
+# ---[ OpenCL
+find_package(OpenCL REQUIRED)
+include_directories(SYSTEM ${OPENCL_INCLUDE_DIRS})
+list(APPEND Caffe_LINKER_LIBS ${OPENCL_LIBRARIES})
+
+# ---[ clBLAS
+find_package(clBLAS REQUIRED)
+include_directories(SYSTEM ${CLBLAS_INCLUDE_DIRS})
+list(APPEND Caffe_LINKER_LIBS ${CLBLAS_LIBRARIES})
 
 # ---[ OpenCV
 find_package(OpenCV QUIET COMPONENTS core highgui imgproc imgcodecs)

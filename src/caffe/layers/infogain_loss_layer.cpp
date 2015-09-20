@@ -11,24 +11,24 @@
 namespace caffe {
 
 template <typename Dtype>
-void InfogainLossLayer<Dtype>::LayerSetUp(
-    const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
-  LossLayer<Dtype>::LayerSetUp(bottom, top);
+void InfogainLossLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
+    const vector<Blob<Dtype>*>& top) {
+  LossLayer < Dtype > ::LayerSetUp(bottom, top);
   if (bottom.size() < 3) {
     CHECK(this->layer_param_.infogain_loss_param().has_source())
         << "Infogain matrix source must be specified.";
     BlobProto blob_proto;
-    ReadProtoFromBinaryFile(
-      this->layer_param_.infogain_loss_param().source(), &blob_proto);
+    ReadProtoFromBinaryFile(this->layer_param_.infogain_loss_param().source(),
+        &blob_proto);
     infogain_.FromProto(blob_proto);
   }
 }
 
 template <typename Dtype>
-void InfogainLossLayer<Dtype>::Reshape(
-    const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
-  LossLayer<Dtype>::Reshape(bottom, top);
-  Blob<Dtype>* infogain = NULL;
+void InfogainLossLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
+    const vector<Blob<Dtype>*>& top) {
+  LossLayer < Dtype > ::Reshape(bottom, top);
+  Blob < Dtype > *infogain = NULL;
   if (bottom.size() < 3) {
     infogain = &infogain_;
   } else {
@@ -44,7 +44,6 @@ void InfogainLossLayer<Dtype>::Reshape(
   CHECK_EQ(infogain->height(), dim);
   CHECK_EQ(infogain->width(), dim);
 }
-
 
 template <typename Dtype>
 void InfogainLossLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
@@ -72,15 +71,14 @@ void InfogainLossLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 
 template <typename Dtype>
 void InfogainLossLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
-    const vector<bool>& propagate_down,
-    const vector<Blob<Dtype>*>& bottom) {
+    const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
   if (propagate_down[1]) {
     LOG(FATAL) << this->type()
-               << " Layer cannot backpropagate to label inputs.";
+        << " Layer cannot backpropagate to label inputs.";
   }
   if (propagate_down.size() > 2 && propagate_down[2]) {
     LOG(FATAL) << this->type()
-               << " Layer cannot backpropagate to infogain inputs.";
+        << " Layer cannot backpropagate to infogain inputs.";
   }
   if (propagate_down[0]) {
     const Dtype* bottom_data = bottom[0]->cpu_data();
@@ -94,7 +92,7 @@ void InfogainLossLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
     Dtype* bottom_diff = bottom[0]->mutable_cpu_diff();
     int num = bottom[0]->num();
     int dim = bottom[0]->count() / bottom[0]->num();
-    const Dtype scale = - top[0]->cpu_diff()[0] / num;
+    const Dtype scale = -top[0]->cpu_diff()[0] / num;
     for (int i = 0; i < num; ++i) {
       const int label = static_cast<int>(bottom_label[i]);
       for (int j = 0; j < dim; ++j) {
@@ -105,6 +103,6 @@ void InfogainLossLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
   }
 }
 
-INSTANTIATE_CLASS(InfogainLossLayer);
-REGISTER_LAYER_CLASS(InfogainLoss);
+INSTANTIATE_CLASS (InfogainLossLayer);
+REGISTER_LAYER_CLASS (InfogainLoss);
 }  // namespace caffe

@@ -18,8 +18,7 @@ namespace caffe {
 
 // Get convolution layer according to engine.
 template <typename Dtype>
-shared_ptr<Layer<Dtype> > GetConvolutionLayer(
-    const LayerParameter& param) {
+shared_ptr<Layer<Dtype> > GetConvolutionLayer(const LayerParameter& param) {
   ConvolutionParameter_Engine engine = param.convolution_param().engine();
   if (engine == ConvolutionParameter_Engine_DEFAULT) {
     engine = ConvolutionParameter_Engine_CAFFE;
@@ -28,7 +27,7 @@ shared_ptr<Layer<Dtype> > GetConvolutionLayer(
 #endif
   }
   if (engine == ConvolutionParameter_Engine_CAFFE) {
-    return shared_ptr<Layer<Dtype> >(new ConvolutionLayer<Dtype>(param));
+    return shared_ptr < Layer<Dtype> > (new ConvolutionLayer<Dtype>(param));
 #ifdef USE_CUDNN
   } else if (engine == ConvolutionParameter_Engine_CUDNN) {
     return shared_ptr<Layer<Dtype> >(new CuDNNConvolutionLayer<Dtype>(param));
@@ -51,14 +50,14 @@ shared_ptr<Layer<Dtype> > GetPoolingLayer(const LayerParameter& param) {
 #endif
   }
   if (engine == PoolingParameter_Engine_CAFFE) {
-    return shared_ptr<Layer<Dtype> >(new PoolingLayer<Dtype>(param));
+    return shared_ptr < Layer<Dtype> > (new PoolingLayer<Dtype>(param));
 #ifdef USE_CUDNN
   } else if (engine == PoolingParameter_Engine_CUDNN) {
     PoolingParameter p_param = param.pooling_param();
     if (p_param.pad() || p_param.pad_h() || p_param.pad_w() ||
         param.top_size() > 1) {
       LOG(INFO) << "CUDNN does not support padding or multiple tops. "
-                << "Using Caffe's own pooling layer.";
+      << "Using Caffe's own pooling layer.";
       return shared_ptr<Layer<Dtype> >(new PoolingLayer<Dtype>(param));
     }
     return shared_ptr<Layer<Dtype> >(new CuDNNPoolingLayer<Dtype>(param));
@@ -81,7 +80,7 @@ shared_ptr<Layer<Dtype> > GetReLULayer(const LayerParameter& param) {
 #endif
   }
   if (engine == ReLUParameter_Engine_CAFFE) {
-    return shared_ptr<Layer<Dtype> >(new ReLULayer<Dtype>(param));
+    return shared_ptr < Layer<Dtype> > (new ReLULayer<Dtype>(param));
 #ifdef USE_CUDNN
   } else if (engine == ReLUParameter_Engine_CUDNN) {
     return shared_ptr<Layer<Dtype> >(new CuDNNReLULayer<Dtype>(param));
@@ -104,7 +103,7 @@ shared_ptr<Layer<Dtype> > GetSigmoidLayer(const LayerParameter& param) {
 #endif
   }
   if (engine == SigmoidParameter_Engine_CAFFE) {
-    return shared_ptr<Layer<Dtype> >(new SigmoidLayer<Dtype>(param));
+    return shared_ptr < Layer<Dtype> > (new SigmoidLayer<Dtype>(param));
 #ifdef USE_CUDNN
   } else if (engine == SigmoidParameter_Engine_CUDNN) {
     return shared_ptr<Layer<Dtype> >(new CuDNNSigmoidLayer<Dtype>(param));
@@ -127,7 +126,7 @@ shared_ptr<Layer<Dtype> > GetSoftmaxLayer(const LayerParameter& param) {
 #endif
   }
   if (engine == SoftmaxParameter_Engine_CAFFE) {
-    return shared_ptr<Layer<Dtype> >(new SoftmaxLayer<Dtype>(param));
+    return shared_ptr < Layer<Dtype> > (new SoftmaxLayer<Dtype>(param));
 #ifdef USE_CUDNN
   } else if (engine == SoftmaxParameter_Engine_CUDNN) {
     return shared_ptr<Layer<Dtype> >(new CuDNNSoftmaxLayer<Dtype>(param));
@@ -150,7 +149,7 @@ shared_ptr<Layer<Dtype> > GetTanHLayer(const LayerParameter& param) {
 #endif
   }
   if (engine == TanHParameter_Engine_CAFFE) {
-    return shared_ptr<Layer<Dtype> >(new TanHLayer<Dtype>(param));
+    return shared_ptr < Layer<Dtype> > (new TanHLayer<Dtype>(param));
 #ifdef USE_CUDNN
   } else if (engine == TanHParameter_Engine_CUDNN) {
     return shared_ptr<Layer<Dtype> >(new CuDNNTanHLayer<Dtype>(param));
@@ -181,4 +180,5 @@ REGISTER_LAYER_CREATOR(Python, GetPythonLayer);
 
 // Layers that use their constructor as their default creator should be
 // registered in their corresponding cpp files. Do not register them here.
-}  // namespace caffe
+}
+ // namespace caffe

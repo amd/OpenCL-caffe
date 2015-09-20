@@ -31,8 +31,9 @@ template <typename Dtype>
 void ReshapeLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
     const vector<Blob<Dtype>*>& top) {
   const int input_start_axis = this->layer_param_.reshape_param().axis();
-  const int start_axis = (input_start_axis >= 0) ? input_start_axis :
-      bottom[0]->num_axes() + input_start_axis + 1;
+  const int start_axis =
+      (input_start_axis >= 0) ?
+          input_start_axis : bottom[0]->num_axes() + input_start_axis + 1;
   CHECK_GE(start_axis, 0) << "axis " << input_start_axis << " out of range";
   CHECK_LE(start_axis, bottom[0]->num_axes()) << "axis " << input_start_axis
       << " out of range for " << bottom[0]->num_axes() << "-D input blob";
@@ -63,8 +64,8 @@ void ReshapeLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
     CHECK_GT(bottom[0]->num_axes(), start_axis + copy_axis_index)
         << "new shape contains a 0, but there was no corresponding bottom axis "
         << "to copy";
-    top_shape[start_axis + copy_axis_index] =
-        bottom[0]->shape(start_axis + copy_axis_index);
+    top_shape[start_axis + copy_axis_index] = bottom[0]->shape(
+        start_axis + copy_axis_index);
   }
   if (inferred_axis_ >= 0) {
     // A -1 dim was specified; infer the correct dimension by computing the
@@ -89,7 +90,7 @@ void ReshapeLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
   top[0]->ShareDiff(*bottom[0]);
 }
 
-INSTANTIATE_CLASS(ReshapeLayer);
-REGISTER_LAYER_CLASS(Reshape);
+INSTANTIATE_CLASS (ReshapeLayer);
+REGISTER_LAYER_CLASS (Reshape);
 
 }  // namespace caffe

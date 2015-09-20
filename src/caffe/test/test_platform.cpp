@@ -10,10 +10,10 @@
 
 namespace caffe {
 
-extern cudaDeviceProp CAFFE_TEST_CUDA_PROP;
+//extern cudaDeviceProp CAFFE_TEST_CUDA_PROP;
 
 class PlatformTest : public ::testing::Test {};
-
+/*
 TEST_F(PlatformTest, TestInitialization) {
   printf("Major revision number:         %d\n",  CAFFE_TEST_CUDA_PROP.major);
   printf("Minor revision number:         %d\n",  CAFFE_TEST_CUDA_PROP.minor);
@@ -51,7 +51,7 @@ TEST_F(PlatformTest, TestInitialization) {
          (CAFFE_TEST_CUDA_PROP.unifiedAddressing ? "Yes" : "No"));
   EXPECT_TRUE(true);
 }
-
+*/
 }  // namespace caffe
 
 #endif  // CPU_ONLY

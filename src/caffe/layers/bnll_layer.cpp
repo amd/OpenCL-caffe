@@ -15,16 +15,16 @@ void BNLLLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
   Dtype* top_data = top[0]->mutable_cpu_data();
   const int count = bottom[0]->count();
   for (int i = 0; i < count; ++i) {
-    top_data[i] = bottom_data[i] > 0 ?
-        bottom_data[i] + log(1. + exp(-bottom_data[i])) :
-        log(1. + exp(bottom_data[i]));
+    top_data[i] =
+        bottom_data[i] > 0 ?
+            bottom_data[i] + log(1. + exp(-bottom_data[i])) :
+            log(1. + exp(bottom_data[i]));
   }
 }
 
 template <typename Dtype>
 void BNLLLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
-    const vector<bool>& propagate_down,
-    const vector<Blob<Dtype>*>& bottom) {
+    const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
   if (propagate_down[0]) {
     const Dtype* bottom_data = bottom[0]->cpu_data();
     const Dtype* top_diff = top[0]->cpu_diff();
@@ -38,11 +38,37 @@ void BNLLLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
   }
 }
 
-#ifdef CPU_ONLY
+#ifndef CPU_ONLY
+// begin: code modified for OpenCL port
+template <typename Dtype>
+void BNLLLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
+    const vector<Blob<Dtype>*>& top) {
+  const Dtype* bottom_data = bottom[0]->gpu_data();
+  Dtype* top_data = top[0]->mutable_gpu_data();
+  const int count = bottom[0]->count();
+  // NOLINT_NEXT_LINE(whitespace/operators)
+  BNLLForward(count, bottom_data, top_data);
+}
+
+template <typename Dtype>
+void BNLLLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
+    const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
+  if (propagate_down[0]) {
+    const Dtype* bottom_data = bottom[0]->gpu_data();
+    const Dtype* top_diff = top[0]->gpu_diff();
+    Dtype* bottom_diff = bottom[0]->mutable_gpu_diff();
+    const int count = bottom[0]->count();
+    // NOLINT_NEXT_LINE(whitespace/operators)
+    BNLLBackward(count, top_diff, bottom_data, bottom_diff);
+  }
+}
+// end: code modified for OpenCL port
+
+#else
 STUB_GPU(BNLLLayer);
 #endif
 
-INSTANTIATE_CLASS(BNLLLayer);
-REGISTER_LAYER_CLASS(BNLL);
+INSTANTIATE_CLASS (BNLLLayer);
+REGISTER_LAYER_CLASS (BNLL);
 
 }  // namespace caffe

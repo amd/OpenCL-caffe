@@ -15,27 +15,31 @@ using std::max;
 
 template <typename Dtype>
 void PoolingLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top) {
+    const vector<Blob<Dtype>*>& top) {
   PoolingParameter pool_param = this->layer_param_.pooling_param();
   if (pool_param.global_pooling()) {
-    CHECK(!(pool_param.has_kernel_size() ||
-      pool_param.has_kernel_h() || pool_param.has_kernel_w()))
-      << "With Global_pooling: true Filter size cannot specified";
+    CHECK(
+        !(pool_param.has_kernel_size() || pool_param.has_kernel_h()
+            || pool_param.has_kernel_w()))
+        << "With Global_pooling: true Filter size cannot specified";
   } else {
-    CHECK(!pool_param.has_kernel_size() !=
-      !(pool_param.has_kernel_h() && pool_param.has_kernel_w()))
-      << "Filter size is kernel_size OR kernel_h and kernel_w; not both";
-    CHECK(pool_param.has_kernel_size() ||
-      (pool_param.has_kernel_h() && pool_param.has_kernel_w()))
-      << "For non-square filters both kernel_h and kernel_w are required.";
+    CHECK(
+        !pool_param.has_kernel_size()
+            != !(pool_param.has_kernel_h() && pool_param.has_kernel_w()))
+        << "Filter size is kernel_size OR kernel_h and kernel_w; not both";
+    CHECK(
+        pool_param.has_kernel_size()
+            || (pool_param.has_kernel_h() && pool_param.has_kernel_w()))
+        << "For non-square filters both kernel_h and kernel_w are required.";
   }
-  CHECK((!pool_param.has_pad() && pool_param.has_pad_h()
-      && pool_param.has_pad_w())
-      || (!pool_param.has_pad_h() && !pool_param.has_pad_w()))
+  CHECK(
+      (!pool_param.has_pad() && pool_param.has_pad_h() && pool_param.has_pad_w())
+          || (!pool_param.has_pad_h() && !pool_param.has_pad_w()))
       << "pad is pad OR pad_h and pad_w are required.";
-  CHECK((!pool_param.has_stride() && pool_param.has_stride_h()
-      && pool_param.has_stride_w())
-      || (!pool_param.has_stride_h() && !pool_param.has_stride_w()))
+  CHECK(
+      (!pool_param.has_stride() && pool_param.has_stride_h()
+          && pool_param.has_stride_w())
+          || (!pool_param.has_stride_h() && !pool_param.has_stride_w()))
       << "Stride is stride OR stride_h and stride_w are required.";
   global_pooling_ = pool_param.global_pooling();
   if (global_pooling_) {
@@ -65,13 +69,14 @@ void PoolingLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
   }
   if (global_pooling_) {
     CHECK(pad_h_ == 0 && pad_w_ == 0 && stride_h_ == 1 && stride_w_ == 1)
-      << "With Global_pooling: true; only pad = 0 and stride = 1";
+        << "With Global_pooling: true; only pad = 0 and stride = 1";
   }
   if (pad_h_ != 0 || pad_w_ != 0) {
-    CHECK(this->layer_param_.pooling_param().pool()
-        == PoolingParameter_PoolMethod_AVE
-        || this->layer_param_.pooling_param().pool()
-        == PoolingParameter_PoolMethod_MAX)
+    CHECK(
+        this->layer_param_.pooling_param().pool()
+            == PoolingParameter_PoolMethod_AVE
+            || this->layer_param_.pooling_param().pool()
+                == PoolingParameter_PoolMethod_MAX)
         << "Padding implemented only for average and max pooling.";
     CHECK_LT(pad_h_, kernel_h_);
     CHECK_LT(pad_w_, kernel_w_);
@@ -80,7 +85,7 @@ void PoolingLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
 
 template <typename Dtype>
 void PoolingLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top) {
+    const vector<Blob<Dtype>*>& top) {
   CHECK_EQ(4, bottom[0]->num_axes()) << "Input must have 4 axes, "
       << "corresponding to (num, channels, height, width)";
   channels_ = bottom[0]->channels();
@@ -90,10 +95,10 @@ void PoolingLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
     kernel_h_ = bottom[0]->height();
     kernel_w_ = bottom[0]->width();
   }
-  pooled_height_ = static_cast<int>(ceil(static_cast<float>(
-      height_ + 2 * pad_h_ - kernel_h_) / stride_h_)) + 1;
-  pooled_width_ = static_cast<int>(ceil(static_cast<float>(
-      width_ + 2 * pad_w_ - kernel_w_) / stride_w_)) + 1;
+  pooled_height_ = static_cast<int>(ceil(
+      static_cast<float>(height_ + 2 * pad_h_ - kernel_h_) / stride_h_)) + 1;
+  pooled_width_ = static_cast<int>(ceil(
+      static_cast<float>(width_ + 2 * pad_w_ - kernel_w_) / stride_w_)) + 1;
   if (pad_h_ || pad_w_) {
     // If we have padding, ensure that the last pooling starts strictly
     // inside the image (instead of at the padding); otherwise clip the last.
@@ -106,22 +111,21 @@ void PoolingLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
     CHECK_LT((pooled_height_ - 1) * stride_h_, height_ + pad_h_);
     CHECK_LT((pooled_width_ - 1) * stride_w_, width_ + pad_w_);
   }
-  top[0]->Reshape(bottom[0]->num(), channels_, pooled_height_,
-      pooled_width_);
+  top[0]->Reshape(bottom[0]->num(), channels_, pooled_height_, pooled_width_);
   if (top.size() > 1) {
     top[1]->ReshapeLike(*top[0]);
   }
   // If max pooling, we will initialize the vector index part.
-  if (this->layer_param_.pooling_param().pool() ==
-      PoolingParameter_PoolMethod_MAX && top.size() == 1) {
+  if (this->layer_param_.pooling_param().pool()
+      == PoolingParameter_PoolMethod_MAX && top.size() == 1) {
     max_idx_.Reshape(bottom[0]->num(), channels_, pooled_height_,
         pooled_width_);
   }
   // If stochastic pooling, we will initialize the random index part.
-  if (this->layer_param_.pooling_param().pool() ==
-      PoolingParameter_PoolMethod_STOCHASTIC) {
+  if (this->layer_param_.pooling_param().pool()
+      == PoolingParameter_PoolMethod_STOCHASTIC) {
     rand_idx_.Reshape(bottom[0]->num(), channels_, pooled_height_,
-      pooled_width_);
+        pooled_width_);
   }
 }
 
@@ -129,7 +133,7 @@ void PoolingLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
 // case?
 template <typename Dtype>
 void PoolingLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top) {
+    const vector<Blob<Dtype>*>& top) {
   const Dtype* bottom_data = bottom[0]->cpu_data();
   Dtype* top_data = top[0]->mutable_cpu_data();
   const int top_count = top[0]->count();
@@ -231,7 +235,7 @@ void PoolingLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 
 template <typename Dtype>
 void PoolingLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
-      const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
+    const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
   if (!propagate_down[0]) {
     return;
   }
@@ -289,8 +293,8 @@ void PoolingLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
             wend = min(wend, width_);
             for (int h = hstart; h < hend; ++h) {
               for (int w = wstart; w < wend; ++w) {
-                bottom_diff[h * width_ + w] +=
-                  top_diff[ph * pooled_width_ + pw] / pool_size;
+                bottom_diff[h * width_ + w] += top_diff[ph * pooled_width_ + pw]
+                    / pool_size;
               }
             }
           }
@@ -309,11 +313,106 @@ void PoolingLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
   }
 }
 
+#ifndef CPU_ONLY
+// begin: code modified for OpenCL port
+template <typename Dtype>
+void PoolingLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
+    const vector<Blob<Dtype>*>& top) {
+  //Forward_cpu(bottom, top);
+  const Dtype* bottom_data = bottom[0]->gpu_data();
+  Dtype* top_data = top[0]->mutable_gpu_data();
+  int count = top[0]->count();
+  // We'll output the mask to top[1] if it's of size >1.
+  const bool use_top_mask = top.size() > 1;
+  int* mask = NULL;
+  Dtype* top_mask = NULL;
+  switch (this->layer_param_.pooling_param().pool()) {
+  case PoolingParameter_PoolMethod_MAX:
+    if (use_top_mask) {
+      top_mask = top[1]->mutable_gpu_data();
+    } else {
+      mask = max_idx_.mutable_gpu_data();
+    }
+    // NOLINT_NEXT_LINE(whitespace/operators)
+    MaxPoolForward(count, bottom_data, bottom[0]->num(), channels_, height_,
+        width_, pooled_height_, pooled_width_, kernel_h_, kernel_w_, stride_h_,
+        stride_w_, pad_h_, pad_w_, top_data, mask, top_mask);
+    break;
+  case PoolingParameter_PoolMethod_AVE:
+    // NOLINT_NEXT_LINE(whitespace/operators)
+    AvePoolForward(count, bottom_data, bottom[0]->num(), channels_, height_,
+        width_, pooled_height_, pooled_width_, kernel_h_, kernel_w_, stride_h_,
+        stride_w_, pad_h_, pad_w_, top_data);
+    break;
+  case PoolingParameter_PoolMethod_STOCHASTIC:
+    if (this->phase_ == TRAIN) {
+      // We need to create the random index as well.
+      caffe_gpu_rng_uniform(count, Dtype(0), Dtype(1),
+          rand_idx_.mutable_gpu_data());
+      // NOLINT_NEXT_LINE(whitespace/operators)
+      StoPoolForwardTrain(count, bottom_data, bottom[0]->num(), channels_,
+          height_, width_, pooled_height_, pooled_width_, kernel_h_, kernel_w_,
+          stride_h_, stride_w_, rand_idx_.mutable_gpu_data(), top_data);
+    } else {
+      // NOLINT_NEXT_LINE(whitespace/operators)
+      StoPoolForwardTest(count, bottom_data, bottom[0]->num(), channels_,
+          height_, width_, pooled_height_, pooled_width_, kernel_h_, kernel_w_,
+          stride_h_, stride_w_, top_data);
+    }
+    break;
+  default:
+    LOG(FATAL) << "Unknown pooling method.";
+  }
+}
 
-#ifdef CPU_ONLY
+template <typename Dtype>
+void PoolingLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
+    const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
+  //Backward_cpu(top, propagate_down, bottom);
+  if (!propagate_down[0]) {
+    return;
+  }
+  const Dtype* top_diff = top[0]->gpu_diff();
+  Dtype* bottom_diff = bottom[0]->mutable_gpu_diff();
+  const int count = bottom[0]->count();
+  caffe_gpu_set(count, Dtype(0.), bottom_diff);
+  // We'll output the mask to top[1] if it's of size >1.
+  const bool use_top_mask = top.size() > 1;
+  const int* mask = NULL;
+  const Dtype* top_mask = NULL;
+  switch (this->layer_param_.pooling_param().pool()) {
+  case PoolingParameter_PoolMethod_MAX:
+    if (use_top_mask) {
+      top_mask = top[1]->gpu_data();
+    } else {
+      mask = max_idx_.gpu_data();
+    }
+    // NOLINT_NEXT_LINE(whitespace/operators)
+    MaxPoolBackward(count, top_diff, mask, top_mask, top[0]->num(), channels_,
+        height_, width_, pooled_height_, pooled_width_, kernel_h_, kernel_w_,
+        stride_h_, stride_w_, pad_h_, pad_w_, bottom_diff);
+    break;
+  case PoolingParameter_PoolMethod_AVE:
+    // NOLINT_NEXT_LINE(whitespace/operators)
+    AvePoolBackward(count, top_diff, top[0]->num(), channels_, height_, width_,
+        pooled_height_, pooled_width_, kernel_h_, kernel_w_, stride_h_,
+        stride_w_, pad_h_, pad_w_, bottom_diff);
+    break;
+  case PoolingParameter_PoolMethod_STOCHASTIC:
+    // NOLINT_NEXT_LINE(whitespace/operators)
+    StoPoolBackward(count, rand_idx_.gpu_data(), top_diff, top[0]->num(),
+        channels_, height_, width_, pooled_height_, pooled_width_, kernel_h_,
+        kernel_w_, stride_h_, stride_w_, bottom_diff);
+    break;
+  default:
+    LOG(FATAL) << "Unknown pooling method.";
+  }
+}
+// end: code modified for OpenCL port
+#else
 STUB_GPU(PoolingLayer);
 #endif
 
-INSTANTIATE_CLASS(PoolingLayer);
+INSTANTIATE_CLASS (PoolingLayer);
 
 }  // namespace caffe
