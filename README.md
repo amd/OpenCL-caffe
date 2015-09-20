@@ -4,6 +4,15 @@ This is an OpenCL implementation of Caffe, a mainstream DNN framework (https://g
 
 OpenCL (https://en.wikipedia.org/wiki/OpenCL) is an open standard parallel programming language for heterogeneous platforms. OpenCL is supported by a variety of commercial chip manufacturers. 
 
+#Branches
+ We have three braches in this repo.
+ 
+ -stable, the stable branch for users
+ 
+ -dev, the developer branch, we encourage people to contribute on this branch
+ 
+ -master, the original Caffe's master branch against which our code is syncrhonized.
+ 
 #Design features
   -All Caffe layers ported to OpenCL
 
