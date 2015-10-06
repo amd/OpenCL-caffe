@@ -82,7 +82,7 @@ private:\
 //the following are macro defines for optimization schmes in conv layer
 /*ifdef: use proposed img_packing scheme;
  ifndef: use proposed packing im2col + sgemm scheme*/
-#define use_packing_scheme 0
+#define use_packing_scheme 1
 /* global_packing_N defines packing number of the use_packing scheme
  for intial design, we use the same packing number for all conv layers*/
 #define global_packing_N 16
