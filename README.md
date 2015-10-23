@@ -34,15 +34,19 @@ We intend to keep updating the latest performance as we make optimizations. Fury
 
 * Training speed (Model: AlexNet, minibatch size 128)
 
-    -AMD W9100, 255 images per second
+    -AMD W9100, 255 images per second (config, with A10-7850k)
 
-    -AMD R9 Fury, 261 images per second
+    -AMD R9 Fury, 261 images per second (config, with A10-7850k)
+    
+    -AMD S9150 @900MHz, 227 images per second (564ms per iteration) (config, with CPU Intel E5-2640, clBLAS 2.6, OpenCL 2.0 with driver 1774.6)
 
 * Recognition speed (Model: AlexNet, minibatch size 128)
 
-    -AMD W9100, 590 images per second
+    -AMD W9100, 590 images per second (config, with A10-7850k)
 
-    -AMD R9 Fury, 699 images per second
+    -AMD R9 Fury, 699 images per second (config, with A10-7850k)
+    
+    -AMD S9150 @900MHz, 452 images per second (283ms per iteration) ( config, with CPU Intel E5-2640, clBLAS 2.6, OpenCL 2.0 with driver 1774.6)
 
 #Wiki
 For more information on how to install, use or contribute to this code base, please visit our wiki page:
