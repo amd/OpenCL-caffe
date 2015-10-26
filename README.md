@@ -39,6 +39,8 @@ We intend to keep updating the latest performance as we make optimizations. Fury
     -AMD R9 Fury, 261 images per second (config, with A10-7850k)
     
     -AMD S9150 @900MHz, 227 images per second (564ms per iteration) (config, with CPU Intel E5-2640, clBLAS 2.6, OpenCL 2.0 with driver 1774.6)
+    
+    -AMD R290X @1000MHz, 268 images per second (478ms per iteration) (config, with A10-7850k, clBLAS 2.6 release built, OpenCL 2.0 with driver 1642.5)
 
 * Recognition speed (Model: AlexNet, minibatch size 128)
 
@@ -47,6 +49,8 @@ We intend to keep updating the latest performance as we make optimizations. Fury
     -AMD R9 Fury, 699 images per second (config, with A10-7850k)
     
     -AMD S9150 @900MHz, 452 images per second (283ms per iteration) ( config, with CPU Intel E5-2640, clBLAS 2.6, OpenCL 2.0 with driver 1774.6)
+    
+    -AMD R290X @1000MHz, 606 images per second (211ms per iteration) (config, with A10-7850k, clBLAS 2.6 release built, OpenCL 2.0 with driver 1642.5)
 
 #Wiki
 For more information on how to install, use or contribute to this code base, please visit our wiki page:
