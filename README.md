@@ -1,4 +1,4 @@
-#This was experimental branch of Caffe for OpenCL, we know recomend you use the now offical OpenCL port of Caffe in BVLC GitHub Repo at https://github.com/BVLC/caffe/tree/opencl
+#This was experimental branch of Caffe for OpenCL, we know recommend you use the now official OpenCL port of Caffe in BVLC GitHub Repo at https://github.com/BVLC/caffe/tree/opencl
 
 
 ###OpenCL Caffe Experimental branch by AMD Reserach- No new development is happing on it. 
