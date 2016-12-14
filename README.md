@@ -1,4 +1,4 @@
-#This was experimental branch of Caffe for OpenCL, we know recommend you use the now official OpenCL port of Caffe in BVLC GitHub Repo at https://github.com/BVLC/caffe/tree/opencl
+#This was experimental branch of Caffe for OpenCL, we now recommend you use the official OpenCL port of Caffe in BVLC GitHub Repo at https://github.com/BVLC/caffe/tree/opencl
 
 
 ###OpenCL Caffe Experimental branch by AMD Reserach- No new development is happing on it. 
@@ -10,24 +10,25 @@ OpenCL (https://en.wikipedia.org/wiki/OpenCL) is an open standard parallel progr
 ####Branches
  We have three branches in this repo.
  
- -stable, the stable branch for users
+- `stable`, the stable branch for users
  
- -dev, the developer branch, we encourage people to contribute on this branch
+- `dev`, the developer branch, we encourage people to contribute on this branch
  
- -master, the original Caffe's master branch against which our code is synchronized.
+- `master`, the original Caffe's master branch against which our code is synchronized.
  
 ####Design features
-  -All Caffe layers ported to OpenCL
 
-  -Performance improvement by batched implementation for conv layer based on clBLAS
+- All Caffe layers ported to OpenCL
 
-  -The user can choose the optimal batch number depending on H/W properties, image size and minibatch size
+- Performance improvement by batched implementation for conv layer based on clBLAS
 
-  -Supports OpenCL 2.0, 1.2
+- The user can choose the optimal batch number depending on H/W properties, image size and minibatch size
+
+- Supports OpenCL 2.0, 1.2
   
-  -Implemented in C++ and OpenCL, maintaining the same interfaces as the original Caffe
+- Implemented in C++ and OpenCL, maintaining the same interfaces as the original Caffe
 
-  -Users can directly run DNN models: AlexNet, VGG-16 and VGG-19
+- Users can directly run DNN models: AlexNet, VGG-16 and VGG-19
 
 Note: More features are planned in the near future. Currently this implementation has been verified and tuned on AMD devices (CPUs/GPUs/APUs). Compatibility across different chip manufacturers will be considered for future addition.
 
