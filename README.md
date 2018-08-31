@@ -1,13 +1,14 @@
-#This was experimental branch of Caffe for OpenCL, we know recommend you use the now official OpenCL port of Caffe in BVLC GitHub Repo at https://github.com/BVLC/caffe/tree/opencl
+# This was experimental branch of Caffe for OpenCL, we know recommend you use the now official OpenCL port of Caffe in BVLC GitHub Repo at https://github.com/BVLC/caffe/tree/opencl
 
 
-###OpenCL Caffe Experimental branch by AMD Reserach- No new development is happing on it. 
+### OpenCL Caffe Experimental branch by AMD Reserach- No new development is happing on it. 
 
 This is an OpenCL implementation of Caffe, a mainstream DNN framework (https://github.com/BVLC/caffe). It includes a largely complete Caffe feature set as of August 2015. The project is under active development to improve performance and add new features. Contributions from the community are welcome.
 
 OpenCL (https://en.wikipedia.org/wiki/OpenCL) is an open standard parallel programming language for heterogeneous platforms. OpenCL is supported by a variety of commercial chip manufacturers. 
 
-####Branches
+#### Branches
+
  We have three branches in this repo.
  
  -stable, the stable branch for users
@@ -16,7 +17,8 @@ OpenCL (https://en.wikipedia.org/wiki/OpenCL) is an open standard parallel progr
  
  -master, the original Caffe's master branch against which our code is synchronized.
  
-####Design features
+#### Design features
+
   -All Caffe layers ported to OpenCL
 
   -Performance improvement by batched implementation for conv layer based on clBLAS
@@ -31,7 +33,7 @@ OpenCL (https://en.wikipedia.org/wiki/OpenCL) is an open standard parallel progr
 
 Note: More features are planned in the near future. Currently this implementation has been verified and tuned on AMD devices (CPUs/GPUs/APUs). Compatibility across different chip manufacturers will be considered for future addition.
 
-####Performance
+#### Performance
 
 We intend to keep updating the latest performance as we make optimizations. Fury results are preliminary and are actively being improved.
 
@@ -55,24 +57,28 @@ We intend to keep updating the latest performance as we make optimizations. Fury
 |AMD S9150 @900MHz & Xeon E5-2640| 452 |
 
 
-####Wiki
+#### Wiki
 For more information on how to install, use or contribute to this code base, please visit our wiki page:
  https://github.com/amd/OpenCL-caffe/wiki
 
 #Contributors
+
 Junli Gu, Yibing Liu, Yuan Gao, Maohua Zhu
 
 We thank Mauricio Breternitz, Hanjin Chu and Greg Stoner for their technical suggestions and support. 
 
 If you have any questions, please send an email to Junli.Gu@amd.com 
 
-###Support needed
+### Support needed
+
  As an open source project, we hope to maintain an open dynamics and sharing culture. We encourage the contribution and support from the community to improve it together.
 
-###License
+### License
+
 The original Caffe is provided in the [BSD 2-Clause license](https://github.com/BVLC/caffe/blob/master/LICENSE) open source license. The OpenCL ports written by AMD is covered by AMD license. We encourage the contribution and support from external, your contribution will be covered either by BSD 2-Clause license or whichever your preferred license.
 
 ### Original Caffe information
+
 ##### Caffe
 
 Caffe is a deep learning framework made with expression, speed, and modularity in mind.
