@@ -1,4 +1,4 @@
-# This was experimental branch of Caffe for OpenCL, we know recommend you use the now official OpenCL port of Caffe in BVLC GitHub Repo at https://github.com/BVLC/caffe/tree/opencl
+#### This was experimental branch of Caffe for OpenCL, we know recommend you use the now official OpenCL port of Caffe in BVLC GitHub Repo at https://github.com/BVLC/caffe/tree/opencl
 
 
 ### OpenCL Caffe Experimental branch by AMD Reserach- No new development is happing on it. 
@@ -61,7 +61,7 @@ We intend to keep updating the latest performance as we make optimizations. Fury
 For more information on how to install, use or contribute to this code base, please visit our wiki page:
  https://github.com/amd/OpenCL-caffe/wiki
 
-#Contributors
+#### Contributors
 
 Junli Gu, Yibing Liu, Yuan Gao, Maohua Zhu
 
@@ -69,11 +69,11 @@ We thank Mauricio Breternitz, Hanjin Chu and Greg Stoner for their technical sug
 
 If you have any questions, please send an email to Junli.Gu@amd.com 
 
-### Support needed
+#### Support needed
 
  As an open source project, we hope to maintain an open dynamics and sharing culture. We encourage the contribution and support from the community to improve it together.
 
-### License
+#### License
 
 The original Caffe is provided in the [BSD 2-Clause license](https://github.com/BVLC/caffe/blob/master/LICENSE) open source license. The OpenCL ports written by AMD is covered by AMD license. We encourage the contribution and support from external, your contribution will be covered either by BSD 2-Clause license or whichever your preferred license.
 
